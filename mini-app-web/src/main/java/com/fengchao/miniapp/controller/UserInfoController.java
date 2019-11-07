@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 @Validated
 @Api(tags="UserInfoManager", description = "用户信息管理", produces = "application/json;charset=UTF-8")
 @RestController
-@RequestMapping(value = "/user")
+@RequestMapping(value = "/wechat")
 @Slf4j
 public class UserInfoController {
 
@@ -41,7 +41,7 @@ public class UserInfoController {
     }
 
     @ApiOperation(value = "新建UserInfo信息", notes="新建UserInfo信息")
-    @PostMapping("/info")
+    @PostMapping("/openinfo")
     public ResultObject<String>
     createUserInfo(HttpServletResponse response,
                @ApiParam(value="body",required=true)
@@ -55,14 +55,14 @@ public class UserInfoController {
 
         String openId = data.getOpenId();
 
-        List<UserInfo> storedUserInfos;
+        UserInfo storedUserInfo;
         try{
-            storedUserInfos = userInfoService.selectByOpenId(openId);
+            storedUserInfo = userInfoService.selectByOpenId(openId);
         }catch (Exception e){
-            throw new Exception(MyErrorCode.MYSQL_OPERATE_EXCEPTION+e.getMessage());
+            throw new Exception(e);
         }
-        if (null != storedUserInfos && 0 < storedUserInfos.size()){
-            throw new Exception(MyErrorCode.USERINFO_EXISTED + JSON.toJSONString(storedUserInfos.get(0)));
+        if (null != storedUserInfo){
+            throw new Exception(MyErrorCode.USERINFO_EXISTED + JSON.toJSONString(storedUserInfo));
         }
 
         UserInfo newUserInfo = new UserInfo();
@@ -87,10 +87,8 @@ public class UserInfoController {
         return new ResultObject<>(200,"ok",newUserInfo.getId().toString());
     }
 
-
-
     @ApiOperation(value = "删除UserInfo信息", notes="删除UserInfo信息")
-    @DeleteMapping("/account/{id}")
+    @DeleteMapping("/openinfo/{id}")
     public ResultObject<String>
     deleteUserInfo(HttpServletResponse response,
                @ApiParam(value="id",required=true)
@@ -105,7 +103,7 @@ public class UserInfoController {
         try {
             userInfo = userInfoService.getRecordById(id);
         }catch (Exception e){
-            throw new Exception(MyErrorCode.MYSQL_OPERATE_EXCEPTION+e.getMessage());
+            throw new Exception(e);
         }
         if (null == userInfo){
             throw new Exception(MyErrorCode.MYSQL_SELECT_FAILED);
@@ -114,7 +112,7 @@ public class UserInfoController {
         try{
             userInfoService.deleteById(id);
         }catch (Exception e){
-            throw new Exception(MyErrorCode.MYSQL_OPERATE_EXCEPTION+e.getMessage());
+            throw new Exception(e);
         }
 
         response.setStatus(200);
@@ -123,7 +121,7 @@ public class UserInfoController {
     }
 
     @ApiOperation(value = "查询UserInfo", notes="查询UserInfo")
-    @GetMapping("/list")
+    @GetMapping("/openinfo/list")
     public ResultObject<PageInfo<UserInfo>>
     getUserInfoList(HttpServletResponse response,
                     @ApiParam(value="pageIndex") @RequestParam(required = false) Integer pageIndex,
@@ -141,7 +139,7 @@ public class UserInfoController {
         log.info(_func+MyErrorCode.COMMON_PARAM_SHOW
                 +" pageIndex="+pageIndex
                 +" pageSize="+pageSize
-                +" gender="+gender.toString()
+                +" gender="+gender
                 +" country="+country
                 +" province="+province
                 +" city="+city
@@ -174,6 +172,33 @@ public class UserInfoController {
 
         response.setStatus(200);
         return new ResultObject<>(200, "success",pages);
+
+    }
+
+    @ApiOperation(value = "获取UserInfo信息", notes="获取UserInfo信息")
+    @GetMapping("/openinfo")
+    public ResultObject<UserInfo>
+    getUserInfoByOpenId(HttpServletResponse response,
+                   @ApiParam(value="openId",required=true)
+                   @RequestParam @NotNull(message = MyErrorCode.OPEN_ID_BLANK) String openId
+    )throws Exception{
+
+        String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
+
+        log.info(_func+" param: id={}",openId);
+
+        UserInfo userInfo;
+        try {
+            userInfo = userInfoService.selectByOpenId(openId);
+        }catch (Exception e){
+            throw new Exception(MyErrorCode.MYSQL_OPERATE_EXCEPTION+e.getMessage());
+        }
+        if (null == userInfo){
+            throw new Exception(MyErrorCode.MYSQL_SELECT_FAILED);
+        }
+
+        response.setStatus(200);
+        return new ResultObject<>(200, "success",userInfo);
 
     }
 

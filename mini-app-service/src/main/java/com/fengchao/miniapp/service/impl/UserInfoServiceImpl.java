@@ -78,7 +78,7 @@ public class UserInfoServiceImpl implements IUserInfoService {
     }
 
     @Override
-    public List<UserInfo>
+    public UserInfo
     selectByOpenId(String openId) throws Exception{
         String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
         if (null == openId || openId.isEmpty()){
@@ -103,7 +103,11 @@ public class UserInfoServiceImpl implements IUserInfoService {
         }
 
         log.info(_func + MyErrorCode.MYSQL_SELECT_SUCCESS +JSON.toJSONString(result));
-        return result;
+        if (0 < result.size()) {
+            return result.get(0);
+        }else {
+            return null;
+        }
     }
 
     @Override

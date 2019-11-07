@@ -11,7 +11,7 @@ public interface IUserInfoService {
 
     void deleteById(Long id) throws Exception;
 
-    List<UserInfo> selectByOpenId(String openId) throws Exception;
+    UserInfo selectByOpenId(String openId) throws Exception;
 
     void update(UserInfo record) throws Exception;
 
