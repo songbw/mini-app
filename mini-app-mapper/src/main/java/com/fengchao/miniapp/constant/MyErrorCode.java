@@ -6,6 +6,7 @@ public class MyErrorCode {
 
     public static final String COMMON_PARAM_SHOW = " 入参: ";
     public static final String COMMON_PARAM_NULL = "@410001@入参未空 ";
+    public static final String COMMON_JSON_WRONG = "@420001@JSON解析错误 ";
 
     public static final String MYSQL_OPERATE_EXCEPTION = "@400001@数据库操作异常 ";
     public static final String MYSQL_INSERT_FAILED = "@400002@插入数据库失败 ";
@@ -18,9 +19,12 @@ public class MyErrorCode {
     public static final String MYSQL_SELECT_SUCCESS = "查询数据库成功 : ";
     public static final String MYSQL_SELECT_NOT_FOUND = "@400007@查询数据库未找到记录 ";
 
+    public static final String WECHAT_API_SUCCESS = "微信小程序接口成功 ";
     public static final String WECHAT_API_FAILED = "@400010@微信小程序接口失败 ";
     public static final String WECHAT_API_RESP_CODE_MISSING = "@400011@微信小程序接口返回码缺失 ";
     public static final String WECHAT_API_RESP_MSG_MISSING = "@400012@微信小程序接口返回信息缺失 ";
+    public static final String WECHAT_API_RESP_NULL = "@400013@微信小程序接口异常 response 为空 ";
+    public static final String WECHAT_API_TOKEN_NULL = "@400014@微信小程序接口失败 获取token失败 ";
     public static final String WECHAT_API_RESP_MSG_WRONG = "@400013@微信小程序接口返回信息异常 ";
     public static final String WECHAT_API_OPEN_ID_BLANK = "@400110@微信小程序OpenId不可为空 ";
     public static final String WECHAT_API_OPEN_ID_WRONG = "@400111@微信小程序OpenId格式错误 ";

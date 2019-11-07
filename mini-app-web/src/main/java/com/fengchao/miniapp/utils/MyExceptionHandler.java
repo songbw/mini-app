@@ -32,17 +32,18 @@ public class MyExceptionHandler {
             int msgIndex = message.lastIndexOf(defMsg);
             if (0 < msgIndex){
                 errMessage = message.substring(msgIndex+defMsg.length()).trim();
-            }else {
+            }/*else {
                 if (message.contains(":")) {
                     String[] errInfo = message.split(":");
                     errMessage = errInfo[errInfo.length - 1].trim();
                 }
-            }
+            }*/
 
-            int codeIndexBegin = errMessage.indexOf("@");
-            int codeIndexEnd = errMessage.lastIndexOf("@");
+            int codeIndexBegin = message.indexOf("@");
+            int codeIndexEnd = message.lastIndexOf("@");
+            //log.info("==errMessage= {} , codeBegin={} codeEnd={}",message,codeIndexBegin,codeIndexEnd);
             if (0 <= codeIndexBegin && 1 < codeIndexEnd){
-                String codeStr = errMessage.substring(codeIndexBegin+1,codeIndexEnd);
+                String codeStr = message.substring(codeIndexBegin+1,codeIndexEnd);
                 Integer code;
                 try {
                     code = Integer.valueOf(codeStr);
@@ -51,7 +52,7 @@ public class MyExceptionHandler {
                     code = 0;
                 }
                 if (0 < code){
-                    errMessage = errMessage.substring(codeIndexEnd+1);
+                    errMessage = message.substring(codeIndexEnd+1);
                     errCode = code;
                 }
             }
@@ -62,7 +63,7 @@ public class MyExceptionHandler {
         }
         map.put(MESSAGE,errMessage);
         map.put(CODE,errCode);
-        map.put(DATA,errData);
+        //map.put(DATA,errData);
 
         response.setStatus(400);
         return map;

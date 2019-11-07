@@ -1,5 +1,6 @@
 package com.fengchao.miniapp.utils;
 
+import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -145,7 +146,8 @@ public class HttpClient431Util {
             if (pairs != null && pairs.size() > 0) {
                 uriBuilder.addParameters(pairs);
             }
-
+            httpGet.setURI(uriBuilder.build());
+            log.info("http Get 参数： {}", JSON.toJSONString(httpGet));
             // 执行请求
             response = httpClient.execute(httpGet);
             log.info("http Get 返回:{}", JSONUtil.toJsonString(response));
@@ -162,7 +164,7 @@ public class HttpClient431Util {
                 result = EntityUtils.toString(entity, resCharset == null ? DEFAULT_RES_CHARSET : resCharset);
             }
             EntityUtils.consume(entity);
-
+            log.info("http Get entity = {}",JSON.toJSONString(result));
             return result;
         } catch (Exception e) {
             log.info("http Get 请求异常:{}", e.getMessage(), e);

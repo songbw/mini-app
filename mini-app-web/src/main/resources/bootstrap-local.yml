@@ -11,7 +11,7 @@ spring:
     driver-class-name: com.mysql.jdbc.Driver
 
 # 微信小程序接口配置相关
-miniApp:
-  WechatAppId: wxb28f0336ad53ceda
-  WechatAppSecret: ea5f6b5996b2cee31c4e942e7eb2b20f
-  WechatAppApiUrl: https://api.weixin.qq.com/cgi-bin/
+miniapp:
+  wechatAppId: wxb28f0336ad53ceda
+  wechatAppSecret: ea5f6b5996b2cee31c4e942e7eb2b20f
+  wechatAppApiUrl: https://api.weixin.qq.com/cgi-bin/

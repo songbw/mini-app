@@ -139,8 +139,8 @@ public class UserInfoController {
         String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
 
         log.info(_func+MyErrorCode.COMMON_PARAM_SHOW
-                +" pageIndex="+pageIndex.toString()
-                +" pageSize="+pageSize.toString()
+                +" pageIndex="+pageIndex
+                +" pageSize="+pageSize
                 +" gender="+gender.toString()
                 +" country="+country
                 +" province="+province
@@ -149,12 +149,8 @@ public class UserInfoController {
                 +" createTimeEnd="+createTimeEnd
         );
 
-        if (null == pageIndex || 1 > pageIndex){
-            pageIndex = 1;
-        }
-        if (null == pageSize || 1 > pageSize){
-            pageSize = 10;
-        }
+        int index = (null == pageIndex || 1 > pageIndex)?1:pageIndex;
+        int pSize = (null == pageSize || 1 > pageSize)?10:pageSize;
 
         Date timeBegin=null;
         Date timeEnd=null;
@@ -168,7 +164,7 @@ public class UserInfoController {
 
         PageInfo<UserInfo> pages;
         try {
-            pages = userInfoService.queryList(pageIndex,pageSize,"id","DESC",gender,country,province,city,timeBegin,timeEnd);
+            pages = userInfoService.queryList(index,pSize,"id","DESC",gender,country,province,city,timeBegin,timeEnd);
         }catch (Exception e){
             throw new Exception(MyErrorCode.MYSQL_SELECT_FAILED+e.getMessage());
         }

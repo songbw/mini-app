@@ -70,13 +70,22 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
             throw new Exception(msg);
         }
 
-        String token = json.getString(WeChat.ACCESS_TOKEN_KEY);
-        Integer expires = json.getInteger(WeChat.EXPIRES_IN_KEY);
-        if (null == token || token.isEmpty()){
-            //Integer errCode = json.getInteger(WeChat.ERR_CODE_KEY);
-            String errMsg = MyErrorCode.WECHAT_API_FAILED+json.getString(WeChat.ERR_MESSAGE_KEY);
-            log.error(_func+errMsg);
+        log.info("get token result json = {}",JSON.toJSONString(json));
+        String token;
+        Integer expires;
+        try {
+            token = json.getString(WeChat.ACCESS_TOKEN_KEY);
+            expires = json.getInteger(WeChat.EXPIRES_IN_KEY);
+        }catch (Exception e){
+            String errMsg = MyErrorCode.COMMON_JSON_WRONG + json.getString(WeChat.ERR_MESSAGE_KEY);
+            log.error(_func + errMsg);
             throw new Exception(errMsg);
+        }
+        if (null == token || token.isEmpty()) {
+                //Integer errCode = json.getInteger(WeChat.ERR_CODE_KEY);
+                String errMsg = MyErrorCode.WECHAT_API_FAILED + json.getString(WeChat.ERR_MESSAGE_KEY);
+                log.error(_func + errMsg);
+                throw new Exception(errMsg);
         }
 
         WeChatTokenResultBean bean = new WeChatTokenResultBean();

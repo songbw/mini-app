@@ -6,10 +6,14 @@ import com.fengchao.miniapp.mapper.LoginInfoMapper;
 import com.fengchao.miniapp.model.LoginInfo;
 import com.fengchao.miniapp.model.LoginInfoExample;
 import com.fengchao.miniapp.service.ILoginInfoService;
+import com.fengchao.miniapp.utils.PageInfo;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -145,5 +149,63 @@ public class LoginInfoServiceImpl implements ILoginInfoService {
 
         log.info(_func+MyErrorCode.MYSQL_SELECT_SUCCESS+JSON.toJSONString(userInfo));
         return userInfo;
+    }
+
+    @Override
+    public PageInfo<LoginInfo>
+    queryList(int pageIndex,  int pageSize,
+              String sortKey, String orderKey,
+              String openId,
+              String brand,
+              String model,
+              String version,
+              String platform,
+              String system,
+              Date createTimeBegin,
+              Date createTimeEnd) throws Exception{
+
+        String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
+        LoginInfoExample example = new LoginInfoExample();
+        LoginInfoExample.Criteria criteria = example.createCriteria();
+        criteria.andIdIsNotNull();
+        if (null != openId){
+            criteria.andOpenIdEqualTo(openId);
+        }
+        if (null != brand){
+            criteria.andBrandEqualTo(brand);
+        }
+        if (null != system){
+            criteria.andSystemEqualTo(system);
+        }
+        if (null != version){
+            criteria.andVersionEqualTo(version);
+        }
+        if (null != platform){
+            criteria.andPlatformEqualTo(platform);
+        }
+        if (null != model){
+            criteria.andModelEqualTo(model);
+        }
+        if(null != createTimeBegin){
+            criteria.andCreateTimeGreaterThanOrEqualTo(createTimeBegin);
+        }
+        if (null != createTimeEnd){
+            criteria.andCreateTimeLessThanOrEqualTo(createTimeEnd);
+        }
+        example.setOrderByClause(sortKey + " " + orderKey);
+
+        Page pages;
+        List<LoginInfo> list;
+        try{
+            pages = PageHelper.startPage(pageIndex, pageSize, true);
+            list = mapper.selectByExample(example);
+        }catch (Exception e){
+            String msg=MyErrorCode.MYSQL_OPERATE_EXCEPTION+e.getMessage();
+            log.error(_func+msg);
+            throw new Exception(msg);
+        }
+
+        return new PageInfo<>((int)pages.getTotal(), pages.getPageSize(),pageIndex,list);
+
     }
 }

@@ -1,7 +1,7 @@
 
 spring:
   datasource:
-    url: jdbc:mysql://192.168.200.37:3306/ztkx_miniapp?characterEncoding=utf8&useSSL=false&autoReconnect=true&failOverReadOnly=false&maxReconnects=10&serverTimezone=GMT%2B8
+    url: jdbc:mysql://192.168.200.37:3306/mini_app?characterEncoding=utf8&useSSL=false&autoReconnect=true&failOverReadOnly=false&maxReconnects=10&serverTimezone=GMT%2B8
     username: fengchao
     password: Smartautotech@123
     driver-class-name: com.mysql.jdbc.Driver
@@ -9,18 +9,9 @@ spring:
   jackson:
     time-zone: GMT+8
 
-# 中投接口配置相关
-ztkx:
-  merchantPfxFile: ztkx_cert_test/merchant.pfx
-  platformCerFile: ztkx_cert_test/platform.cer
-  platformMerchantId: CF3000048536
-  platformMerchantName: demo平台商户
-  merchantPfxPwd: umbpay
-  apiUrlPrefix: http://test.umbpay.com.cn:12080/
-  merchantId: CM3000048840
-  ftpHost: 103.103.12.147
-  ftpPort: 21
-  ftpUser: CF3000038508
-  ftpPwd: CF3000038508
-  ftpPaymentFilePrefix: cas_pay_
+miniapp:
+  wechatAppId: wxb28f0336ad53ceda
+  wechatAppSecret: ea5f6b5996b2cee31c4e942e7eb2b20f
+  wechatAppApiUrl: https://api.weixin.qq.com/cgi-bin/
+
 
