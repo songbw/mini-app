@@ -1,0 +1,26 @@
+
+spring:
+  datasource:
+    url: jdbc:mysql://192.168.200.37:3306/ztkx_miniapp?characterEncoding=utf8&useSSL=false&autoReconnect=true&failOverReadOnly=false&maxReconnects=10&serverTimezone=GMT%2B8
+    username: fengchao
+    password: Smartautotech@123
+    driver-class-name: com.mysql.jdbc.Driver
+
+  jackson:
+    time-zone: GMT+8
+
+# 中投接口配置相关
+ztkx:
+  merchantPfxFile: ztkx_cert_test/merchant.pfx
+  platformCerFile: ztkx_cert_test/platform.cer
+  platformMerchantId: CF3000048536
+  platformMerchantName: demo平台商户
+  merchantPfxPwd: umbpay
+  apiUrlPrefix: http://test.umbpay.com.cn:12080/
+  merchantId: CM3000048840
+  ftpHost: 103.103.12.147
+  ftpPort: 21
+  ftpUser: CF3000038508
+  ftpPwd: CF3000038508
+  ftpPaymentFilePrefix: cas_pay_
+

@@ -1,0 +1,33 @@
+
+spring:
+  cloud:
+    config:
+      enabled: false
+      discovery:
+        enabled: false
+    service-registry:
+      auto-registration:
+        enabled: false
+  datasource:
+    url: jdbc:mysql://122.112.211.218:33143/ztkx_miniapp?characterEncoding=utf8&useSSL=false&autoReconnect=true&failOverReadOnly=false&maxReconnects=10&serverTimezone=GMT%2B8
+    username: fengchao
+    password: Smartautotech@123
+    driver-class-name: com.mysql.jdbc.Driver
+
+  jackson:
+    time-zone: GMT+8
+
+# 微信小程序接口配置相关
+miniApp:
+  WechatAppId: wxb28f0336ad53ceda
+  WechatAppSecret: ea5f6b5996b2cee31c4e942e7eb2b20f
+  WechatAppApiUrl: https://api.weixin.qq.com/cgi-bin/
+
+#logging:
+#  file: /data/logs/cardPayment/cardPayment.log
+#  pattern:
+#    file: '%d %-5level [%thread] %logger : %msg%n'
+#  level:
+#    com.fengchao.miniapp.controller: debug
+#    com.fengchao.miniapp.service.impl: debug
+#    com.fengchao.miniapp.config: debug
