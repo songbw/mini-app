@@ -15,6 +15,21 @@ spring:
       discovery:
         enabled: false
 
+  # Redis
+  cache:
+    type: redis
+  redis:
+    host: peer1
+    port: 6379
+    timeout: 10000
+    database: 0
+    lettuce:
+      pool:
+        max-active: 8
+        max-wait: -1
+        max-idle: 8
+        min-idle: 0
+
 # 微信小程序接口配置相关
 miniapp:
   wechatAppId: wxb28f0336ad53ceda

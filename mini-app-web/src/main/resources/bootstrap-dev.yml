@@ -9,6 +9,22 @@ spring:
   jackson:
     time-zone: GMT+8
 
+  # Redis
+  cache:
+    type: redis
+  redis:
+    host: peer1
+    port: 6379
+    timeout: 10000
+    database: 0
+    lettuce:
+      pool:
+        max-active: 8
+        max-wait: -1
+        max-idle: 8
+        min-idle: 0
+
+
 miniapp:
   wechatAppId: wxb28f0336ad53ceda
   wechatAppSecret: ea5f6b5996b2cee31c4e942e7eb2b20f

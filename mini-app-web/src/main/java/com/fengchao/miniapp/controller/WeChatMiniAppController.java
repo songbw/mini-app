@@ -4,6 +4,7 @@ package com.fengchao.miniapp.controller;
 import com.fengchao.miniapp.bean.WeChatTokenResultBean;
 import com.fengchao.miniapp.constant.MyErrorCode;
 import com.fengchao.miniapp.service.impl.WeChatMiniAppClientImpl;
+import com.fengchao.miniapp.utils.RedisDAO;
 import com.fengchao.miniapp.utils.ResultObject;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -24,11 +25,14 @@ import javax.servlet.http.HttpServletResponse;
 public class WeChatMiniAppController {
 
     private WeChatMiniAppClientImpl weChatMiniAppClient;
+    private RedisDAO redisDAO;
 
     @Autowired
-    public WeChatMiniAppController(WeChatMiniAppClientImpl weChatMiniAppClient){
+    public WeChatMiniAppController(RedisDAO redisDAO,WeChatMiniAppClientImpl weChatMiniAppClient){
 
         this.weChatMiniAppClient = weChatMiniAppClient;
+        this.redisDAO = redisDAO;
+
     }
 
     @ApiOperation(value = "查询UserInfo", notes="查询UserInfo")
@@ -38,6 +42,14 @@ public class WeChatMiniAppController {
         String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
 
         ResultObject<String> result = new ResultObject<>(200,"success",null);
+
+        String storedToken = redisDAO.getWeChatToken();
+        if (null != storedToken){
+            log.info(_func+" ==got stored token "+storedToken);
+            result.setData(storedToken);
+            response.setStatus(200);
+            return result;
+        }
 
         WeChatTokenResultBean bean;
         try{
@@ -53,7 +65,7 @@ public class WeChatMiniAppController {
         String token = bean.getAccess_token();
         result.setData(token);
         response.setStatus(200);
-
+        redisDAO.storeWeChatToken(token,bean.getExpires_in());
         log.info(_func+"success token= "+token);
         return result;
 
