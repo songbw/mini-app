@@ -4,6 +4,7 @@
   <resultMap id="BaseResultMap" type="com.fengchao.miniapp.model.UserInfo">
     <id column="id" jdbcType="BIGINT" property="id" />
     <result column="open_id" jdbcType="VARCHAR" property="openId" />
+    <result column="mobile" jdbcType="VARCHAR" property="mobile" />
     <result column="nick_name" jdbcType="VARCHAR" property="nickName" />
     <result column="avatar_url" jdbcType="VARCHAR" property="avatarUrl" />
     <result column="gender" jdbcType="INTEGER" property="gender" />
@@ -73,8 +74,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, open_id, nick_name, avatar_url, gender, country, province, city, language, create_time, 
-    update_time
+    id, open_id, mobile, nick_name, avatar_url, gender, country, province, city, language, 
+    create_time, update_time
   </sql>
   <select id="selectByExample" parameterType="com.fengchao.miniapp.model.UserInfoExample" resultMap="BaseResultMap">
     select
@@ -111,14 +112,14 @@
     <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Long">
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into user_info (open_id, nick_name, avatar_url, 
-      gender, country, province, 
-      city, language, create_time, 
-      update_time)
-    values (#{openId,jdbcType=VARCHAR}, #{nickName,jdbcType=VARCHAR}, #{avatarUrl,jdbcType=VARCHAR}, 
-      #{gender,jdbcType=INTEGER}, #{country,jdbcType=VARCHAR}, #{province,jdbcType=VARCHAR}, 
-      #{city,jdbcType=VARCHAR}, #{language,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP})
+    insert into user_info (open_id, mobile, nick_name, 
+      avatar_url, gender, country, 
+      province, city, language, 
+      create_time, update_time)
+    values (#{openId,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR}, #{nickName,jdbcType=VARCHAR}, 
+      #{avatarUrl,jdbcType=VARCHAR}, #{gender,jdbcType=INTEGER}, #{country,jdbcType=VARCHAR}, 
+      #{province,jdbcType=VARCHAR}, #{city,jdbcType=VARCHAR}, #{language,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.fengchao.miniapp.model.UserInfo">
     <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Long">
@@ -128,6 +129,9 @@
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="openId != null">
         open_id,
+      </if>
+      <if test="mobile != null">
+        mobile,
       </if>
       <if test="nickName != null">
         nick_name,
@@ -160,6 +164,9 @@
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="openId != null">
         #{openId,jdbcType=VARCHAR},
+      </if>
+      <if test="mobile != null">
+        #{mobile,jdbcType=VARCHAR},
       </if>
       <if test="nickName != null">
         #{nickName,jdbcType=VARCHAR},
@@ -205,6 +212,9 @@
       <if test="record.openId != null">
         open_id = #{record.openId,jdbcType=VARCHAR},
       </if>
+      <if test="record.mobile != null">
+        mobile = #{record.mobile,jdbcType=VARCHAR},
+      </if>
       <if test="record.nickName != null">
         nick_name = #{record.nickName,jdbcType=VARCHAR},
       </if>
@@ -241,6 +251,7 @@
     update user_info
     set id = #{record.id,jdbcType=BIGINT},
       open_id = #{record.openId,jdbcType=VARCHAR},
+      mobile = #{record.mobile,jdbcType=VARCHAR},
       nick_name = #{record.nickName,jdbcType=VARCHAR},
       avatar_url = #{record.avatarUrl,jdbcType=VARCHAR},
       gender = #{record.gender,jdbcType=INTEGER},
@@ -259,6 +270,9 @@
     <set>
       <if test="openId != null">
         open_id = #{openId,jdbcType=VARCHAR},
+      </if>
+      <if test="mobile != null">
+        mobile = #{mobile,jdbcType=VARCHAR},
       </if>
       <if test="nickName != null">
         nick_name = #{nickName,jdbcType=VARCHAR},
@@ -293,6 +307,7 @@
   <update id="updateByPrimaryKey" parameterType="com.fengchao.miniapp.model.UserInfo">
     update user_info
     set open_id = #{openId,jdbcType=VARCHAR},
+      mobile = #{mobile,jdbcType=VARCHAR},
       nick_name = #{nickName,jdbcType=VARCHAR},
       avatar_url = #{avatarUrl,jdbcType=VARCHAR},
       gender = #{gender,jdbcType=INTEGER},

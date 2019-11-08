@@ -7,6 +7,8 @@ public class UserInfo {
 
     private String openId;
 
+    private String mobile;
+
     private String nickName;
 
     private String avatarUrl;
@@ -39,6 +41,14 @@ public class UserInfo {
 
     public void setOpenId(String openId) {
         this.openId = openId == null ? null : openId.trim();
+    }
+
+    public String getMobile() {
+        return mobile;
+    }
+
+    public void setMobile(String mobile) {
+        this.mobile = mobile == null ? null : mobile.trim();
     }
 
     public String getNickName() {

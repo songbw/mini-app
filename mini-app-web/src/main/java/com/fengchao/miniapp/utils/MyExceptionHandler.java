@@ -22,16 +22,17 @@ public class MyExceptionHandler {
     @ExceptionHandler(value = Exception.class)
     public Map<String, Object> errorHandle(Exception e, HttpServletResponse response) {
         Map<String, Object> map = new HashMap<>();
-        log.error(e.getMessage());
+        log.error("raw message: "+e.getMessage());
         String message = e.getMessage();
-        String errData = null;
         String errMessage = message.trim();
+
         int errCode = 400;
         if (null != message){
             String defMsg = "default message";
             int msgIndex = message.lastIndexOf(defMsg);
             if (0 < msgIndex){
                 errMessage = message.substring(msgIndex+defMsg.length()).trim();
+                message = errMessage;
             }/*else {
                 if (message.contains(":")) {
                     String[] errInfo = message.split(":");
@@ -59,11 +60,11 @@ public class MyExceptionHandler {
         }
 
         if (null != e.getCause()) {
-            errData = e.getCause().getMessage();
+            map.put(DATA,e.getCause().getMessage());
         }
         map.put(MESSAGE,errMessage);
         map.put(CODE,errCode);
-        //map.put(DATA,errData);
+
 
         response.setStatus(400);
         return map;

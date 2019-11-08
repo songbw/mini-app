@@ -41,7 +41,7 @@ miniapp:
 
 
 #logging:
-#  file: /data/logs/cardPayment/cardPayment.log
+#  file: /data/logs/miniapp/miniapp.log
 #  pattern:
 #    file: '%d %-5level [%thread] %logger : %msg%n'
 #  level:

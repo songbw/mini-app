@@ -15,9 +15,12 @@ import javax.validation.constraints.Size;
 public class UserInfoPostBean {
 
     @NotBlank(message = MyErrorCode.WECHAT_API_OPEN_ID_BLANK)
-    @Size(min=6,message = MyErrorCode.WECHAT_API_OPEN_ID_WRONG)
+    //@Size(min=6,message = MyErrorCode.WECHAT_API_OPEN_ID_WRONG)
     @ApiModelProperty(value="用户代码", example="sfdkfjdskfj111")
     private String openId;
+
+    @ApiModelProperty(value="电话号码", example="12345678901")
+    private String mobile;
 
     @ApiModelProperty(value="用户昵称", example="测试用户")
     private String nickName;
@@ -37,6 +40,6 @@ public class UserInfoPostBean {
     @ApiModelProperty(value="用户所在城市", example="Beijing")
     private String city;
 
-    @ApiModelProperty(value="显示 country，province，city 所用的语言", example="zh_CN")
+    @ApiModelProperty(value="显示 country，province，city 所用的语言(en,zh_CN,zh_TW)", example="zh_CN")
     private String language;
 }

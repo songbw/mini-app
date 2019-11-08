@@ -37,7 +37,7 @@ miniapp:
   wechatAppApiUrl: https://api.weixin.qq.com/cgi-bin/
 
 logging:
-  file: /data/logs/cardPayment/cardPayment.log
+  file: /data/logs/miniApp/miniApp.log
   pattern:
     file: '%d %-5level [%thread] %logger : %msg%n'
   level:
