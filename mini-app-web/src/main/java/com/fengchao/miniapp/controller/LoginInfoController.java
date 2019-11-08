@@ -69,7 +69,7 @@ public class LoginInfoController {
             throw new Exception(MyErrorCode.MYSQL_INSERT_FAILED);
         }
 
-        response.setStatus(201);
+        response.setStatus(200);
         log.info(_func + " success id={}",newLoginInfo.getId());
         return new ResultObject<>(200,"ok",newLoginInfo.getId().toString());
     }
