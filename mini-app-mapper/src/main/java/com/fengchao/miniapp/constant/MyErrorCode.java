@@ -23,11 +23,12 @@ public class MyErrorCode {
     public static final String WECHAT_API_FAILED = "@400010@微信小程序接口失败 ";
     public static final String WECHAT_API_RESP_CODE_MISSING = "@400011@微信小程序接口返回码缺失 ";
     public static final String WECHAT_API_RESP_MSG_MISSING = "@400012@微信小程序接口返回信息缺失 ";
-    public static final String WECHAT_API_RESP_NULL = "@400013@微信小程序接口异常 response 为空 ";
-    public static final String WECHAT_API_TOKEN_NULL = "@400014@微信小程序接口失败 获取token失败 ";
     public static final String WECHAT_API_RESP_MSG_WRONG = "@400013@微信小程序接口返回信息异常 ";
+    public static final String WECHAT_API_TOKEN_NULL = "@400014@微信小程序接口失败 获取token失败 ";
+
     public static final String WECHAT_API_OPEN_ID_BLANK = "@400110@微信小程序OpenId不可为空 ";
     public static final String WECHAT_API_OPEN_ID_WRONG = "@400111@微信小程序OpenId格式错误 ";
+    public static final String WECHAT_API_JS_CODE_BLANK = "@400112@微信小程序js_code不可为空 ";
 
     public static final String ID_BLANK = "@400021@身份证号不能为空";
     public static final String ID_WRONG_FORMAT = "@400022@身份证号格式错误";
@@ -77,4 +78,8 @@ public class MyErrorCode {
     public static final String USERINFO_ID_BLANK = "@400155@用户信息ID缺失 ";
     public static final String USERINFO_DATA_BLANK = "@400156@用户信息信息缺失 ";
 
+
+    public static String weChatErrMsg(String code,String msg){
+        return "@10"+code+"@"+msg;
+    }
 }

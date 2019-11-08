@@ -25,9 +25,6 @@ spring:
         min-idle: 0
 
 
-miniapp:
-  wechatAppId: wxb28f0336ad53ceda
-  wechatAppSecret: ea5f6b5996b2cee31c4e942e7eb2b20f
-  wechatAppApiUrl: https://api.weixin.qq.com/cgi-bin/
+
 
 

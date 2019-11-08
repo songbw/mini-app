@@ -167,7 +167,7 @@ public class HttpClient431Util {
             log.info("http Get entity = {}",JSON.toJSONString(result));
             return result;
         } catch (Exception e) {
-            log.info("http Get 请求异常:{}", e.getMessage(), e);
+            log.info("http Get {} 异常:{}", url,e.getMessage(), e);
             throw new Exception(e);
         } finally {
             try {
