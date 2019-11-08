@@ -74,7 +74,6 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
     }
 
-
     @Override
     public WeChatTokenResultBean
     getAccessToken()
@@ -135,20 +134,42 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
             throw e;
         }
 
+        String msg;
+
+        String openId;
+        String sessionKey;
+        String unionId;
+        try {
+            openId = json.getString(WeChat.OPEN_ID_KEY);
+            sessionKey = json.getString(WeChat.SESSION_KEY_KEY);
+            unionId = json.getString(WeChat.UNION_ID_KEY);
+        } catch (Exception e) {
+            msg = MyErrorCode.COMMON_JSON_WRONG + e.getMessage();
+            log.error(_func + msg);
+            throw new Exception(msg);
+        }
+        if (null != openId && !openId.isEmpty() && null != sessionKey && !sessionKey.isEmpty()) {
+            WeChatSessionResultBean bean = new WeChatSessionResultBean();
+            bean.setOpenid(openId);
+            bean.setSession_key(sessionKey);
+            bean.setUnionid(unionId);
+
+            log.info(_func + WeChat.GET_CODE2SESSION_PATH + JSON.toJSONString(bean));
+            return bean;
+        }
+
         String errMsg = null;
         Integer errCode = null;
         try {
             errMsg = json.getString(WeChat.ERR_MESSAGE_KEY);
             errCode = json.getInteger(WeChat.ERR_CODE_KEY);
         } catch (Exception e) {
-            String msg = MyErrorCode.COMMON_JSON_WRONG + e.getMessage();
+            msg = MyErrorCode.COMMON_JSON_WRONG + e.getMessage();
             log.error(_func + msg);
         }
-
-        String msg;
-        if (null == errCode || null == errMsg){
+        if (null == errCode || null == errMsg) {
             msg = MyErrorCode.WECHAT_API_RESP_MSG_WRONG;
-            log.error(_func+msg);
+            log.error(_func + msg);
             throw new Exception(msg);
         }
         if (!WeChatErrorCode.SUCCESS.getCode().equals(errCode)) {
@@ -160,31 +181,9 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
             throw new Exception(msg);
         }
 
+        msg = MyErrorCode.WECHAT_API_RESP_MSG_WRONG;
+        log.error(_func + msg);
+        throw new Exception(msg);
 
-        String openId = null;
-        String sessionKey = null;
-        String unionId = null;
-        try {
-            openId = json.getString(WeChat.OPEN_ID_KEY);
-            sessionKey = json.getString(WeChat.SESSION_KEY_KEY);
-            unionId = json.getString(WeChat.UNION_ID_KEY);
-        } catch (Exception e) {
-            msg = MyErrorCode.COMMON_JSON_WRONG + e.getMessage();
-            log.error(_func + msg);
-            throw new Exception(msg);
-        }
-        if (null == openId || openId.isEmpty()){
-            msg = MyErrorCode.WECHAT_API_RESP_MSG_WRONG;
-            log.error(_func+msg);
-            throw new Exception(msg);
-        }
-
-        WeChatSessionResultBean bean = new WeChatSessionResultBean();
-        bean.setOpenid(openId);
-        bean.setSession_key(sessionKey);
-        bean.setUnionid(unionId);
-
-        log.info(_func + WeChat.GET_CODE2SESSION_PATH + JSON.toJSONString(bean));
-        return bean;
     }
 }
