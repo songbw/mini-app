@@ -5,8 +5,14 @@ public class MyErrorCode {
     public static final String MOBILE_PATTEN = "^((13[0-9])|(145,147)|(15[0-9])|(18[0-9]))\\d{8}$";
 
     public static final String COMMON_PARAM_SHOW = " 入参: ";
-    public static final String COMMON_PARAM_NULL = "@410001@入参未空 ";
+    public static final String COMMON_PARAM_NULL = "@410001@入参为空 ";
     public static final String COMMON_JSON_WRONG = "@420001@JSON解析错误 ";
+    public static final String COMMON_MD5_FAILED = "@420002@MD5构造错误 ";
+    public static final String COMMON_XML_FAILED = "@420003@XML解析错误 ";
+
+    public static final String HTTP_ERROR = "@430003@HTTP 异常 ";
+    public static final String HTTP_NO_RESPONSE = "@430003@HTTP 没有回应 ";
+    public static final String HTTP_NO_ENTITY = "@430004@HTTP 没有数据包 ";
 
     public static final String MYSQL_OPERATE_EXCEPTION = "@400001@数据库操作异常 ";
     public static final String MYSQL_INSERT_FAILED = "@400002@插入数据库失败 ";
@@ -25,10 +31,25 @@ public class MyErrorCode {
     public static final String WECHAT_API_RESP_MSG_MISSING = "@400012@微信小程序接口返回信息缺失 ";
     public static final String WECHAT_API_RESP_MSG_WRONG = "@400013@微信小程序接口返回信息异常 ";
     public static final String WECHAT_API_TOKEN_NULL = "@400014@微信小程序接口失败 获取token失败 ";
+    public static final String WECHAT_API_RESP_APP_ID_WRONG = "@400015@微信小程序接口失败 返回的appId不匹配 ";
+    public static final String WECHAT_API_RESULT_CODE_MISSING = "@400016@微信小程序接口结果码缺失 ";
 
     public static final String WECHAT_API_OPEN_ID_BLANK = "@400110@微信小程序OpenId不可为空 ";
     public static final String WECHAT_API_OPEN_ID_WRONG = "@400111@微信小程序OpenId格式错误 ";
     public static final String WECHAT_API_JS_CODE_BLANK = "@400112@微信小程序js_code不可为空 ";
+    public static final String WECHAT_API_GOODS_BODY_BLANK = "@400113@微信小程序统一下单,商品描述不可为空 ";
+    public static final String WECHAT_API_TRAN_NO_BLANK = "@400114@商户订单号不可为空 ";
+    public static final String WECHAT_API_TOTAL_FEE_BLANK = "@400115@微信小程序统一下单,金额不可为空 ";
+    public static final String WECHAT_API_ORDER_FEE_NULL = "@400116@订单金额不可为空 ";
+    public static final String WECHAT_API_REFUND_FEE_NULL = "@400117@退款金额不可为空 ";
+
+    public static final String WECHAT_NOTIFY_ERROR = "@400116@微信小程序回调参数错误 ";
+    public static final String WECHAT_NOTIFY_SIGN_BLANK = "@400117@微信小程序回调参数无签名 ";
+    public static final String WECHAT_NOTIFY_SIGN_WRONG = "@400118@微信小程序回调参数签名错误 ";
+    public static final String WECHAT_REFUND_RESP_REFUND_FEE_BLANK = "@400119@微信小程序退款接口返回退款金额缺失 ";
+    public static final String WECHAT_REFUND_STATUS_BLANK = "@400120@微信小程序退款状态缺失 ";
+    public static final String WECHAT_TRADE_STATUS_BLANK = "@400121@微信小程序交易状态缺失 ";
+    public static final String WECHAT_TIME_END_BLANK = "@400122@微信小程序交易完成时间缺失 ";
 
     public static final String ID_BLANK = "@400021@身份证号不能为空";
     public static final String ID_WRONG_FORMAT = "@400022@身份证号格式错误";
@@ -77,6 +98,9 @@ public class MyErrorCode {
     public static final String CREDIT_VALID_CODE_WRONG = "@4000154@信用卡校验码格式错误 ";
     public static final String USERINFO_ID_BLANK = "@400155@用户信息ID缺失 ";
     public static final String USERINFO_DATA_BLANK = "@400156@用户信息信息缺失 ";
+    public static final String PAYMENT_NO_FOUND = "@400157@没有找到预下单记录 ";
+    public static final String REFUND_NO_FOUND = "@400158@没有找到退款记录 ";
+    public static final String PAYMENT_OUT_TRAN_NO_WRONG = "@400159@没有找到微信订单记录 ";
 
 
     public static String weChatErrMsg(String code,String msg){

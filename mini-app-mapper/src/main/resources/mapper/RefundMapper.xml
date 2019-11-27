@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fengchao.miniapp.mapper.RefundMapper">
+  <resultMap id="BaseResultMap" type="com.fengchao.miniapp.model.Refund">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="open_id" jdbcType="VARCHAR" property="openId" />
+    <result column="refund_no" jdbcType="VARCHAR" property="refundNo" />
+    <result column="wechat_refund_no" jdbcType="VARCHAR" property="wechatRefundNo" />
+    <result column="transaction_id" jdbcType="VARCHAR" property="transactionId" />
+    <result column="order_id" jdbcType="VARCHAR" property="orderId" />
+    <result column="total_fee" jdbcType="INTEGER" property="totalFee" />
+    <result column="refund_fee" jdbcType="INTEGER" property="refundFee" />
+    <result column="resp_refund_fee" jdbcType="INTEGER" property="respRefundFee" />
+    <result column="refund_cash_fee" jdbcType="INTEGER" property="refundCashFee" />
+    <result column="cash_fee" jdbcType="INTEGER" property="cashFee" />
+    <result column="status" jdbcType="VARCHAR" property="status" />
+    <result column="comments" jdbcType="VARCHAR" property="comments" />
+    <result column="refund_account" jdbcType="VARCHAR" property="refundAccount" />
+    <result column="refund_recv_account" jdbcType="VARCHAR" property="refundRecvAccount" />
+    <result column="success_time" jdbcType="VARCHAR" property="successTime" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, open_id, refund_no, wechat_refund_no, transaction_id, order_id, total_fee, refund_fee, 
+    resp_refund_fee, refund_cash_fee, cash_fee, status, comments, refund_account, refund_recv_account, 
+    success_time, create_time, update_time
+  </sql>
+  <select id="selectByExample" parameterType="com.fengchao.miniapp.model.RefundExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    'id' as QUERYID,
+    <include refid="Base_Column_List" />
+    from refund
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from refund
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from refund
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.fengchao.miniapp.model.RefundExample">
+    delete from refund
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.fengchao.miniapp.model.Refund">
+    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Long">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into refund (open_id, refund_no, wechat_refund_no, 
+      transaction_id, order_id, total_fee, 
+      refund_fee, resp_refund_fee, refund_cash_fee, 
+      cash_fee, status, comments, 
+      refund_account, refund_recv_account, success_time, 
+      create_time, update_time)
+    values (#{openId,jdbcType=VARCHAR}, #{refundNo,jdbcType=VARCHAR}, #{wechatRefundNo,jdbcType=VARCHAR}, 
+      #{transactionId,jdbcType=VARCHAR}, #{orderId,jdbcType=VARCHAR}, #{totalFee,jdbcType=INTEGER}, 
+      #{refundFee,jdbcType=INTEGER}, #{respRefundFee,jdbcType=INTEGER}, #{refundCashFee,jdbcType=INTEGER}, 
+      #{cashFee,jdbcType=INTEGER}, #{status,jdbcType=VARCHAR}, #{comments,jdbcType=VARCHAR}, 
+      #{refundAccount,jdbcType=VARCHAR}, #{refundRecvAccount,jdbcType=VARCHAR}, #{successTime,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.fengchao.miniapp.model.Refund">
+    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Long">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into refund
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="openId != null">
+        open_id,
+      </if>
+      <if test="refundNo != null">
+        refund_no,
+      </if>
+      <if test="wechatRefundNo != null">
+        wechat_refund_no,
+      </if>
+      <if test="transactionId != null">
+        transaction_id,
+      </if>
+      <if test="orderId != null">
+        order_id,
+      </if>
+      <if test="totalFee != null">
+        total_fee,
+      </if>
+      <if test="refundFee != null">
+        refund_fee,
+      </if>
+      <if test="respRefundFee != null">
+        resp_refund_fee,
+      </if>
+      <if test="refundCashFee != null">
+        refund_cash_fee,
+      </if>
+      <if test="cashFee != null">
+        cash_fee,
+      </if>
+      <if test="status != null">
+        status,
+      </if>
+      <if test="comments != null">
+        comments,
+      </if>
+      <if test="refundAccount != null">
+        refund_account,
+      </if>
+      <if test="refundRecvAccount != null">
+        refund_recv_account,
+      </if>
+      <if test="successTime != null">
+        success_time,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="openId != null">
+        #{openId,jdbcType=VARCHAR},
+      </if>
+      <if test="refundNo != null">
+        #{refundNo,jdbcType=VARCHAR},
+      </if>
+      <if test="wechatRefundNo != null">
+        #{wechatRefundNo,jdbcType=VARCHAR},
+      </if>
+      <if test="transactionId != null">
+        #{transactionId,jdbcType=VARCHAR},
+      </if>
+      <if test="orderId != null">
+        #{orderId,jdbcType=VARCHAR},
+      </if>
+      <if test="totalFee != null">
+        #{totalFee,jdbcType=INTEGER},
+      </if>
+      <if test="refundFee != null">
+        #{refundFee,jdbcType=INTEGER},
+      </if>
+      <if test="respRefundFee != null">
+        #{respRefundFee,jdbcType=INTEGER},
+      </if>
+      <if test="refundCashFee != null">
+        #{refundCashFee,jdbcType=INTEGER},
+      </if>
+      <if test="cashFee != null">
+        #{cashFee,jdbcType=INTEGER},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="comments != null">
+        #{comments,jdbcType=VARCHAR},
+      </if>
+      <if test="refundAccount != null">
+        #{refundAccount,jdbcType=VARCHAR},
+      </if>
+      <if test="refundRecvAccount != null">
+        #{refundRecvAccount,jdbcType=VARCHAR},
+      </if>
+      <if test="successTime != null">
+        #{successTime,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.fengchao.miniapp.model.RefundExample" resultType="java.lang.Long">
+    select count(*) from refund
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update refund
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.openId != null">
+        open_id = #{record.openId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.refundNo != null">
+        refund_no = #{record.refundNo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.wechatRefundNo != null">
+        wechat_refund_no = #{record.wechatRefundNo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.transactionId != null">
+        transaction_id = #{record.transactionId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orderId != null">
+        order_id = #{record.orderId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.totalFee != null">
+        total_fee = #{record.totalFee,jdbcType=INTEGER},
+      </if>
+      <if test="record.refundFee != null">
+        refund_fee = #{record.refundFee,jdbcType=INTEGER},
+      </if>
+      <if test="record.respRefundFee != null">
+        resp_refund_fee = #{record.respRefundFee,jdbcType=INTEGER},
+      </if>
+      <if test="record.refundCashFee != null">
+        refund_cash_fee = #{record.refundCashFee,jdbcType=INTEGER},
+      </if>
+      <if test="record.cashFee != null">
+        cash_fee = #{record.cashFee,jdbcType=INTEGER},
+      </if>
+      <if test="record.status != null">
+        status = #{record.status,jdbcType=VARCHAR},
+      </if>
+      <if test="record.comments != null">
+        comments = #{record.comments,jdbcType=VARCHAR},
+      </if>
+      <if test="record.refundAccount != null">
+        refund_account = #{record.refundAccount,jdbcType=VARCHAR},
+      </if>
+      <if test="record.refundRecvAccount != null">
+        refund_recv_account = #{record.refundRecvAccount,jdbcType=VARCHAR},
+      </if>
+      <if test="record.successTime != null">
+        success_time = #{record.successTime,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null">
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null">
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update refund
+    set id = #{record.id,jdbcType=BIGINT},
+      open_id = #{record.openId,jdbcType=VARCHAR},
+      refund_no = #{record.refundNo,jdbcType=VARCHAR},
+      wechat_refund_no = #{record.wechatRefundNo,jdbcType=VARCHAR},
+      transaction_id = #{record.transactionId,jdbcType=VARCHAR},
+      order_id = #{record.orderId,jdbcType=VARCHAR},
+      total_fee = #{record.totalFee,jdbcType=INTEGER},
+      refund_fee = #{record.refundFee,jdbcType=INTEGER},
+      resp_refund_fee = #{record.respRefundFee,jdbcType=INTEGER},
+      refund_cash_fee = #{record.refundCashFee,jdbcType=INTEGER},
+      cash_fee = #{record.cashFee,jdbcType=INTEGER},
+      status = #{record.status,jdbcType=VARCHAR},
+      comments = #{record.comments,jdbcType=VARCHAR},
+      refund_account = #{record.refundAccount,jdbcType=VARCHAR},
+      refund_recv_account = #{record.refundRecvAccount,jdbcType=VARCHAR},
+      success_time = #{record.successTime,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.fengchao.miniapp.model.Refund">
+    update refund
+    <set>
+      <if test="openId != null">
+        open_id = #{openId,jdbcType=VARCHAR},
+      </if>
+      <if test="refundNo != null">
+        refund_no = #{refundNo,jdbcType=VARCHAR},
+      </if>
+      <if test="wechatRefundNo != null">
+        wechat_refund_no = #{wechatRefundNo,jdbcType=VARCHAR},
+      </if>
+      <if test="transactionId != null">
+        transaction_id = #{transactionId,jdbcType=VARCHAR},
+      </if>
+      <if test="orderId != null">
+        order_id = #{orderId,jdbcType=VARCHAR},
+      </if>
+      <if test="totalFee != null">
+        total_fee = #{totalFee,jdbcType=INTEGER},
+      </if>
+      <if test="refundFee != null">
+        refund_fee = #{refundFee,jdbcType=INTEGER},
+      </if>
+      <if test="respRefundFee != null">
+        resp_refund_fee = #{respRefundFee,jdbcType=INTEGER},
+      </if>
+      <if test="refundCashFee != null">
+        refund_cash_fee = #{refundCashFee,jdbcType=INTEGER},
+      </if>
+      <if test="cashFee != null">
+        cash_fee = #{cashFee,jdbcType=INTEGER},
+      </if>
+      <if test="status != null">
+        status = #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="comments != null">
+        comments = #{comments,jdbcType=VARCHAR},
+      </if>
+      <if test="refundAccount != null">
+        refund_account = #{refundAccount,jdbcType=VARCHAR},
+      </if>
+      <if test="refundRecvAccount != null">
+        refund_recv_account = #{refundRecvAccount,jdbcType=VARCHAR},
+      </if>
+      <if test="successTime != null">
+        success_time = #{successTime,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.fengchao.miniapp.model.Refund">
+    update refund
+    set open_id = #{openId,jdbcType=VARCHAR},
+      refund_no = #{refundNo,jdbcType=VARCHAR},
+      wechat_refund_no = #{wechatRefundNo,jdbcType=VARCHAR},
+      transaction_id = #{transactionId,jdbcType=VARCHAR},
+      order_id = #{orderId,jdbcType=VARCHAR},
+      total_fee = #{totalFee,jdbcType=INTEGER},
+      refund_fee = #{refundFee,jdbcType=INTEGER},
+      resp_refund_fee = #{respRefundFee,jdbcType=INTEGER},
+      refund_cash_fee = #{refundCashFee,jdbcType=INTEGER},
+      cash_fee = #{cashFee,jdbcType=INTEGER},
+      status = #{status,jdbcType=VARCHAR},
+      comments = #{comments,jdbcType=VARCHAR},
+      refund_account = #{refundAccount,jdbcType=VARCHAR},
+      refund_recv_account = #{refundRecvAccount,jdbcType=VARCHAR},
+      success_time = #{successTime,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

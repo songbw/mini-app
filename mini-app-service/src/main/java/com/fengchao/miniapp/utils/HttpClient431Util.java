@@ -1,6 +1,8 @@
 package com.fengchao.miniapp.utils;
 
 import com.alibaba.fastjson.JSON;
+import com.fengchao.miniapp.constant.MyErrorCode;
+import com.fengchao.miniapp.constant.WeChat;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -14,13 +16,18 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLContextBuilder;
 import org.apache.http.conn.ssl.TrustStrategy;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
 import javax.net.ssl.SSLContext;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyStore;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -32,9 +39,9 @@ public class HttpClient431Util {
 
     private static final RequestConfig config;
 
-    public static final String DEFAULT_SEND_CHARSET = "UTF-8";
+    private static final String DEFAULT_SEND_CHARSET = "UTF-8";
 
-    public static final String DEFAULT_RES_CHARSET = "UTF-8";
+    private static final String DEFAULT_RES_CHARSET = "UTF-8";
 
     static {
         config = RequestConfig.custom().setConnectTimeout(60000).setSocketTimeout(60000).build();
@@ -43,6 +50,14 @@ public class HttpClient431Util {
 
     public static String doPost(Map<String, String> params, String url) throws Exception {
         return doPost(params, url, DEFAULT_SEND_CHARSET, DEFAULT_RES_CHARSET);
+    }
+
+    public static String doPostXml(String params, String url) throws Exception {
+        return doPostXml(params, url, DEFAULT_SEND_CHARSET, DEFAULT_RES_CHARSET);
+    }
+
+    public static String doPostSSLXml(String params, String url) throws Exception {
+        return postSSL(params, url);
     }
 
     public static String doGet(Map<String, String> params, String url) throws Exception {
@@ -60,7 +75,7 @@ public class HttpClient431Util {
      */
     private static String doPost(Map<String, String> params, String url,
                                 String reqCharset, String resCharset) throws Exception {
-        CloseableHttpClient httpClient = getSingleSSLConnection();
+        CloseableHttpClient httpClient = getSingleSSLConnection(null);
         CloseableHttpResponse response = null;
         if (isBlank(url)) {
             return null;
@@ -119,9 +134,145 @@ public class HttpClient431Util {
         }
     }
 
+    private static String postSSL(String params, String url) throws Exception{
+
+        if (isBlank(url)) {
+            return null;
+        }
+        InputStream in;
+        KeyStore clientStore;
+        CloseableHttpClient httpClient = null;
+        CloseableHttpResponse response =null;
+
+        try {
+            in = HttpClient431Util.class.getClassLoader().getResourceAsStream(WeChat.MINI_APP_CERT_FILE);
+            clientStore = KeyStore.getInstance("PKCS12");
+
+            try {
+                // 指定PKCS12的密码(商户ID)
+                clientStore.load(in, WeChat.MINI_APP_PAYMENT_MCH_ID.toCharArray());
+            } finally {
+                in.close();
+            }
+
+            httpClient = getSingleSSLConnection(clientStore);
+            HttpPost httpPost = new HttpPost(url);
+            httpPost.addHeader("User-Agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+            httpPost.addHeader("Connection", "close");
+            httpPost.addHeader("X-Requested-With", "XMLHttpRequest");
+            httpPost.addHeader("Content-Type", "text/xml");
+
+            StringEntity stringEntity = new StringEntity(params, StandardCharsets.UTF_8);
+            stringEntity.setContentEncoding("UTF-8");
+            httpPost.setEntity(stringEntity);
+
+            // 执行请求
+            response = httpClient.execute(httpPost);
+            if (null == response || null == response.getStatusLine()){
+                String msg = url+" post "+MyErrorCode.HTTP_NO_RESPONSE;
+                log.error("doPostSSL {}",msg);
+                throw new Exception(msg);
+            }
+            int statusCode = response.getStatusLine().getStatusCode();
+            log.info("http postSSL 返回:{},{}", statusCode,JSONUtil.toJsonString(response));
+
+            if (statusCode != 200) {
+                Header header = response.getFirstHeader("location");
+                return header.getValue();
+            }
+            HttpEntity entity = response.getEntity();
+            String result = null;
+            if (entity != null) {
+                log.info("http postSSL 返回:{},{}", statusCode,JSONUtil.toJsonString(entity));
+                EntityUtils.consume(entity);
+                result = EntityUtils.toString(entity, DEFAULT_RES_CHARSET);
+
+            }
+
+            return result;
+        }
+        finally {
+            try {
+                if (httpClient != null) {
+                    httpClient.close();
+                }
+
+                if (response != null) {
+                    response.close();
+                }
+            } catch (IOException e) {
+                log.info("http postSSL 关闭资源异常:{}", e.getMessage(), e);
+            }
+        }
+
+    }
+
+    private static String doPostXml(String params, String url,
+                                 String reqCharset, String resCharset) throws Exception {
+
+
+        CloseableHttpClient httpClient = getSingleSSLConnection(null);
+        CloseableHttpResponse response = null;
+        if (isBlank(url)) {
+            return null;
+        }
+        try {
+
+            HttpPost httpPost = new HttpPost(url);
+            httpPost.addHeader("User-Agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+            httpPost.addHeader("Connection", "close");
+            httpPost.addHeader("Content-Type", "text/xml");
+
+            StringEntity stringEntity = new StringEntity(params, StandardCharsets.UTF_8);
+            stringEntity.setContentEncoding("UTF-8");
+            httpPost.setEntity(stringEntity);
+
+            // 执行请求
+            response = httpClient.execute(httpPost);
+            if (null == response || null == response.getStatusLine()){
+                String msg = url+" post "+MyErrorCode.HTTP_NO_RESPONSE;
+                log.error("doPostXml {}",msg);
+                throw new Exception(msg);
+            }
+            int statusCode = response.getStatusLine().getStatusCode();
+            log.info("http post 返回:{},{}", statusCode,JSONUtil.toJsonString(response));
+
+            if (statusCode != 200) {
+                Header header = response.getFirstHeader("location");
+                return header.getValue();
+            }
+            HttpEntity entity = response.getEntity();
+            String result = null;
+            if (entity != null) {
+                log.info("http post 返回:{},{}", statusCode,JSONUtil.toJsonString(entity));
+                EntityUtils.consume(entity);
+                result = EntityUtils.toString(entity, resCharset == null ? DEFAULT_RES_CHARSET : resCharset);
+
+            }
+
+            return result;
+        } catch (Exception e) {
+            String msg = MyErrorCode.HTTP_NO_RESPONSE+e.getMessage();
+            log.info("http post 异常:{}", e.getMessage());
+            throw new Exception(msg);
+        } finally {
+            try {
+                if (httpClient != null) {
+                    httpClient.close();
+                }
+
+                if (response != null) {
+                    response.close();
+                }
+            } catch (IOException e) {
+                log.info("http post 关闭资源异常:{}", e.getMessage(), e);
+            }
+        }
+    }
+
     public static String doGet(Map<String, String> params, String url,
                                 String reqCharset, String resCharset) throws Exception {
-        CloseableHttpClient httpClient = getSingleSSLConnection();
+        CloseableHttpClient httpClient = getSingleSSLConnection(null);
         CloseableHttpResponse response = null;
         if (isBlank(url)) {
             return null;
@@ -190,10 +341,10 @@ public class HttpClient431Util {
      * @return CloseableHttpClient
      * @throws Exception exception
      */
-    private static CloseableHttpClient getSingleSSLConnection() throws Exception {
-        CloseableHttpClient httpClient = null;
+    private static CloseableHttpClient getSingleSSLConnection(KeyStore truststore) throws Exception {
+        CloseableHttpClient httpClient ;
         try {
-            SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy() {
+            SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(truststore, new TrustStrategy() {
                 @Override
                 public boolean isTrusted(X509Certificate[] paramArrayOfX509Certificate,
                                          String paramString) throws CertificateException {
@@ -215,7 +366,7 @@ public class HttpClient431Util {
             return true;
         }
         for (int i = 0; i < strLen; i++) {
-            if ((Character.isWhitespace(str.charAt(i)) == false)) {
+            if (!Character.isWhitespace(str.charAt(i))) {
                 return false;
             }
         }

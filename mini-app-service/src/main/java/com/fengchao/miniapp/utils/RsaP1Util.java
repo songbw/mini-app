@@ -19,10 +19,7 @@ import cfca.util.cipher.lib.Session;
 import cfca.x509.certificate.X509Cert;
 import cfca.x509.certificate.X509CertHelper;
 
-/**
- * @Author tom
- * @Date 19-9-4 下午12:23
- */
+
 public class RsaP1Util {
 
     public static Session session = null;
@@ -111,6 +108,7 @@ public class RsaP1Util {
     private  Key getRSAPubKey( String cerPath ) throws Exception {
         X509Cert cert = X509CertHelper.parse(cerPath);
         Key pubKey = cert.getPublicKey();
+
         return pubKey;
     }
     private static Key getRSAPubKey( byte[] cert ) throws Exception {
