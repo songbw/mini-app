@@ -22,7 +22,9 @@ public class MyExceptionHandler {
     @ExceptionHandler(value = Exception.class)
     public Map<String, Object> errorHandle(Exception e, HttpServletResponse response) {
         Map<String, Object> map = new HashMap<>();
-        log.error("raw message: "+e.getMessage());
+        if (log.isDebugEnabled()) {
+            log.debug("raw message: " + e.getMessage());
+        }
         String message = e.getMessage();
         String errMessage = message.trim();
 
@@ -49,7 +51,7 @@ public class MyExceptionHandler {
                 try {
                     code = Integer.valueOf(codeStr);
                 }catch (Exception ex){
-                    log.error("wrong error code {}",codeStr);
+                    log.error("wrong error code {}",codeStr,e);
                     code = 0;
                 }
                 if (0 < code){

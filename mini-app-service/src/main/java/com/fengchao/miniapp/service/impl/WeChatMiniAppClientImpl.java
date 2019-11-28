@@ -69,7 +69,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
     }
 
     private JSONObject accessWeChatApi(String path,Map<String,String> params) throws Exception{
-        String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
+        String _func = "获取accessToken接口 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
 
         String url = configuration.getWechatAppApiUrl() + path;
         String result;
@@ -78,13 +78,13 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
             result = HttpClient431Util.doGet(params,url);
         }catch (Exception e){
             String msg = MyErrorCode.WECHAT_API_FAILED+e.getMessage();
-            log.error(_func+msg);
+            log.error("{} {}",_func,msg);
             throw new Exception(msg);
         }
 
         if (null == result || result.isEmpty()){
             String msg = MyErrorCode.WECHAT_API_RESP_MSG_MISSING;
-            log.error(_func+msg);
+            log.error("{} {}",_func,msg);
             throw new Exception(msg);
         }
 
@@ -94,13 +94,13 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
             json = JSON.parseObject(result);
         }catch (Exception e){
             String msg = MyErrorCode.WECHAT_API_FAILED+e.getMessage();
-            log.error(_func+msg);
+            log.error("{} {}",_func,msg);
             throw new Exception(msg);
         }
 
         if (null == json){
             String msg = MyErrorCode.WECHAT_API_RESP_MSG_WRONG;
-            log.error(_func+msg);
+            log.error("{} {}",_func,msg);
             throw new Exception(msg);
         }
 
@@ -142,7 +142,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
             b = new BASE64Decoder().decodeBuffer(base64Str);
         }catch (Exception e){
             log.error("Base64解码异常 {}",e.getMessage(),e);
-            throw e;
+            throw new Exception(MyErrorCode.COMMON_AES256_FAILED+e.getMessage());
         }
 
         String md5Key = Md5Util.md5(WeChat.MINI_APP_PAYMENT_API_KEY);
@@ -184,20 +184,21 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
             expires = json.getInteger(WeChat.EXPIRES_IN_KEY);
         }catch (Exception e){
             String errMsg = MyErrorCode.COMMON_JSON_WRONG + json.getString(WeChat.ERR_MESSAGE_KEY);
-            log.error(_func + errMsg);
+            log.error("{} {}",_func,errMsg);
             throw new Exception(errMsg);
         }
         if (null == token || token.isEmpty()) {
                 //Integer errCode = json.getInteger(WeChat.ERR_CODE_KEY);
                 String errMsg = MyErrorCode.WECHAT_API_FAILED + json.getString(WeChat.ERR_MESSAGE_KEY);
-                log.error(_func + errMsg);
+                log.error("{} {}",_func,errMsg);
                 throw new Exception(errMsg);
         }
 
         WeChatTokenResultBean bean = new WeChatTokenResultBean();
         bean.setAccess_token(token);
         bean.setExpires_in(expires);
-        log.info(_func+WeChat.GET_ACCESS_TOKEN_API+JSON.toJSONString(bean));
+        log.info("{} {}",_func,WeChat.GET_ACCESS_TOKEN_API+JSON.toJSONString(bean));
+
         return bean;
     }
 
@@ -230,7 +231,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
             unionId = json.getString(WeChat.UNION_ID_KEY);
         } catch (Exception e) {
             msg = MyErrorCode.COMMON_JSON_WRONG + e.getMessage();
-            log.error(_func + msg);
+            log.error("{} {}",_func,msg);
             throw new Exception(msg);
         }
         if (null != openId && !openId.isEmpty() && null != sessionKey && !sessionKey.isEmpty()) {
@@ -239,7 +240,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
             bean.setSession_key(sessionKey);
             bean.setUnionid(unionId);
 
-            log.info(_func + WeChat.GET_CODE2SESSION_PATH + JSON.toJSONString(bean));
+            log.info("{} {}",_func , WeChat.GET_CODE2SESSION_PATH + JSON.toJSONString(bean));
             return bean;
         }
 
@@ -250,11 +251,11 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
             errCode = json.getInteger(WeChat.ERR_CODE_KEY);
         } catch (Exception e) {
             msg = MyErrorCode.COMMON_JSON_WRONG + e.getMessage();
-            log.error(_func + msg);
+            log.error("{} {}",_func,msg);
         }
         if (null == errCode || null == errMsg) {
             msg = MyErrorCode.WECHAT_API_RESP_MSG_WRONG;
-            log.error(_func + msg);
+            log.error("{} {}",_func,msg);
             throw new Exception(msg);
         }
         if (!WeChatErrorCode.SUCCESS.getCode().equals(errCode)) {
@@ -267,7 +268,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         }
 
         msg = MyErrorCode.WECHAT_API_RESP_MSG_WRONG;
-        log.error(_func + msg);
+        log.error("{} {}",_func,msg);
         throw new Exception(msg);
 
     }
@@ -275,7 +276,11 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
     @Override
     public String
     signParam(Map<String,Object> params) throws Exception{
-        String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
+        String _func = "签名 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
+
+        if (log.isDebugEnabled()) {
+            log.debug("{} 参数 {}", _func, JSON.toJSONString(params));
+        }
         Map<String,Object> treeMap = new TreeMap<>();
 
         Set<String> keySet = params.keySet();
@@ -287,10 +292,14 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
         String paramStr = map2string(treeMap);
         paramStr = paramStr + "&key="+WeChat.MINI_APP_PAYMENT_API_KEY;
-        log.info("{} params: {}",_func,paramStr);
+        if (log.isDebugEnabled()) {
+            log.debug("{} 参数串: {}", _func, paramStr);
+        }
         try {
             String sign = Md5Util.md5(paramStr);
-            log.info("{} md5: {}", _func,sign);
+            if (log.isDebugEnabled()) {
+                log.debug("{} md5: {}", _func, sign);
+            }
             return sign;
         }catch (Exception e){
             log.error("{} {}",_func,e.getMessage(),e);
@@ -302,8 +311,10 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
     @Override
     public WechatPrepayBean
     postPrepayId(WechatOrderPostBean data,String ip) throws Exception{
-        String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
-        log.info("{} param: {}",_func,JSON.toJSONString(data));
+        String _func = "统一下单接口 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
+        if (log.isDebugEnabled()) {
+            log.debug("{} param: {}", _func, JSON.toJSONString(data));
+        }
 
         Map<String,Object> paramMap = new HashMap<>();
         paramMap.put(WeChat.APP_ID_KEY,configuration.getWechatAppId());
@@ -329,17 +340,16 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
         String respXml;
 
-        try{
-            respXml = HttpClient431Util.doPostXml(postBody,WeChat.MINI_APP_PAYMENT_UNIFIED_ORDER_URL);
+        try {
+            respXml = HttpClient431Util.doPostXml(postBody, WeChat.MINI_APP_PAYMENT_UNIFIED_ORDER_URL);
         }catch (Exception e){
-            String msg = MyErrorCode.WECHAT_API_FAILED+e.getMessage();
-            log.error(_func+msg);
-            throw new Exception(msg);
+            log.error("{} {}",_func,e.getMessage(),e);
+            throw e;
         }
 
         if (null == respXml || respXml.isEmpty()){
             String msg = MyErrorCode.WECHAT_API_RESP_MSG_MISSING;
-            log.error(_func+msg);
+            log.error("{} {}",_func,msg);
             throw new Exception(msg);
         }
 
@@ -347,7 +357,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         Object returnCodeObj = respMap.get(WeChat.RETURN_CODE_KEY);
         if (null == returnCodeObj){
             String msg = MyErrorCode.WECHAT_API_RESP_MSG_MISSING+ WeChat.RETURN_CODE_KEY;
-            log.error(_func+msg);
+            log.error("{} {}",_func,msg);
             throw new Exception(msg);
         }
         String returnCode = returnCodeObj.toString();
@@ -359,50 +369,67 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
             }else{
                 msg = MyErrorCode.WECHAT_API_FAILED+msgObj.toString();
             }
-            log.error(_func+msg);
+            log.error("{} {}",_func,msg);
             throw new Exception(msg);
         }
 
         Object resultCodeObj = respMap.get(WeChat.RESULT_CODE_KEY);
         if (null == resultCodeObj){
             String msg = MyErrorCode.WECHAT_API_RESULT_CODE_MISSING;
-            log.error(_func+msg);
+            log.error("{} {}",_func,msg);
             throw new Exception(msg);
         }
         String resultCode = resultCodeObj.toString();
         if (resultCode.isEmpty() || !WeChat.RETURN_CODE_SUCCESS.equals(resultCode)){
             Object msgObj = respMap.get(WeChat.RESP_ERR_MESSAGE_KEY);
+            Object errCodeObj = respMap.get(WeChat.RESP_ERR_CODE_KEY);
             String msg;
+            String errCode;
+            if (null != errCodeObj){
+                errCode = errCodeObj.toString()+" ";
+            }else{
+                errCode = "";
+            }
             if (null == msgObj){
                 msg = MyErrorCode.WECHAT_API_RESP_MSG_MISSING;
             }else{
-                msg = MyErrorCode.WECHAT_API_FAILED+msgObj.toString();
+                msg = MyErrorCode.WECHAT_API_FAILED+errCode+msgObj.toString();
             }
-            log.error(_func+msg);
+            log.error("{} {}",_func,msg);
             throw new Exception(msg);
         }
 
         Object respAppIdObj = respMap.get(WeChat.APP_ID_KEY);
         if (null == respAppIdObj){
             String msg = MyErrorCode.WECHAT_API_RESP_MSG_MISSING+ WeChat.APP_ID_KEY;
-            log.error(_func+msg);
+            log.error("{} {}",_func,msg);
             throw new Exception(msg);
         }
         String respAppId = respAppIdObj.toString();
         if (respAppId.isEmpty() || !configuration.getWechatAppId().equals(respAppId)){
             String msg = MyErrorCode.WECHAT_API_RESP_APP_ID_WRONG;
-            log.error(_func+msg);
+            log.error("{} {}",_func,msg);
             throw new Exception(msg);
         }
 
         Object respNonceObj = respMap.get(WeChat.NONCE_STRING_KEY);
-        Object respSignObj = respMap.get(WeChat.SPBILL_CREATE_IP_KEY);
+        Object respSignObj = respMap.get(WeChat.SIGN_KEY);
         Object prepayIdObj = respMap.get(WeChat.PREPAY_ID_KEY);
-        if (null == respNonceObj || null == respSignObj || null == prepayIdObj
-              ||  respNonceObj.toString().isEmpty() || respSignObj.toString().isEmpty()
-              ||  prepayIdObj.toString().isEmpty()){
+        if (null == prepayIdObj ||  prepayIdObj.toString().isEmpty()){
             String msg = MyErrorCode.WECHAT_API_RESP_MSG_MISSING+ WeChat.PREPAY_ID_KEY;
-            log.error(_func+msg);
+            log.error("{} {}",_func,msg);
+            throw new Exception(msg);
+        }
+
+        if (null == respNonceObj ||  respNonceObj.toString().isEmpty() ){
+            String msg = MyErrorCode.WECHAT_API_RESP_MSG_MISSING+ WeChat.NONCE_STRING_KEY;
+            log.error("{} {}",_func,msg);
+            throw new Exception(msg);
+        }
+
+        if (null == respSignObj || respSignObj.toString().isEmpty()){
+            String msg = MyErrorCode.WECHAT_API_RESP_MSG_MISSING+ WeChat.SIGN_KEY;
+            log.error("{} {}",_func,msg);
             throw new Exception(msg);
         }
         String respNonce = respNonceObj.toString();
@@ -428,7 +455,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
         if (null == xmlStr || xmlStr.isEmpty()){
             String msg = MyErrorCode.WECHAT_NOTIFY_SIGN_BLANK;
-            log.error(_func+msg);
+            log.error("{} {}",_func,msg);
             throw new Exception(msg);
         }
 
@@ -436,7 +463,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         Object signObj = map.get(WeChat.SIGN_KEY);
         if (null == signObj || signObj.toString().isEmpty()){
             String msg = MyErrorCode.WECHAT_NOTIFY_SIGN_BLANK;
-            log.error(_func+msg);
+            log.error("{} {}",_func,msg);
             throw new Exception(msg);
         }
 
@@ -459,7 +486,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
     @Override
     public Refund
     postRefund(WechatRefundPostBean data) throws Exception{
-        String _func = "微信小程序退款 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
+        String _func = "微信小程序退款接口 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         log.info("{} param: {}",_func,JSON.toJSONString(data));
 
         String refundNo = buildRedundNo();
@@ -480,17 +507,15 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         log.info("{} post body : {}",_func,postBody);
 
         String respXml;
-
         try{
             respXml = HttpClient431Util.doPostSSLXml(postBody,WeChat.MINI_APP_REFUND_URL);
         }catch (Exception e){
-            String msg = MyErrorCode.WECHAT_API_FAILED+e.getMessage();
-            throw new Exception(msg);
+            throw e;
         }
 
         if (null == respXml || respXml.isEmpty()){
             String msg = MyErrorCode.WECHAT_API_RESP_MSG_MISSING;
-            log.error(_func+msg);
+            log.error("{} {}",_func,msg);log.error(_func+msg);
             throw new Exception(msg);
         }
 
@@ -517,6 +542,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
         Refund refund = new Refund();
         BeanUtils.copyProperties(data,refund);
+        refund.setRefundNo(refundNo);
         refund.setCreateTime(new Date());
         refund.setUpdateTime(new Date());
 
@@ -538,7 +564,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
             refund.setComments(errMsg);
 
-            log.info("{} 失败 {}",_func,msg);
+            log.info("{} 失败 {}",_func,errMsg);
             return refund;
         }
         refund.setStatus(resultCode);
@@ -598,11 +624,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
         String respXml;
 
-        try{
-            respXml = HttpClient431Util.doPostXml(postBody,WeChat.MINI_APP_REFUND_QUERY_URL);
-        }catch (Exception e){
-            throw new Exception(MyErrorCode.WECHAT_API_FAILED+e.getMessage());
-        }
+        respXml = HttpClient431Util.doPostXml(postBody,WeChat.MINI_APP_REFUND_QUERY_URL);
 
         if (null == respXml || respXml.isEmpty()){
             String msg = MyErrorCode.WECHAT_API_RESP_MSG_MISSING;
@@ -693,7 +715,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
     @Override
     public void
     queryPayment(Payment payment) throws Exception{
-        String _func = "微信小程序查询订单 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
+        String _func = "微信小程序查询订单接口 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         log.info("{} orderId= {}",_func,payment.getOrderId());
 
         Map<String,Object> paramMap = new HashMap<>();
@@ -710,11 +732,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
         String respXml;
 
-        try{
-            respXml = HttpClient431Util.doPostXml(postBody,WeChat.MINI_APP_PAYMENT_QUERY_URL);
-        }catch (Exception e){
-            throw new Exception(MyErrorCode.WECHAT_API_FAILED+e.getMessage());
-        }
+        respXml = HttpClient431Util.doPostXml(postBody,WeChat.MINI_APP_PAYMENT_QUERY_URL);
 
         if (null == respXml || respXml.isEmpty()){
             String msg = MyErrorCode.WECHAT_API_RESP_MSG_MISSING;
@@ -774,9 +792,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         payment.setComments(tradeState);
 
         Object endTimeObj = respMap.get(WeChat.RESP_TIME_END_KEY);
-        if (null == endTimeObj){
-            log.error(MyErrorCode.WECHAT_TIME_END_BLANK);
-        }else{
+        if (null != endTimeObj){
             payment.setTimeEnd(endTimeObj.toString());
         }
 
@@ -785,7 +801,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
     @Override
     public boolean
     closePayment(Payment payment) throws Exception{
-        String _func = "微信小程序关闭订单 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
+        String _func = "微信小程序关闭订单接口 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         log.info("{} orderId= {}",_func,payment.getOrderId());
 
         Map<String,Object> paramMap = new HashMap<>();
@@ -802,14 +818,11 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
         String respXml;
 
-        try{
-            respXml = HttpClient431Util.doPostXml(postBody,WeChat.MINI_APP_PAYMENT_CLOSE_URL);
-        }catch (Exception e){
-            throw new Exception(MyErrorCode.WECHAT_API_FAILED+e.getMessage());
-        }
+        respXml = HttpClient431Util.doPostXml(postBody,WeChat.MINI_APP_PAYMENT_CLOSE_URL);
 
         if (null == respXml || respXml.isEmpty()){
             String msg = MyErrorCode.WECHAT_API_RESP_MSG_MISSING;
+            log.error("{} {}",_func,msg);
             throw new Exception(msg);
         }
 
@@ -830,18 +843,23 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         }
 
         Object resultCodeObj = respMap.get(WeChat.RESULT_CODE_KEY);
-        Object resultMsgObj = respMap.get(WeChat.RESULT_MESSAGE_KEY);
-        if (null == resultCodeObj || resultCodeObj.toString().isEmpty()
-            || null == resultMsgObj){
+        if (null == resultCodeObj || resultCodeObj.toString().isEmpty()){
             throw new Exception(MyErrorCode.WECHAT_API_RESULT_CODE_MISSING);
         }
 
         String resultCode = resultCodeObj.toString();
-        String resultMsg = resultMsgObj.toString();
-        log.info("{} exit: code={} msg={}",_func,resultCode, resultMsg);
         if (!WeChat.RETURN_CODE_SUCCESS.equals(resultCode)){
             //业务失败
-            throw new Exception(MyErrorCode.WECHAT_API_FAILED+resultMsg );
+            Object errCodeObj = respMap.get(WeChat.RESP_ERR_CODE_KEY);
+            Object errMsgObj = respMap.get(WeChat.RESP_ERR_MESSAGE_KEY);
+            String errM = MyErrorCode.WECHAT_API_FAILED;
+            if (null != errCodeObj){
+                errM += errCodeObj.toString();
+            }
+            if(null != errMsgObj){
+                errM += errMsgObj.toString();
+            }
+            throw new Exception(errM);
         }
 
         return true;

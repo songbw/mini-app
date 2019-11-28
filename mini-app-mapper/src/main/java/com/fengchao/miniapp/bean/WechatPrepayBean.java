@@ -14,6 +14,5 @@ public class WechatPrepayBean {
     private String nonceStr;
     private String prepayId;
     private String resultMsg;
-    private String resultCode;
 
 }

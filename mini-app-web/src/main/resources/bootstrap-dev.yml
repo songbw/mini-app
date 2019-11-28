@@ -1,7 +1,15 @@
 
 spring:
+  cloud:
+    config:
+      enabled: false
+      discovery:
+        enabled: false
+    service-registry:
+      auto-registration:
+        enabled: false
   datasource:
-    url: jdbc:mysql://192.168.200.37:3306/mini_app?characterEncoding=utf8&useSSL=false&autoReconnect=true&failOverReadOnly=false&maxReconnects=10&serverTimezone=GMT%2B8
+    url: jdbc:mysql://192.168.200.37:3306/mini_app_payment?characterEncoding=utf8&useSSL=false&autoReconnect=true&failOverReadOnly=false&maxReconnects=10&serverTimezone=GMT%2B8
     username: fengchao
     password: Smartautotech@123
     driver-class-name: com.mysql.jdbc.Driver

@@ -18,5 +18,7 @@ public class WechatRefundQueryBean {
 
     @NotBlank(message = MyErrorCode.WECHAT_API_TRAN_NO_BLANK)
     @ApiModelProperty(value = "退款单号", example = "11111111")
-    private String refundNo;
+    private String orderId;
+
+
 }

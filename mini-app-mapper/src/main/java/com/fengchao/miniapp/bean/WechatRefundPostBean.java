@@ -24,10 +24,10 @@ public class WechatRefundPostBean {
 
     @NotNull(message = MyErrorCode.WECHAT_API_ORDER_FEE_NULL)
     @ApiModelProperty(value = "订单金额", example = "111")
-    private Float totalFee;
+    private Integer totalFee;
 
     @NotNull(message = MyErrorCode.WECHAT_API_REFUND_FEE_NULL)
     @ApiModelProperty(value = "退款金额", example = "111")
-    private Float refundFee;
+    private Integer refundFee;
 
 }

@@ -6,12 +6,14 @@ public class MyErrorCode {
 
     public static final String COMMON_PARAM_SHOW = " 入参: ";
     public static final String COMMON_PARAM_NULL = "@410001@入参为空 ";
+    public static final String COMMON_ERROR = "@410002@一般性错误 ";
     public static final String COMMON_JSON_WRONG = "@420001@JSON解析错误 ";
     public static final String COMMON_MD5_FAILED = "@420002@MD5构造错误 ";
     public static final String COMMON_XML_FAILED = "@420003@XML解析错误 ";
+    public static final String COMMON_AES256_FAILED = "@420004@AES-256-ECB解密(PKCS7Padding)错误 ";
 
-    public static final String HTTP_ERROR = "@430003@HTTP 异常 ";
-    public static final String HTTP_NO_RESPONSE = "@430003@HTTP 没有回应 ";
+    public static final String HTTP_ERROR = "@430002@HTTP错误 ";
+    public static final String HTTP_NO_RESPONSE = "@430003@HTTP 无响应 ";
     public static final String HTTP_NO_ENTITY = "@430004@HTTP 没有数据包 ";
 
     public static final String MYSQL_OPERATE_EXCEPTION = "@400001@数据库操作异常 ";
@@ -101,6 +103,7 @@ public class MyErrorCode {
     public static final String PAYMENT_NO_FOUND = "@400157@没有找到预下单记录 ";
     public static final String REFUND_NO_FOUND = "@400158@没有找到退款记录 ";
     public static final String PAYMENT_OUT_TRAN_NO_WRONG = "@400159@没有找到微信订单记录 ";
+    public static final String PAYMENT_FAILED = "@400160@微信订单支付未完成或已经关闭";
 
 
     public static String weChatErrMsg(String code,String msg){

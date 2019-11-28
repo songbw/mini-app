@@ -14,16 +14,18 @@ public class Md5Util {
      * @return MD5
      */
     public static String md5(String str) throws Exception{
-        log.info("try MD5 {}",str);
+        if (log.isDebugEnabled()) {
+            log.debug("try MD5 {}", str);
+        }
         if(null == str){
-            return null;
+            throw new Exception(MyErrorCode.COMMON_MD5_FAILED+"输入字符串为空");
         }
         String md5Str;
         try {
             md5Str = DigestUtils.md5DigestAsHex(str.getBytes(StandardCharsets.UTF_8));
         }catch (Exception e){
             String msg = MyErrorCode.COMMON_MD5_FAILED+e.getMessage();
-            log.error("MD5 failed {}",msg);
+            log.error("MD5 failed {}",msg,e);
             throw new Exception(msg);
         }
         return md5Str.toUpperCase();

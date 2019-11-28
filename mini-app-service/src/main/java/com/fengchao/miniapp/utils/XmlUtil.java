@@ -1,8 +1,8 @@
 package com.fengchao.miniapp.utils;
 
+import com.alibaba.fastjson.JSON;
 import com.fengchao.miniapp.constant.MyErrorCode;
 import lombok.extern.slf4j.Slf4j;
-import org.dom4j.Attribute;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
@@ -16,7 +16,7 @@ public class XmlUtil {
     xml2map(String xmlStr) throws Exception{
         Map<String,Object> map = new HashMap<>();
 
-        Document document = null;
+        Document document ;
         try{
             document = DocumentHelper.parseText(xmlStr);
         }catch (Exception e){
@@ -41,19 +41,11 @@ public class XmlUtil {
         while(itr.hasNext()){
             Element element = (Element)itr.next();
             if (null != element) {
-                List<Attribute> list = element.attributes();
-                for (Attribute attr : list) {
-                    map.put(attr.getName(), attr.getValue());
-                }
-
-                Iterator it = element.elementIterator();
-                while (it.hasNext()) {
-                    Element item = (Element) it.next();
-                    map.put(item.getName(), item.getStringValue());
-                }
+                map.put(element.getName(), element.getText());
             }
         }
 
+        log.info("解析xml 结果 {}", JSON.toJSONString(map));
         return map;
     }
 
@@ -68,9 +60,23 @@ public class XmlUtil {
             String key = iter.next();
             if ("detail".equals(key) || "body".equals(key)
                     || "scene_info".equals(key) || "attacg".equals(key)) {
-                sb.append("<" + key + "><![CDATA[" + map.get(key) + "]]></" + key + ">");
+
+                sb.append("<");
+                sb.append(key);
+                sb.append("><![CDATA[");
+                sb.append(map.get(key));
+                sb.append("]]></");
+                sb.append(key);
+                sb.append(">");
             } else {
-                sb.append("<" + key + ">" + map.get(key) + "</" + key + ">");
+
+                sb.append("<");
+                sb.append(key);
+                sb.append(">");
+                sb.append(map.get(key));
+                sb.append("</");
+                sb.append(key);
+                sb.append(">");
             }
         }
         sb.append("</xml>");
@@ -81,11 +87,14 @@ public class XmlUtil {
     public static String getRandom() {
         Random random = new Random();
         String fourRandom = random.nextInt(1000000) + "";
+        StringBuilder sb = new StringBuilder();
         int randLength = fourRandom.length();
         if (randLength < 6) {
-            for (int i = 1; i <= 6 - randLength; i++)
-                fourRandom = "0" + fourRandom;
+            for (int i = 1; i <= 6 - randLength; i++){
+                sb.append("0");
+            }
         }
-        return fourRandom;
+        sb.append(fourRandom);
+        return sb.toString();
     }
 }
