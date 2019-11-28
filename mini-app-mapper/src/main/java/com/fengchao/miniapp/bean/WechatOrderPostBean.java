@@ -27,7 +27,7 @@ public class WechatOrderPostBean {
     private String openId;
 
     @NotNull(message = MyErrorCode.WECHAT_API_TOTAL_FEE_BLANK)
-    @ApiModelProperty(value="商户订单号", example="12345")
+    @ApiModelProperty(value="支付金额", example="123")
     private Integer totalFee;
 
 }
