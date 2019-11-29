@@ -7,12 +7,12 @@ public class WeChat {
     public static final String MINI_APP_CERT_FILE = "cert/apiclient_cert.p12";
 
     public static final String MINI_APP_PAYMENT_UNIFIED_ORDER_URL = "https://api.mch.weixin.qq.com/pay/unifiedorder";
-    public static final String MINI_APP_PAYMENT_UNIFIED_ORDER_NOTIFY = "https://api.weesharing.com/prepay/notify";
+    public static final String MINI_APP_PAYMENT_UNIFIED_ORDER_NOTIFY = "https://xcx-dev.weesharing.com/prepay/notify";
     public static final String MINI_APP_PAYMENT_QUERY_URL = "https://api.mch.weixin.qq.com/pay/orderquery";
     public static final String MINI_APP_PAYMENT_CLOSE_URL = "https://api.mch.weixin.qq.com/pay/closeorder";
 
     public static final String MINI_APP_REFUND_URL = "https://api.mch.weixin.qq.com/secapi/pay/refund";
-    public static final String MINI_APP_REFUND_NOTIFY = "https://api.weesharing.com/refund/notify";
+    public static final String MINI_APP_REFUND_NOTIFY = "https://xcx-dev.weesharing.com/refund/notify";
     public static final String MINI_APP_REFUND_QUERY_URL = "https://api.mch.weixin.qq.com/pay/refundquery";
 
     public static final String ERR_CODE_KEY = "errcode";
@@ -51,6 +51,7 @@ public class WeChat {
     public static final String PREPAY_ID_KEY = "prepay_id";
     public static final String TRADE_STATE_KEY = "trade_state";
     public static final String TRADE_STATE_DESC_KEY = "trade_state_desc";
+    public static final String BANK_TYPE_KEY = "bank_type";
 
     public static final String RETURN_CODE_KEY = "return_code";
     public static final String RETURN_CODE_SUCCESS = "SUCCESS";
@@ -70,6 +71,7 @@ public class WeChat {
     public static final String NOTIFY_REQ_INFO_KEY = "req_info";
     public static final String SUCCESS_TIME_KEY = "success_time";
     public static final String REFUND_ID_KEY = "refund_id";
+    public static final String REFUND_COUNT_KEY = "refund_count";//退款笔数
 
     //退款金额,退款金额=申请退款金额-非充值代金券退款金额，退款金额<=申请退款金额
     public static final String SETTLE_REFUND_FEE_KEY = "settlement_refund_fee";

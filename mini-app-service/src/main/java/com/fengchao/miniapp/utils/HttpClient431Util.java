@@ -196,6 +196,10 @@ public class HttpClient431Util {
     }
 
     public static String doGet(Map<String, String> params, String url) throws Exception {
+        String _func = "Http_doGet ";
+        if (log.isDebugEnabled()) {
+            log.info("{} 参数 {}", _func, JSON.toJSONString(params));
+        }
         CloseableHttpClient httpClient = null;
         CloseableHttpResponse response = null;
         if (isBlank(url)) {
@@ -223,7 +227,9 @@ public class HttpClient431Util {
                 uriBuilder.addParameters(pairs);
             }
             httpGet.setURI(uriBuilder.build());
-            log.info("http Get 参数： {}", JSON.toJSONString(httpGet));
+            if (log.isDebugEnabled()) {
+                log.info("http Get 参数： {}", JSON.toJSONString(httpGet));
+            }
             // 执行请求
             response = httpClient.execute(httpGet);
             if (log.isDebugEnabled()) {
@@ -241,10 +247,12 @@ public class HttpClient431Util {
                 result = EntityUtils.toString(entity, DEFAULT_RES_CHARSET);
             }
             EntityUtils.consume(entity);
-            log.info("http Get entity = {}",JSON.toJSONString(result));
+            if (log.isDebugEnabled()) {
+                log.info("http Get entity = {}", JSON.toJSONString(result));
+            }
             return result;
         } catch (Exception e) {
-            log.info("http Get {} 异常:{}", url,e.getMessage(), e);
+            log.info("http_doGet {} 异常:{}", url,e.getMessage(), e);
             throw new Exception(MyErrorCode.HTTP_ERROR+e.getMessage());
         } finally {
             try {
@@ -256,7 +264,7 @@ public class HttpClient431Util {
                     response.close();
                 }
             } catch (IOException e) {
-                log.info("http get 关闭资源异常:{}", e.getMessage(), e);
+                log.info("http_doGet 关闭资源异常:{}", e.getMessage(), e);
             }
         }
     }

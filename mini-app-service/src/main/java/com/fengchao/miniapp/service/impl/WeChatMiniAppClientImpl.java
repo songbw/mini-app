@@ -70,7 +70,9 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
     private JSONObject accessWeChatApi(String path,Map<String,String> params) throws Exception{
         String _func = "获取accessToken接口 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
-
+        if (log.isDebugEnabled()) {
+            log.info("{} 参数 {}", _func, JSON.toJSON(params));
+        }
         String url = configuration.getWechatAppApiUrl() + path;
         String result;
 
@@ -104,7 +106,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
             throw new Exception(msg);
         }
 
-        log.info("微信小程序服务端 返回JSON {}",JSON.toJSONString(json));
+        log.info("{} 返回 {}",_func,JSON.toJSONString(json));
 
         return json;
 
@@ -206,7 +208,9 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
     public WeChatSessionResultBean
     getSession(String jsCode)throws Exception {
         String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
-
+        if (log.isDebugEnabled()) {
+            log.info("{} 参数： jsCode={}", _func, jsCode);
+        }
         Map<String, String> params = new HashMap<>();
         params.put(WeChat.APP_ID_KEY, configuration.getWechatAppId());
         params.put(WeChat.SECRET_KEY, configuration.getWechatAppSecret());
@@ -239,8 +243,9 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
             bean.setOpenid(openId);
             bean.setSession_key(sessionKey);
             bean.setUnionid(unionId);
-
-            log.info("{} {}",_func , WeChat.GET_CODE2SESSION_PATH + JSON.toJSONString(bean));
+            if (log.isDebugEnabled()) {
+                log.info("{} 成功 {}", _func, JSON.toJSONString(bean));
+            }
             return bean;
         }
 
@@ -279,7 +284,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         String _func = "签名 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
 
         if (log.isDebugEnabled()) {
-            log.debug("{} 参数 {}", _func, JSON.toJSONString(params));
+            log.info("{} 参数 {}", _func, JSON.toJSONString(params));
         }
         Map<String,Object> treeMap = new TreeMap<>();
 
@@ -293,12 +298,12 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         String paramStr = map2string(treeMap);
         paramStr = paramStr + "&key="+WeChat.MINI_APP_PAYMENT_API_KEY;
         if (log.isDebugEnabled()) {
-            log.debug("{} 参数串: {}", _func, paramStr);
+            log.info("{} 参数串: {}", _func, paramStr);
         }
         try {
             String sign = Md5Util.md5(paramStr);
             if (log.isDebugEnabled()) {
-                log.debug("{} md5: {}", _func, sign);
+                log.info("{} md5: {}", _func, sign);
             }
             return sign;
         }catch (Exception e){
@@ -319,7 +324,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         Map<String,Object> paramMap = new HashMap<>();
         paramMap.put(WeChat.APP_ID_KEY,configuration.getWechatAppId());
         paramMap.put(WeChat.MERCHANT_ID_KEY, WeChat.MINI_APP_PAYMENT_MCH_ID);
-        paramMap.put(WeChat.NONCE_STRING_KEY, XmlUtil.getRandom());
+        paramMap.put(WeChat.NONCE_STRING_KEY, XmlUtil.getRandomStringByLength(32));
         paramMap.put(WeChat.BODY_KEY, data.getBody());
         paramMap.put(WeChat.OUT_TRADE_NO_KEY, data.getTradeNo());
         paramMap.put(WeChat.TOTAL_FEE_KEY, data.getTotalFee());
@@ -440,12 +445,30 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         Long timeStampS = timeStampMs/1000;
         String timeStamp = timeStampS.toString();
 
+        Map<String,Object> beanMap = new HashMap<>();
+        String packageStr = WeChat.PREPAY_ID_KEY+"="+prepayId;
+        beanMap.put("appId",configuration.getWechatAppId());
+        beanMap.put("nonceStr", respNonce);
+        beanMap.put("package", packageStr);
+        beanMap.put("signType", WeChat.SIGN_TYPE_MD5);
+        beanMap.put("timeStamp", timeStamp);
+
         WechatPrepayBean bean = new WechatPrepayBean();
+
+        try {
+            String paySign = signParam(beanMap);
+            bean.setPaySign(paySign);
+        }catch (Exception e){
+            throw e;
+        }
+
         bean.setNonceStr(respNonce);
-        bean.setPrepayId(prepayId);
-        bean.setSign(respSing);
+        bean.setPackageStr(packageStr);
         bean.setTimeStamp(timeStamp);
-        bean.setResultMsg(resultCode);
+        bean.setSignType(WeChat.SIGN_TYPE_MD5);
+
+        bean.setPrepayId(prepayId);
+        bean.setResult(resultCode);
 
         return bean;
     }
@@ -493,7 +516,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         Map<String,Object> paramMap = new HashMap<>();
         paramMap.put(WeChat.APP_ID_KEY,configuration.getWechatAppId());
         paramMap.put(WeChat.MERCHANT_ID_KEY, WeChat.MINI_APP_PAYMENT_MCH_ID);
-        paramMap.put(WeChat.NONCE_STRING_KEY, XmlUtil.getRandom());
+        paramMap.put(WeChat.NONCE_STRING_KEY, XmlUtil.getRandomStringByLength(32));
         paramMap.put(WeChat.OUT_TRADE_NO_KEY, data.getOrderId());
         paramMap.put(WeChat.OUT_REFUND_NO_KEY, refundNo);
         paramMap.put(WeChat.TOTAL_FEE_KEY, data.getTotalFee());
@@ -606,15 +629,15 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
     @Override
     public void
-    queryRefund(Refund refund) throws Exception{
+    queryRefund(WechatRefundListBean refund) throws Exception{
         String _func = "微信小程序退款查询 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
-        log.info("{} refundNo= {}",_func,refund.getRefundNo());
+        log.info("{} orderId= {}",_func,refund.getOrderId());
 
         Map<String,Object> paramMap = new HashMap<>();
         paramMap.put(WeChat.APP_ID_KEY,configuration.getWechatAppId());
         paramMap.put(WeChat.MERCHANT_ID_KEY, WeChat.MINI_APP_PAYMENT_MCH_ID);
-        paramMap.put(WeChat.NONCE_STRING_KEY, XmlUtil.getRandom());
-        paramMap.put(WeChat.OUT_REFUND_NO_KEY, refund.getRefundNo());
+        paramMap.put(WeChat.NONCE_STRING_KEY, XmlUtil.getRandomStringByLength(32));
+        paramMap.put(WeChat.OUT_TRADE_NO_KEY, refund.getOrderId());
 
         String sign = signParam(paramMap);
         paramMap.put(WeChat.SIGN_KEY,sign);
@@ -656,8 +679,6 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
         if (!WeChat.RETURN_CODE_SUCCESS.equals(resultCode)){
             //业务失败
-            refund.setStatus(resultCode);
-
             Object errCodeObj = respMap.get(WeChat.RESP_ERR_CODE_KEY);
             Object errMsgObj = respMap.get(WeChat.RESP_ERR_MESSAGE_KEY);
             String errMsg = " ";
@@ -668,47 +689,54 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
                 errMsg += " "+errMsgObj.toString();
             }
 
-            refund.setComments(errMsg);
-
-            log.info("{} {}",_func,msg);
-            return;
+            log.info("{} {}",_func,errMsg);
+            throw new Exception(MyErrorCode.WECHAT_API_FAILED+errMsg);
         }
 
-        Object respRefundNoObj = respMap.get(WeChat.OUT_REFUND_NO_KEY+"_0");
-        if (null == respRefundNoObj || respRefundNoObj.toString().isEmpty()){
-            throw new Exception(MyErrorCode.WECHAT_API_RESP_MSG_MISSING+ WeChat.OUT_REFUND_NO_KEY);
+        Object refundCountObj = respMap.get(WeChat.REFUND_COUNT_KEY);
+        if (null == refundCountObj){
+            throw new Exception(MyErrorCode.WECHAT_API_RESP_MSG_MISSING+ WeChat.REFUND_COUNT_KEY);
         }
-        String respRefundNo = respRefundNoObj.toString();
-        if (refund.getWechatRefundNo().isEmpty()) {
-            refund.setWechatRefundNo(respRefundNo);
-        }else{
-            if (!respRefundNo.equals(refund.getWechatRefundNo())){
-                throw new Exception(MyErrorCode.REFUND_NO_FOUND);
+
+        Integer refundCount = Integer.valueOf(refundCountObj.toString());
+        List<WechatRefundDetailBean> list = new ArrayList<>();
+        refund.setList(list);
+        int i;
+        for(i = 0; i < refundCount; i++) {
+            WechatRefundDetailBean bean = new WechatRefundDetailBean();
+            String num = "_"+String.valueOf(i);
+
+            Object respRefundNoObj = respMap.get(WeChat.OUT_REFUND_NO_KEY + num);
+            if (null != respRefundNoObj) {
+                bean.setRefundNo(respRefundNoObj.toString());
             }
-        }
 
-        Object respRefundFeeObj = respMap.get(WeChat.REFUND_FEE_KEY+"_0");
-        if (null == respRefundFeeObj || respRefundFeeObj.toString().isEmpty()){
-            log.error(MyErrorCode.WECHAT_REFUND_RESP_REFUND_FEE_BLANK);
-        }else{
-            refund.setRespRefundFee(Integer.valueOf(respRefundFeeObj.toString()));
-        }
+            Object wxRefundId = respMap.get(WeChat.REFUND_ID_KEY + num);
+            if (null != wxRefundId) {
+                bean.setWxRefundNo(wxRefundId.toString());
+            }
 
-        Object refundStatusObj = respMap.get(WeChat.REFUND_STATUS_KEY+"_0");
-        if (null == refundStatusObj || refundStatusObj.toString().isEmpty()){
-            log.error(MyErrorCode.WECHAT_REFUND_STATUS_BLANK);
-        }else{
-            refund.setStatus(refundStatusObj.toString());
-        }
+            Object respRefundFeeObj = respMap.get(WeChat.REFUND_FEE_KEY + num);
+            if (null != respRefundFeeObj && !respRefundFeeObj.toString().isEmpty()) {
+                bean.setRefundFee(Integer.valueOf(respRefundFeeObj.toString()));
+            }
 
-        Object refundTimeObj = respMap.get(WeChat.REFUND_SUCCESS_TIME_KEY+"_0");
-        if (null != refundTimeObj){
-            refund.setSuccessTime(refundTimeObj.toString());
-        }
+            Object refundStatusObj = respMap.get(WeChat.REFUND_STATUS_KEY + num);
+            if (null != refundStatusObj) {
+                bean.setRefundStatus(refundStatusObj.toString());
+            }
 
-        Object recvAccountObj = respMap.get(WeChat.RECV_ACCOUNT_KEY+"_0");
-        if (null != recvAccountObj){
-            refund.setRefundRecvAccount(recvAccountObj.toString());
+            Object refundTimeObj = respMap.get(WeChat.REFUND_SUCCESS_TIME_KEY + num);
+            if (null != refundTimeObj) {
+                bean.setRefundTime(refundTimeObj.toString());
+            }
+
+            Object recvAccountObj = respMap.get(WeChat.RECV_ACCOUNT_KEY + num);
+            if (null != recvAccountObj) {
+                bean.setRecvAccount(recvAccountObj.toString());
+            }
+
+            list.add(bean);
         }
     }
 
@@ -721,7 +749,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         Map<String,Object> paramMap = new HashMap<>();
         paramMap.put(WeChat.APP_ID_KEY,configuration.getWechatAppId());
         paramMap.put(WeChat.MERCHANT_ID_KEY, WeChat.MINI_APP_PAYMENT_MCH_ID);
-        paramMap.put(WeChat.NONCE_STRING_KEY, XmlUtil.getRandom());
+        paramMap.put(WeChat.NONCE_STRING_KEY, XmlUtil.getRandomStringByLength(32));
         paramMap.put(WeChat.OUT_TRADE_NO_KEY, payment.getOrderId());
 
         String sign = signParam(paramMap);
@@ -776,25 +804,48 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
             throw new Exception(MyErrorCode.PAYMENT_OUT_TRAN_NO_WRONG);
         }
 
-        String tradeState = " ";
+        Object tranIdObj = respMap.get(WeChat.RESP_TRANSACTION_ID_KEY);
+        if (null != tranIdObj){
+            payment.setTransactionId(tranIdObj.toString());
+        }
+        Object timeEndObj = respMap.get(WeChat.RESP_TIME_END_KEY);
+        if (null != timeEndObj){
+            payment.setTimeEnd(timeEndObj.toString());
+        }
+        Object cashFeeObj = respMap.get(WeChat.RESP_CASH_FEE_KEY);
+        if (null != cashFeeObj && !cashFeeObj.toString().isEmpty()){
+            payment.setCashFee(Integer.valueOf(cashFeeObj.toString()));
+        }
+        Object totalFeeObj = respMap.get(WeChat.TOTAL_FEE_KEY);
+        if (null != totalFeeObj && !totalFeeObj.toString().isEmpty()){
+            payment.setRespTotalFee(Integer.valueOf(totalFeeObj.toString()));
+        }
+        Object bankTypeObj = respMap.get(WeChat.BANK_TYPE_KEY);
+        if (null != bankTypeObj ){
+            payment.setBankType(bankTypeObj.toString());
+        }
+
         Object tradeStateObj = respMap.get(WeChat.TRADE_STATE_KEY);
-        if (null == tradeStateObj || tradeStateObj.toString().isEmpty()){
+        if (null == tradeStateObj){
             log.error(MyErrorCode.WECHAT_TRADE_STATUS_BLANK);
         }else{
-            tradeState += tradeStateObj.toString();
+            String tradeState = tradeStateObj.toString();
+            payment.setResult(tradeState);
+            if (WeChat.RETURN_CODE_SUCCESS.equals(tradeState)){
+                payment.setStatus(PaymentStatusType.OK.getCode());
+            }else{
+                if (WeChat.RETURN_CODE_FAIL.equals(tradeState)){
+                    payment.setStatus(PaymentStatusType.FAILED.getCode());
+                }
+            }
         }
         Object tradeDescObj = respMap.get(WeChat.TRADE_STATE_DESC_KEY);
         if (null == tradeDescObj || tradeDescObj.toString().isEmpty()){
             log.error(MyErrorCode.WECHAT_TRADE_STATUS_BLANK);
         }else{
-            tradeState += tradeDescObj.toString();
+            payment.setComments(tradeDescObj.toString());
         }
-        payment.setComments(tradeState);
 
-        Object endTimeObj = respMap.get(WeChat.RESP_TIME_END_KEY);
-        if (null != endTimeObj){
-            payment.setTimeEnd(endTimeObj.toString());
-        }
 
     }
 
@@ -807,7 +858,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         Map<String,Object> paramMap = new HashMap<>();
         paramMap.put(WeChat.APP_ID_KEY,configuration.getWechatAppId());
         paramMap.put(WeChat.MERCHANT_ID_KEY, WeChat.MINI_APP_PAYMENT_MCH_ID);
-        paramMap.put(WeChat.NONCE_STRING_KEY, XmlUtil.getRandom());
+        paramMap.put(WeChat.NONCE_STRING_KEY, XmlUtil.getRandomStringByLength(32));
         paramMap.put(WeChat.OUT_TRADE_NO_KEY, payment.getOrderId());
 
         String sign = signParam(paramMap);

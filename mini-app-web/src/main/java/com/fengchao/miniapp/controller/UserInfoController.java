@@ -185,7 +185,7 @@ public class UserInfoController {
 
         String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
 
-        log.info(_func+" param: id={}",openId);
+        log.info("==={} 参数: openId={}",_func,openId);
 
         UserInfo userInfo;
         try {
@@ -198,6 +198,7 @@ public class UserInfoController {
         }
 
         response.setStatus(200);
+        log.info("==={} 成功 {}",_func,JSON.toJSONString(userInfo));
         return new ResultObject<>(200, "success",userInfo);
 
     }

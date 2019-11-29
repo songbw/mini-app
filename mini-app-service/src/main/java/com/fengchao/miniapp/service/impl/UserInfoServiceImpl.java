@@ -86,8 +86,9 @@ public class UserInfoServiceImpl implements IUserInfoService {
             log.error(msg);
             throw new Exception(msg);
         }
-        log.info( _func + MyErrorCode.COMMON_PARAM_SHOW+openId);
-
+        if (log.isDebugEnabled()) {
+            log.info("{} {} {}",_func , MyErrorCode.COMMON_PARAM_SHOW , openId);
+        }
         UserInfoExample example = new UserInfoExample();
         UserInfoExample.Criteria criteria = example.createCriteria();
         criteria.andOpenIdEqualTo(openId);
@@ -98,11 +99,13 @@ public class UserInfoServiceImpl implements IUserInfoService {
             result = mapper.selectByExample(example);
         }catch (Exception e){
             String msg = MyErrorCode.MYSQL_OPERATE_EXCEPTION +e.getMessage();
-            log.error(_func + msg);
+            log.error("{} {}",_func , msg);
             throw new Exception(msg);
         }
 
-        log.info(_func + MyErrorCode.MYSQL_SELECT_SUCCESS +JSON.toJSONString(result));
+        if (log.isDebugEnabled()) {
+            log.info("{} {} {}",_func , MyErrorCode.MYSQL_SELECT_SUCCESS , JSON.toJSONString(result));
+        }
         if (0 < result.size()) {
             return result.get(0);
         }else {

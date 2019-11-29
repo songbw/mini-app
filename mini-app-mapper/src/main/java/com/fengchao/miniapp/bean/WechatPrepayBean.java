@@ -10,9 +10,12 @@ import lombok.Setter;
 public class WechatPrepayBean {
 
     private String timeStamp;
-    private String sign;
+    private String paySign;
     private String nonceStr;
+    private String packageStr;
+    private String signType;
+
     private String prepayId;
-    private String resultMsg;
+    private String result;
 
 }

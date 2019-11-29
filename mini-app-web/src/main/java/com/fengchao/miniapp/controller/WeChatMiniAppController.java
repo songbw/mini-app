@@ -19,6 +19,7 @@ import com.fengchao.miniapp.utils.ResultObject;
 import com.fengchao.miniapp.utils.XmlUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -29,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -62,14 +64,16 @@ public class WeChatMiniAppController {
     public ResultObject<String>
     getToken(HttpServletResponse response)throws Exception{
         String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
-
+        log.info("=== {} enter",_func);
         ResultObject<String> result = new ResultObject<>(200,"success",null);
 
         String storedToken = redisDAO.getWeChatToken();
         if (null != storedToken){
-            log.info(_func+" ==got stored token "+storedToken);
+
             result.setData(storedToken);
             response.setStatus(200);
+
+            log.info("=== {} 成功 got stored token {}",_func,storedToken);
             return result;
         }
 
@@ -77,18 +81,22 @@ public class WeChatMiniAppController {
         try{
             bean = weChatMiniAppClient.getAccessToken();
         }catch (Exception e){
+            log.error("{} {}",_func,e.getMessage());
             throw new Exception(e);
         }
 
         if (null == bean.getAccess_token()){
-            throw new Exception(MyErrorCode.WECHAT_API_TOKEN_NULL);
+            String m = MyErrorCode.WECHAT_API_TOKEN_NULL;
+            log.error("{} {}",_func,m);
+            throw new Exception(m);
         }
 
         String token = bean.getAccess_token();
         result.setData(token);
         response.setStatus(200);
         redisDAO.storeWeChatToken(token,bean.getExpires_in());
-        log.info(_func+"success token= "+token);
+
+        log.info("=== {} 成功 token = {} ",_func,token);
         return result;
 
     }
@@ -100,26 +108,29 @@ public class WeChatMiniAppController {
                @RequestParam  @Valid @NotBlank(message=MyErrorCode.WECHAT_API_JS_CODE_BLANK) String jsCode)
             throws Exception{
 
+        String _func = "login";
+        log.info("==={} 参数 jsCode={}",_func,jsCode);
         ResultObject<WeChatSessionResultBean> result = new ResultObject<>(200,"success",null);
 
         WeChatSessionResultBean bean;
         try{
             bean = weChatMiniAppClient.getSession(jsCode);
         }catch (Exception e){
+            log.error("{} {}",_func,e.getMessage());
             throw e;
         }
 
-        UserInfo info = null;
+        UserInfo info ;
         try{
             info = userInfoService.selectByOpenId(bean.getOpenid());
         }catch (Exception e){
             throw e;
         }
 
-        bean.setIsNewUser((null == info)?"0":"1");
+        bean.setIsNewUser((null == info)?"1":"0");//1:是新用户 0:是老用户
         result.setData(bean);
         response.setStatus(200);
-
+        log.info("==={} 成功 {}",_func,JSON.toJSONString(bean));
         return result;
 
     }
@@ -132,7 +143,7 @@ public class WeChatMiniAppController {
             throws Exception{
 
         String _func = "统一下单 ";
-        log.info("{} 入参 {}",_func,JSON.toJSONString(data));
+        log.info("=== {} 入参 {}",_func,JSON.toJSONString(data));
         ResultObject<WechatPrepayBean> result = new ResultObject<>(200,"success",null);
         String ip = request.getRemoteAddr();
 
@@ -153,7 +164,7 @@ public class WeChatMiniAppController {
         payment.setPrepayId(bean.getPrepayId());
         payment.setCreateTime(new Date());
         payment.setUpdateTime(new Date());
-        payment.setComments("完成统一下单 "+bean.getResultMsg());
+        payment.setComments("完成统一下单 "+bean.getResult());
 
         try{
             paymentService.insert(payment);
@@ -163,7 +174,7 @@ public class WeChatMiniAppController {
 
         result.setData(bean);
         response.setStatus(200);
-
+        log.info("=== {} 成功 {}",_func,JSON.toJSONString(bean));
         return result;
 
     }
@@ -176,7 +187,7 @@ public class WeChatMiniAppController {
             throws Exception{
 
         String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
-        log.info("{} 入参: {}",_func,xmlStr);
+        log.info("=== {} 入参: {}",_func,xmlStr);
         Map<String,Object> respMap = new HashMap<>();
         Map<String,Object> failMap = new HashMap<>();
         respMap.put(WeChat.RETURN_CODE_KEY,WeChat.RETURN_CODE_SUCCESS);
@@ -236,8 +247,8 @@ public class WeChatMiniAppController {
         }
 
         String orderId = orderIdObj.toString();
-        PageInfo<Payment> pages = null;
-        Payment payment = null;
+        PageInfo<Payment> pages ;
+        Payment payment ;
         try{
             pages = paymentService.queryList(1,1,"id","DESC",
                     openIdObj.toString(),orderId,null,null);
@@ -258,8 +269,14 @@ public class WeChatMiniAppController {
             return okXml;
         }
 
+        Integer respTotalFee = Integer.valueOf(totalFeeObj.toString());
+        if (!respTotalFee.equals(payment.getTotalFee())){
+            log.error("{} 订单金额是与商户侧的订单金额不一致");
+            return failXml;
+        }
+
         payment.setResult(resultObj.toString());
-        payment.setRespTotalFee(Integer.valueOf(totalFeeObj.toString()));
+        payment.setRespTotalFee(respTotalFee);
         payment.setCashFee(Integer.valueOf(cashFeeObj.toString()));
         payment.setTransactionId(tranIdObj.toString());
         payment.setTimeEnd(timeEndObj.toString());
@@ -286,8 +303,48 @@ public class WeChatMiniAppController {
             log.error("更新记录失败"+e.getMessage());
         }
 
-        log.info("{} exit 更新记录成功",_func);
+        log.info("=== {} exit 更新记录成功",_func);
+
         return okXml;
+    }
+
+    @ApiOperation(value = "支付成功更新订单", notes="支付成功更新订单")
+    @PostMapping("/payment/status")
+    public ResultObject<String>
+    updatePayment(HttpServletResponse response,
+                 @RequestBody  @Valid WechatPaymentQueryBean data)
+            throws Exception{
+
+        String _func = "支付成功更新订单状态 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
+        log.info("=== {} 入参: {}",_func, JSON.toJSON(data));
+
+        String orderId = data.getOrderId();
+        String openId = data.getOpenId();
+
+        PageInfo<Payment>  pages = paymentService.queryList(1,1,"id","DESC",
+                openId,orderId,null,null);
+
+        if (null == pages || null == pages.getRows() || 0 == pages.getRows().size()){
+            log.error("{} {}",_func, MyErrorCode.PAYMENT_NO_FOUND);
+            throw new Exception(MyErrorCode.PAYMENT_NO_FOUND);
+        }
+
+        Payment payment = pages.getRows().get(0);
+        if (PaymentStatusType.PREPAY.getCode().equals(payment.getStatus())){
+            log.info("{} 需要调用微信接口查询订单状态");
+            try {
+                weChatMiniAppClient.queryPayment(payment);
+            }catch (Exception e){
+                log.error("{} {}",_func,e.getMessage());
+                throw e;
+            }
+            //Todo 更新订单状态
+        }
+
+        log.info("=== {} 成功",_func);
+        return new ResultObject<>(200,"success","");
+
+
     }
 
     @ApiOperation(value = "关闭订单", notes="关闭订单")
@@ -298,7 +355,7 @@ public class WeChatMiniAppController {
             throws Exception{
 
         String _func = "关闭订单 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
-        log.info("{} 入参: {}",_func, JSON.toJSON(data));
+        log.info("=== {} 入参: {}",_func, JSON.toJSON(data));
 
         String orderId = data.getOrderId();
         String openId = data.getOpenId();
@@ -328,23 +385,23 @@ public class WeChatMiniAppController {
             log.error("{} {}",_func,e.getMessage());
             return new ResultObject<>(200,"关闭订单成功，更新支付记录状态失败","");
         }
-        log.info("{} exit",_func);
+        log.info("=== {} 成功",_func);
         return new ResultObject<>(200,"success","");
 
     }
 
     @ApiOperation(value = "查询订单结果", notes="查询订单结果")
-    @PostMapping("/payment/query")
+    @GetMapping("/payment")
     public ResultObject<Payment>
     queryPayment(HttpServletResponse response,
-                 @RequestBody  @Valid WechatPaymentQueryBean data)
-            throws Exception{
+                 @ApiParam(value="openId",required=true)
+                 @RequestParam @NotNull(message = MyErrorCode.OPEN_ID_BLANK) String openId,
+                 @ApiParam(value="orderId",required=true)
+                 @RequestParam @NotNull(message = MyErrorCode.WECHAT_API_TRAN_NO_BLANK) String orderId
+                )throws Exception{
 
         String _func = "查询退款结果";//Thread.currentThread().getStackTrace()[1].getMethodName();
-        log.info("{} 入参: {}",_func, JSON.toJSON(data));
-
-        String orderId = data.getOrderId();
-        String openId = data.getOpenId();
+        log.info("=== {} 入参: orderId={}",_func, orderId);
 
         PageInfo<Payment>  pages = paymentService.queryList(1,1,"id","DESC",
                 openId,orderId,null,null);
@@ -356,13 +413,20 @@ public class WeChatMiniAppController {
 
         Payment payment = pages.getRows().get(0);
 
+        if (PaymentStatusType.PREPAY.getCode().equals(payment.getStatus())){
+            log.info("{} 需要调用微信接口查询订单状态");
+        }else{
+            log.info("=== {} 成功找到记录 {}",_func, JSON.toJSONString(payment));
+            return new ResultObject<>(200,"success",payment);
+        }
+
         try {
             weChatMiniAppClient.queryPayment(payment);
         }catch (Exception e){
             log.error("{} {}",_func,e.getMessage());
             throw e;
         }
-        log.info("{} exit",_func);
+        log.info("=== {} 成功",_func);
         return new ResultObject<>(200,"success",payment);
 
     }
@@ -375,7 +439,7 @@ public class WeChatMiniAppController {
             throws Exception{
 
         String _func = "申请退款 ";
-        log.info("{} 入参 {}",_func,JSON.toJSONString(data));
+        log.info("=== {} 入参 {}",_func,JSON.toJSONString(data));
         ResultObject<WechatRefundRespBean> result = new ResultObject<>(200,"success",null);
 
         String orderId = data.getOrderId();
@@ -422,7 +486,7 @@ public class WeChatMiniAppController {
 
         result.setData(bean);
         response.setStatus(200);
-        log.info("{} exit",_func);
+        log.info("=== {} 完成",_func);
         return result;
 
     }
@@ -435,7 +499,7 @@ public class WeChatMiniAppController {
             throws Exception{
 
         String _func = "退款结果通知";//Thread.currentThread().getStackTrace()[1].getMethodName();
-        log.info("{} 入参: {}",_func,xmlStr);
+        log.info("=== {} 入参: {}",_func,xmlStr);
 
         Map<String,Object> okMap = new HashMap<>();
         Map<String,Object> failMap = new HashMap<>();
@@ -546,23 +610,23 @@ public class WeChatMiniAppController {
             log.error("更新退款记录失败"+e.getMessage());
         }
 
-        log.info("{} exit 更新退款记录成功",_func);
+        log.info("=== {} exit 更新退款记录成功",_func);
         return okXml;
 
     }
 
     @ApiOperation(value = "查询退款结果", notes="查询退款结果")
-    @PostMapping("/refund/query")
-    public ResultObject<Refund>
+    @GetMapping("/refund/query")
+    public ResultObject<WechatRefundListBean>
     queryRefund(HttpServletResponse response,
-                 @RequestBody  @Valid WechatRefundQueryBean data)
-            throws Exception{
+                @ApiParam(value="openId",required=true)
+                @RequestParam @NotNull(message = MyErrorCode.OPEN_ID_BLANK) String openId,
+                @ApiParam(value="orderId",required=true)
+                @RequestParam @NotNull(message = MyErrorCode.WECHAT_API_TRAN_NO_BLANK) String orderId
+            ) throws Exception{
 
         String _func = "查询退款结果 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
-        log.info("{} 入参: {}",_func, JSON.toJSON(data));
-
-        String orderId = data.getOrderId();
-        String openId = data.getOpenId();
+        log.info("=== {} 入参: openId={} orderId={}",_func, openId, orderId);
 
         PageInfo<Refund>  pages = refundService.queryList(1,1,"id","DESC",
                     openId,null,orderId,null,null);
@@ -574,15 +638,18 @@ public class WeChatMiniAppController {
         }
 
         Refund refund = pages.getRows().get(0);
+        WechatRefundListBean refundListBean = new WechatRefundListBean();
+        refundListBean.setOrderId(refund.getOrderId());
+        refundListBean.setTransactionId(refund.getTransactionId());
 
         try {
-            weChatMiniAppClient.queryRefund(refund);
+            weChatMiniAppClient.queryRefund(refundListBean);
         }catch (Exception e){
             log.error("{} {}",_func,e.getMessage());
             throw e;
         }
-        log.info("{} exit",_func);
-        return new ResultObject<>(200,"success",refund);
+        log.info("=== {} 成功",_func);
+        return new ResultObject<>(200,"success",refundListBean);
 
     }
 }
