@@ -7,12 +7,12 @@ public class WeChat {
     public static final String MINI_APP_CERT_FILE = "cert/apiclient_cert.p12";
 
     public static final String MINI_APP_PAYMENT_UNIFIED_ORDER_URL = "https://api.mch.weixin.qq.com/pay/unifiedorder";
-    public static final String MINI_APP_PAYMENT_UNIFIED_ORDER_NOTIFY = "https://xcx-dev.weesharing.com/prepay/notify";
+    public static final String MINI_APP_PAYMENT_NOTIFY = "https://xcx-dev.weesharing.com/wechat/payment/notify";
     public static final String MINI_APP_PAYMENT_QUERY_URL = "https://api.mch.weixin.qq.com/pay/orderquery";
     public static final String MINI_APP_PAYMENT_CLOSE_URL = "https://api.mch.weixin.qq.com/pay/closeorder";
 
     public static final String MINI_APP_REFUND_URL = "https://api.mch.weixin.qq.com/secapi/pay/refund";
-    public static final String MINI_APP_REFUND_NOTIFY = "https://xcx-dev.weesharing.com/refund/notify";
+    public static final String MINI_APP_REFUND_NOTIFY = "https://xcx-dev.weesharing.com/wechat/refund/notify";
     public static final String MINI_APP_REFUND_QUERY_URL = "https://api.mch.weixin.qq.com/pay/refundquery";
 
     public static final String ERR_CODE_KEY = "errcode";

@@ -15,7 +15,7 @@ public interface IWechatMiniAppClient {
 
     WechatPrepayBean postPrepayId(WechatOrderPostBean data, String ip) throws Exception;
 
-    boolean isRightSign(String xmlStr) throws Exception;
+    Map<String,Object> verifySign(String xmlStr) throws Exception;
 
     Refund
     postRefund(WechatRefundPostBean data) throws Exception;

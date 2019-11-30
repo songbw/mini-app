@@ -695,63 +695,63 @@ public class RefundExample {
             return (Criteria) this;
         }
 
-        public Criteria andRefundCashFeeIsNull() {
-            addCriterion("refund_cash_fee is null");
+        public Criteria andSettleRefundFeeIsNull() {
+            addCriterion("settle_refund_fee is null");
             return (Criteria) this;
         }
 
-        public Criteria andRefundCashFeeIsNotNull() {
-            addCriterion("refund_cash_fee is not null");
+        public Criteria andSettleRefundFeeIsNotNull() {
+            addCriterion("settle_refund_fee is not null");
             return (Criteria) this;
         }
 
-        public Criteria andRefundCashFeeEqualTo(Integer value) {
-            addCriterion("refund_cash_fee =", value, "refundCashFee");
+        public Criteria andSettleRefundFeeEqualTo(Integer value) {
+            addCriterion("settle_refund_fee =", value, "settleRefundFee");
             return (Criteria) this;
         }
 
-        public Criteria andRefundCashFeeNotEqualTo(Integer value) {
-            addCriterion("refund_cash_fee <>", value, "refundCashFee");
+        public Criteria andSettleRefundFeeNotEqualTo(Integer value) {
+            addCriterion("settle_refund_fee <>", value, "settleRefundFee");
             return (Criteria) this;
         }
 
-        public Criteria andRefundCashFeeGreaterThan(Integer value) {
-            addCriterion("refund_cash_fee >", value, "refundCashFee");
+        public Criteria andSettleRefundFeeGreaterThan(Integer value) {
+            addCriterion("settle_refund_fee >", value, "settleRefundFee");
             return (Criteria) this;
         }
 
-        public Criteria andRefundCashFeeGreaterThanOrEqualTo(Integer value) {
-            addCriterion("refund_cash_fee >=", value, "refundCashFee");
+        public Criteria andSettleRefundFeeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("settle_refund_fee >=", value, "settleRefundFee");
             return (Criteria) this;
         }
 
-        public Criteria andRefundCashFeeLessThan(Integer value) {
-            addCriterion("refund_cash_fee <", value, "refundCashFee");
+        public Criteria andSettleRefundFeeLessThan(Integer value) {
+            addCriterion("settle_refund_fee <", value, "settleRefundFee");
             return (Criteria) this;
         }
 
-        public Criteria andRefundCashFeeLessThanOrEqualTo(Integer value) {
-            addCriterion("refund_cash_fee <=", value, "refundCashFee");
+        public Criteria andSettleRefundFeeLessThanOrEqualTo(Integer value) {
+            addCriterion("settle_refund_fee <=", value, "settleRefundFee");
             return (Criteria) this;
         }
 
-        public Criteria andRefundCashFeeIn(List<Integer> values) {
-            addCriterion("refund_cash_fee in", values, "refundCashFee");
+        public Criteria andSettleRefundFeeIn(List<Integer> values) {
+            addCriterion("settle_refund_fee in", values, "settleRefundFee");
             return (Criteria) this;
         }
 
-        public Criteria andRefundCashFeeNotIn(List<Integer> values) {
-            addCriterion("refund_cash_fee not in", values, "refundCashFee");
+        public Criteria andSettleRefundFeeNotIn(List<Integer> values) {
+            addCriterion("settle_refund_fee not in", values, "settleRefundFee");
             return (Criteria) this;
         }
 
-        public Criteria andRefundCashFeeBetween(Integer value1, Integer value2) {
-            addCriterion("refund_cash_fee between", value1, value2, "refundCashFee");
+        public Criteria andSettleRefundFeeBetween(Integer value1, Integer value2) {
+            addCriterion("settle_refund_fee between", value1, value2, "settleRefundFee");
             return (Criteria) this;
         }
 
-        public Criteria andRefundCashFeeNotBetween(Integer value1, Integer value2) {
-            addCriterion("refund_cash_fee not between", value1, value2, "refundCashFee");
+        public Criteria andSettleRefundFeeNotBetween(Integer value1, Integer value2) {
+            addCriterion("settle_refund_fee not between", value1, value2, "settleRefundFee");
             return (Criteria) this;
         }
 
@@ -812,6 +812,66 @@ public class RefundExample {
 
         public Criteria andCashFeeNotBetween(Integer value1, Integer value2) {
             addCriterion("cash_fee not between", value1, value2, "cashFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andRefundCashFeeIsNull() {
+            addCriterion("refund_cash_fee is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRefundCashFeeIsNotNull() {
+            addCriterion("refund_cash_fee is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRefundCashFeeEqualTo(Integer value) {
+            addCriterion("refund_cash_fee =", value, "refundCashFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andRefundCashFeeNotEqualTo(Integer value) {
+            addCriterion("refund_cash_fee <>", value, "refundCashFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andRefundCashFeeGreaterThan(Integer value) {
+            addCriterion("refund_cash_fee >", value, "refundCashFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andRefundCashFeeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("refund_cash_fee >=", value, "refundCashFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andRefundCashFeeLessThan(Integer value) {
+            addCriterion("refund_cash_fee <", value, "refundCashFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andRefundCashFeeLessThanOrEqualTo(Integer value) {
+            addCriterion("refund_cash_fee <=", value, "refundCashFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andRefundCashFeeIn(List<Integer> values) {
+            addCriterion("refund_cash_fee in", values, "refundCashFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andRefundCashFeeNotIn(List<Integer> values) {
+            addCriterion("refund_cash_fee not in", values, "refundCashFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andRefundCashFeeBetween(Integer value1, Integer value2) {
+            addCriterion("refund_cash_fee between", value1, value2, "refundCashFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andRefundCashFeeNotBetween(Integer value1, Integer value2) {
+            addCriterion("refund_cash_fee not between", value1, value2, "refundCashFee");
             return (Criteria) this;
         }
 

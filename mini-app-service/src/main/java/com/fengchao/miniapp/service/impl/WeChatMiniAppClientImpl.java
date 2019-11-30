@@ -16,16 +16,19 @@ import com.fengchao.miniapp.utils.Md5Util;
 import com.fengchao.miniapp.utils.RedisDAO;
 import com.fengchao.miniapp.utils.XmlUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.cache.CacheProperties;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 import sun.misc.BASE64Decoder;
 import sun.security.provider.MD5;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import java.security.Security;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
@@ -35,6 +38,14 @@ import java.util.*;
 public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
     private MiniAppConfiguration configuration;
+
+    static{
+        try{
+            Security.addProvider(new BouncyCastleProvider());
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
 
     @Autowired
     public WeChatMiniAppClientImpl(MiniAppConfiguration configuration){
@@ -136,28 +147,35 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         //（2）对商户key做md5，得到32位小写key* ( key设置路径：微信商户平台(pay.weixin.qq.com)-->账户设置-->API安全-->密钥设置 )
         //
         //（3）用key*对加密串B做AES-256-ECB解密（PKCS7Padding）
-        String _func = "退款通知解密";
+        String _func = " Pkcs7解密";
         log.info("{} 入参 {}",_func,base64Str);
         byte[] b;
         try {
             //
             b = new BASE64Decoder().decodeBuffer(base64Str);
         }catch (Exception e){
-            log.error("Base64解码异常 {}",e.getMessage(),e);
+            log.error("{} Base64解码异常 {}",_func,e.getMessage(),e);
             throw new Exception(MyErrorCode.COMMON_AES256_FAILED+e.getMessage());
         }
 
-        String md5Key = Md5Util.md5(WeChat.MINI_APP_PAYMENT_API_KEY);
-        byte[] key = md5Key.getBytes();
+        try {
+            String md5Key =  DigestUtils.md5DigestAsHex(WeChat.MINI_APP_PAYMENT_API_KEY.getBytes(StandardCharsets.UTF_8));
+            byte[] key = md5Key.getBytes();
 
-        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS7Padding", "BC");
-        SecretKeySpec keySpec = new SecretKeySpec(key,"AES");
-        cipher.init(Cipher.DECRYPT_MODE,keySpec);
-        byte[] decoded = cipher.doFinal(b);
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS7Padding", "BC");
+            //Cipher cipher = new Cipher("AES/ECB/PKCS7Padding", "BC");
+            SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
+            cipher.init(Cipher.DECRYPT_MODE, keySpec);
+            byte[] decoded = cipher.doFinal(b);
 
-        String result = new String(decoded, StandardCharsets.UTF_8);
-        log.info("{} 结果 {}",_func,result);
-        return result;
+            String result = new String(decoded, StandardCharsets.UTF_8);
+
+            log.info("{} 结果 {}", _func, result);
+            return result;
+        }catch (Exception e){
+            log.error("{} {}",_func,e.getMessage(),e);
+            return null;
+        }
 
     }
 
@@ -330,7 +348,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         paramMap.put(WeChat.TOTAL_FEE_KEY, data.getTotalFee());
         paramMap.put(WeChat.OPEN_ID_KEY, data.getOpenId());
         paramMap.put(WeChat.SPBILL_CREATE_IP_KEY,ip);
-        paramMap.put(WeChat.NOTIFY_URL_KEY,WeChat.MINI_APP_PAYMENT_UNIFIED_ORDER_NOTIFY);
+        paramMap.put(WeChat.NOTIFY_URL_KEY,WeChat.MINI_APP_PAYMENT_NOTIFY);
         paramMap.put(WeChat.TRADE_TYPE_KEY,WeChat.TRADE_TYPE_JSAPI);
 
         try {
@@ -474,7 +492,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
     }
 
     @Override
-    public boolean isRightSign(String xmlStr) throws Exception{
+    public Map<String,Object> verifySign(String xmlStr) throws Exception{
         String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
         if (null == xmlStr || xmlStr.isEmpty()){
             String msg = MyErrorCode.WECHAT_NOTIFY_SIGN_BLANK;
@@ -496,9 +514,9 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         try{
             String sign = signParam(map);
             if (sign.equals(respSign)){
-                return true;
+                return map;
             }else{
-                return false;
+                return null;
             }
         }catch (Exception e){
             throw e;
@@ -591,6 +609,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
             return refund;
         }
         refund.setStatus(resultCode);
+        refund.setComments("申请退款成功");
 
         Object respRefundNoObj = respMap.get(WeChat.OUT_REFUND_NO_KEY);
         if (null == respRefundNoObj || respRefundNoObj.toString().isEmpty()){
@@ -611,7 +630,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         if (null == cashFeeObj || null == cashFeeObj.toString() || cashFeeObj.toString().isEmpty()){
             log.error("{} 返回 缺失 {}",_func,WeChat.CASH_REFUND_FEE_KEY);
         }else {
-            refund.setRefundCashFee(Integer.valueOf(cashFeeObj.toString()));
+            refund.setCashFee(Integer.valueOf(cashFeeObj.toString()));
             if (null != cashRefundFeeObj && null != cashFeeObj.toString()) {
                 refund.setRefundCashFee(Integer.valueOf(cashRefundFeeObj.toString()));
             }
@@ -623,6 +642,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         }else {
             refund.setTransactionId(tranIdObj.toString());
         }
+
 
         return refund;
     }

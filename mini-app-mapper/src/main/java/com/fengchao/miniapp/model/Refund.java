@@ -21,9 +21,11 @@ public class Refund {
 
     private Integer respRefundFee;
 
-    private Integer refundCashFee;
+    private Integer settleRefundFee;
 
     private Integer cashFee;
+
+    private Integer refundCashFee;
 
     private String status;
 
@@ -111,12 +113,12 @@ public class Refund {
         this.respRefundFee = respRefundFee;
     }
 
-    public Integer getRefundCashFee() {
-        return refundCashFee;
+    public Integer getSettleRefundFee() {
+        return settleRefundFee;
     }
 
-    public void setRefundCashFee(Integer refundCashFee) {
-        this.refundCashFee = refundCashFee;
+    public void setSettleRefundFee(Integer settleRefundFee) {
+        this.settleRefundFee = settleRefundFee;
     }
 
     public Integer getCashFee() {
@@ -125,6 +127,14 @@ public class Refund {
 
     public void setCashFee(Integer cashFee) {
         this.cashFee = cashFee;
+    }
+
+    public Integer getRefundCashFee() {
+        return refundCashFee;
+    }
+
+    public void setRefundCashFee(Integer refundCashFee) {
+        this.refundCashFee = refundCashFee;
     }
 
     public String getStatus() {

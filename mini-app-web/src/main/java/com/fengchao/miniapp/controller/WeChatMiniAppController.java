@@ -186,7 +186,7 @@ public class WeChatMiniAppController {
                      @RequestBody  String xmlStr)
             throws Exception{
 
-        String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
+        String _func = "支付结果通知 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         log.info("=== {} 入参: {}",_func,xmlStr);
         Map<String,Object> respMap = new HashMap<>();
         Map<String,Object> failMap = new HashMap<>();
@@ -195,35 +195,34 @@ public class WeChatMiniAppController {
         String okXml = XmlUtil.map2xml(respMap);
         String failXml = XmlUtil.map2xml(failMap);
 
+        Map<String,Object> postMap ;
         try{
-            boolean isRightSign = weChatMiniAppClient.isRightSign(xmlStr);
-            if (!isRightSign){
-                log.error(MyErrorCode.WECHAT_NOTIFY_SIGN_WRONG);
+            postMap = weChatMiniAppClient.verifySign(xmlStr);
+            if (null == postMap){
+                log.error("{} {}",_func,MyErrorCode.WECHAT_NOTIFY_SIGN_WRONG);
                 return failXml;
             }
         }catch (Exception e){
-            log.error(e.getMessage());
+            log.error("{} {}",_func,e.getMessage());
             return failXml;
         }
-
-        Map<String,Object> postMap = XmlUtil.xml2map(xmlStr);
 
         Object respCodeObj = postMap.get(WeChat.RETURN_CODE_KEY);
         Object respMsgObj = postMap.get(WeChat.RETURN_MESSAGE_KEY);
         if (null == respCodeObj || respCodeObj.toString().isEmpty()){
-            log.error(MyErrorCode.WECHAT_NOTIFY_ERROR);
+            log.error("{} {} {}",_func, MyErrorCode.WECHAT_NOTIFY_ERROR, WeChat.RETURN_CODE_KEY);
             return failXml;
         }
         String respCode = respCodeObj.toString();
         if (!WeChat.RETURN_CODE_SUCCESS.equals(respCode)){
             String msg = (null==respMsgObj)?" ":respMsgObj.toString();
-            log.error(MyErrorCode.WECHAT_NOTIFY_ERROR+msg);
+            log.error("{} {} {}",_func,MyErrorCode.WECHAT_NOTIFY_ERROR,msg);
             return failXml;
         }
 
         Object orderIdObj = postMap.get(WeChat.OUT_TRADE_NO_KEY);
         if(null == orderIdObj || orderIdObj.toString().isEmpty()){
-            log.error(MyErrorCode.WECHAT_NOTIFY_ERROR+" 商户订单号");
+            log.error("{} {}  商户订单号",_func,MyErrorCode.WECHAT_NOTIFY_ERROR);
             return failXml;
         }
 
@@ -231,18 +230,17 @@ public class WeChatMiniAppController {
         Object timeEndObj = postMap.get(WeChat.RESP_TIME_END_KEY);
         Object cashFeeObj = postMap.get(WeChat.RESP_CASH_FEE_KEY);
         Object totalFeeObj = postMap.get(WeChat.TOTAL_FEE_KEY);
-        Object signObj = postMap.get(WeChat.SIGN_KEY);
         Object resultObj = postMap.get(WeChat.RESULT_CODE_KEY);
         Object openIdObj = postMap.get(WeChat.OPEN_ID_KEY);
 
         if (null == tranIdObj || null == timeEndObj || null == cashFeeObj
-            || null == totalFeeObj || null == signObj || null == resultObj || null == openIdObj
+            || null == totalFeeObj || null == resultObj || null == openIdObj
             ||tranIdObj.toString().isEmpty() || timeEndObj.toString().isEmpty()
             ||cashFeeObj.toString().isEmpty() || totalFeeObj.toString().isEmpty()
-            || signObj.toString().isEmpty() || resultObj.toString().isEmpty()
+            || resultObj.toString().isEmpty()
             || openIdObj.toString().isEmpty()){
 
-            log.error(MyErrorCode.WECHAT_NOTIFY_ERROR);
+            log.error("{} {} 参数缺失",_func,MyErrorCode.WECHAT_NOTIFY_ERROR);
             return failXml;
         }
 
@@ -257,7 +255,7 @@ public class WeChatMiniAppController {
         }
 
         if (null == pages || null == pages.getRows() || 0 == pages.getRows().size()){
-            log.error(MyErrorCode.PAYMENT_NO_FOUND);
+            log.error("{} {}",_func,MyErrorCode.PAYMENT_NO_FOUND);
             return okXml;
         }
 
@@ -271,7 +269,7 @@ public class WeChatMiniAppController {
 
         Integer respTotalFee = Integer.valueOf(totalFeeObj.toString());
         if (!respTotalFee.equals(payment.getTotalFee())){
-            log.error("{} 订单金额是与商户侧的订单金额不一致");
+            log.error("{} 订单金额是与商户侧的订单金额不一致",_func);
             return failXml;
         }
 
@@ -296,11 +294,11 @@ public class WeChatMiniAppController {
             }
             payment.setResult(msg);
         }
-
+        payment.setComments("收到支付结果通知");
         try{
             paymentService.update(payment);
         }catch (Exception e){
-            log.error("更新记录失败"+e.getMessage());
+            log.error("{} 更新记录失败 {}",_func,e.getMessage());
         }
 
         log.info("=== {} exit 更新记录成功",_func);
@@ -390,7 +388,7 @@ public class WeChatMiniAppController {
 
     }
 
-    @ApiOperation(value = "查询订单结果", notes="查询订单结果")
+    @ApiOperation(value = "查询订单状态", notes="查询订单状态")
     @GetMapping("/payment")
     public ResultObject<Payment>
     queryPayment(HttpServletResponse response,
@@ -400,7 +398,7 @@ public class WeChatMiniAppController {
                  @RequestParam @NotNull(message = MyErrorCode.WECHAT_API_TRAN_NO_BLANK) String orderId
                 )throws Exception{
 
-        String _func = "查询退款结果";//Thread.currentThread().getStackTrace()[1].getMethodName();
+        String _func = "查询订单状态 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         log.info("=== {} 入参: orderId={}",_func, orderId);
 
         PageInfo<Payment>  pages = paymentService.queryList(1,1,"id","DESC",
@@ -471,6 +469,7 @@ public class WeChatMiniAppController {
 
         String refundStatus = refund.getStatus();
         if (WeChat.RETURN_CODE_SUCCESS.equals(refundStatus)) {
+            refund.setComments("申请退款成功,等待结果中");
             try {
                 refundService.insert(refund);
             } catch (Exception e) {
@@ -486,7 +485,7 @@ public class WeChatMiniAppController {
 
         result.setData(bean);
         response.setStatus(200);
-        log.info("=== {} 完成",_func);
+        log.info("=== {}  {}",_func, refund.getStatus());
         return result;
 
     }
@@ -498,7 +497,7 @@ public class WeChatMiniAppController {
                @RequestBody  String xmlStr)
             throws Exception{
 
-        String _func = "退款结果通知";//Thread.currentThread().getStackTrace()[1].getMethodName();
+        String _func = "退款结果通知 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         log.info("=== {} 入参: {}",_func,xmlStr);
 
         Map<String,Object> okMap = new HashMap<>();
@@ -512,34 +511,44 @@ public class WeChatMiniAppController {
 
         Object respCodeObj = postMap.get(WeChat.RETURN_CODE_KEY);
         Object respMsgObj = postMap.get(WeChat.RETURN_MESSAGE_KEY);
-        if (null == respCodeObj || respCodeObj.toString().isEmpty()){
-            log.error(MyErrorCode.WECHAT_NOTIFY_ERROR);
+        if (null == respCodeObj){
+            log.error("{} {}",_func,MyErrorCode.WECHAT_NOTIFY_ERROR);
             return failXml;
         }
         String respCode = respCodeObj.toString();
         if (!WeChat.RETURN_CODE_SUCCESS.equals(respCode)){
             String msg = (null==respMsgObj)?" ":respMsgObj.toString();
-            log.error(MyErrorCode.WECHAT_NOTIFY_ERROR+msg);
+            log.error("{} {} {}",_func, MyErrorCode.WECHAT_NOTIFY_ERROR,msg);
             return failXml;
         }
 
         Object mchIdObj = postMap.get(WeChat.MERCHANT_ID_KEY);
         if(null == mchIdObj || null == mchIdObj.toString() ||mchIdObj.toString().isEmpty()){
-            log.error(MyErrorCode.WECHAT_NOTIFY_ERROR+" 商户号 缺失");
+            log.error("{} {} 商户号 缺失",_func,MyErrorCode.WECHAT_NOTIFY_ERROR);
             return failXml;
         }
         if (!WeChat.MINI_APP_PAYMENT_MCH_ID.equals(mchIdObj.toString())){
-            log.error(MyErrorCode.WECHAT_NOTIFY_ERROR+" 商户号 错误");
+            log.error("{} {} 商户号 错误",_func,MyErrorCode.WECHAT_NOTIFY_ERROR);
             return failXml;
         }
 
         Object reqInfoObj = postMap.get(WeChat.NOTIFY_REQ_INFO_KEY);
         if (null == reqInfoObj || null == reqInfoObj.toString() || reqInfoObj.toString().isEmpty()){
-            log.error(MyErrorCode.WECHAT_NOTIFY_ERROR+" 加密信息 错误");
+            log.error("{} {} 加密信息 错误",_func,MyErrorCode.WECHAT_NOTIFY_ERROR);
             return failXml;
         }
 
-        String reqInfo = weChatMiniAppClient.DecodePkcs7(reqInfoObj.toString());
+        String reqInfo;
+        try {
+            reqInfo = weChatMiniAppClient.DecodePkcs7(reqInfoObj.toString());
+        }catch (Exception e){
+            log.error("{} {}",_func,e.getMessage());
+            return failXml;
+        }
+        if (null == reqInfo){
+            log.error("{} 解密失败",_func);
+            return failXml;
+        }
         Map<String,Object> infoMap = XmlUtil.xml2map(reqInfo);
 
         Object tranIdObj = infoMap.get(WeChat.RESP_TRANSACTION_ID_KEY);
@@ -566,14 +575,14 @@ public class WeChatMiniAppController {
             || recvAccountObj.toString().isEmpty() || refundAccountObj.toString().isEmpty() || requestSourceObj.toString().isEmpty()
         ){
 
-            log.error(MyErrorCode.WECHAT_NOTIFY_ERROR);
+            log.error("{} {} 参数缺失 ",_func,MyErrorCode.WECHAT_NOTIFY_ERROR);
             return failXml;
         }
 
         String orderId = orderIdObj.toString();
         String refundNo = outRefundNoObj.toString();
-        PageInfo<Refund> pages = null;
-        Refund refund = null;
+        PageInfo<Refund> pages ;
+        Refund refund ;
         try{
             pages = refundService.queryList(1,1,"id","DESC",
                     null,refundNo,orderId,null,null);
@@ -582,32 +591,46 @@ public class WeChatMiniAppController {
         }
 
         if (null == pages || null == pages.getRows() || 0 == pages.getRows().size()){
-            log.error(MyErrorCode.REFUND_NO_FOUND);
+            log.error("{} {}",_func,MyErrorCode.REFUND_NO_FOUND);
             return okXml;
         }
 
-        Integer respRefundFee = Integer.valueOf(settleFeeObj.toString());
+        Integer settleRefundFee = Integer.valueOf(settleFeeObj.toString());
+        Integer respRefundFee = Integer.valueOf(refundFeeObj.toString());
         refund = pages.getRows().get(0);
-        if (respRefundFee.equals(refund.getRespRefundFee())){
-            log.info("{} 退款结果已经记录,不再重复处理",_func);
+        if (!refund.getRefundRecvAccount().isEmpty() && !refund.getRefundAccount().isEmpty()){
+            log.info("{} 退款结果通知已经记录,不再重复处理",_func);
             return okXml;
+        }
+
+        if (!refund.getTransactionId().equals(tranIdObj.toString())){
+            log.error("{} {}: {} 与退款记录中 {} 不匹配",
+                    _func,WeChat.RESP_TRANSACTION_ID_KEY,tranIdObj.toString(),refund.getTransactionId());
+            return failXml;
+        }
+
+        if (!respRefundFee.equals(refund.getRefundFee())){
+            log.warn("{} {}: {} 与退款记录中 {} 不相等",
+                    _func,WeChat.REFUND_FEE_KEY,respRefundFee,refund.getRefundFee());
+
         }
 
         Object timeEndObj = infoMap.get(WeChat.SUCCESS_TIME_KEY);
         if (null != timeEndObj){
             refund.setSuccessTime(timeEndObj.toString());
         }
-        refund.setTransactionId(tranIdObj.toString());
-        refund.setRespRefundFee(respRefundFee);
+
+        refund.setSettleRefundFee(settleRefundFee);
         refund.setRefundAccount(refundAccountObj.toString());
         refund.setRefundRecvAccount(recvAccountObj.toString());
         refund.setStatus(statusObj.toString());
 
         refund.setUpdateTime(new Date());
+        refund.setComments("收到退款结果通知");
         try{
             refundService.update(refund);
         }catch (Exception e){
-            log.error("更新退款记录失败"+e.getMessage());
+            log.error("{} 更新退款记录失败 {}",_func,e.getMessage());
         }
 
         log.info("=== {} exit 更新退款记录成功",_func);

@@ -11,8 +11,9 @@
     <result column="total_fee" jdbcType="INTEGER" property="totalFee" />
     <result column="refund_fee" jdbcType="INTEGER" property="refundFee" />
     <result column="resp_refund_fee" jdbcType="INTEGER" property="respRefundFee" />
-    <result column="refund_cash_fee" jdbcType="INTEGER" property="refundCashFee" />
+    <result column="settle_refund_fee" jdbcType="INTEGER" property="settleRefundFee" />
     <result column="cash_fee" jdbcType="INTEGER" property="cashFee" />
+    <result column="refund_cash_fee" jdbcType="INTEGER" property="refundCashFee" />
     <result column="status" jdbcType="VARCHAR" property="status" />
     <result column="comments" jdbcType="VARCHAR" property="comments" />
     <result column="refund_account" jdbcType="VARCHAR" property="refundAccount" />
@@ -81,8 +82,8 @@
   </sql>
   <sql id="Base_Column_List">
     id, open_id, refund_no, wechat_refund_no, transaction_id, order_id, total_fee, refund_fee, 
-    resp_refund_fee, refund_cash_fee, cash_fee, status, comments, refund_account, refund_recv_account, 
-    success_time, create_time, update_time
+    resp_refund_fee, settle_refund_fee, cash_fee, refund_cash_fee, status, comments, 
+    refund_account, refund_recv_account, success_time, create_time, update_time
   </sql>
   <select id="selectByExample" parameterType="com.fengchao.miniapp.model.RefundExample" resultMap="BaseResultMap">
     select
@@ -121,16 +122,18 @@
     </selectKey>
     insert into refund (open_id, refund_no, wechat_refund_no, 
       transaction_id, order_id, total_fee, 
-      refund_fee, resp_refund_fee, refund_cash_fee, 
-      cash_fee, status, comments, 
-      refund_account, refund_recv_account, success_time, 
-      create_time, update_time)
+      refund_fee, resp_refund_fee, settle_refund_fee, 
+      cash_fee, refund_cash_fee, status, 
+      comments, refund_account, refund_recv_account, 
+      success_time, create_time, update_time
+      )
     values (#{openId,jdbcType=VARCHAR}, #{refundNo,jdbcType=VARCHAR}, #{wechatRefundNo,jdbcType=VARCHAR}, 
       #{transactionId,jdbcType=VARCHAR}, #{orderId,jdbcType=VARCHAR}, #{totalFee,jdbcType=INTEGER}, 
-      #{refundFee,jdbcType=INTEGER}, #{respRefundFee,jdbcType=INTEGER}, #{refundCashFee,jdbcType=INTEGER}, 
-      #{cashFee,jdbcType=INTEGER}, #{status,jdbcType=VARCHAR}, #{comments,jdbcType=VARCHAR}, 
-      #{refundAccount,jdbcType=VARCHAR}, #{refundRecvAccount,jdbcType=VARCHAR}, #{successTime,jdbcType=VARCHAR}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+      #{refundFee,jdbcType=INTEGER}, #{respRefundFee,jdbcType=INTEGER}, #{settleRefundFee,jdbcType=INTEGER}, 
+      #{cashFee,jdbcType=INTEGER}, #{refundCashFee,jdbcType=INTEGER}, #{status,jdbcType=VARCHAR}, 
+      #{comments,jdbcType=VARCHAR}, #{refundAccount,jdbcType=VARCHAR}, #{refundRecvAccount,jdbcType=VARCHAR}, 
+      #{successTime,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.fengchao.miniapp.model.Refund">
     <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Long">
@@ -162,11 +165,14 @@
       <if test="respRefundFee != null">
         resp_refund_fee,
       </if>
-      <if test="refundCashFee != null">
-        refund_cash_fee,
+      <if test="settleRefundFee != null">
+        settle_refund_fee,
       </if>
       <if test="cashFee != null">
         cash_fee,
+      </if>
+      <if test="refundCashFee != null">
+        refund_cash_fee,
       </if>
       <if test="status != null">
         status,
@@ -215,11 +221,14 @@
       <if test="respRefundFee != null">
         #{respRefundFee,jdbcType=INTEGER},
       </if>
-      <if test="refundCashFee != null">
-        #{refundCashFee,jdbcType=INTEGER},
+      <if test="settleRefundFee != null">
+        #{settleRefundFee,jdbcType=INTEGER},
       </if>
       <if test="cashFee != null">
         #{cashFee,jdbcType=INTEGER},
+      </if>
+      <if test="refundCashFee != null">
+        #{refundCashFee,jdbcType=INTEGER},
       </if>
       <if test="status != null">
         #{status,jdbcType=VARCHAR},
@@ -280,11 +289,14 @@
       <if test="record.respRefundFee != null">
         resp_refund_fee = #{record.respRefundFee,jdbcType=INTEGER},
       </if>
-      <if test="record.refundCashFee != null">
-        refund_cash_fee = #{record.refundCashFee,jdbcType=INTEGER},
+      <if test="record.settleRefundFee != null">
+        settle_refund_fee = #{record.settleRefundFee,jdbcType=INTEGER},
       </if>
       <if test="record.cashFee != null">
         cash_fee = #{record.cashFee,jdbcType=INTEGER},
+      </if>
+      <if test="record.refundCashFee != null">
+        refund_cash_fee = #{record.refundCashFee,jdbcType=INTEGER},
       </if>
       <if test="record.status != null">
         status = #{record.status,jdbcType=VARCHAR},
@@ -323,8 +335,9 @@
       total_fee = #{record.totalFee,jdbcType=INTEGER},
       refund_fee = #{record.refundFee,jdbcType=INTEGER},
       resp_refund_fee = #{record.respRefundFee,jdbcType=INTEGER},
-      refund_cash_fee = #{record.refundCashFee,jdbcType=INTEGER},
+      settle_refund_fee = #{record.settleRefundFee,jdbcType=INTEGER},
       cash_fee = #{record.cashFee,jdbcType=INTEGER},
+      refund_cash_fee = #{record.refundCashFee,jdbcType=INTEGER},
       status = #{record.status,jdbcType=VARCHAR},
       comments = #{record.comments,jdbcType=VARCHAR},
       refund_account = #{record.refundAccount,jdbcType=VARCHAR},
@@ -363,11 +376,14 @@
       <if test="respRefundFee != null">
         resp_refund_fee = #{respRefundFee,jdbcType=INTEGER},
       </if>
-      <if test="refundCashFee != null">
-        refund_cash_fee = #{refundCashFee,jdbcType=INTEGER},
+      <if test="settleRefundFee != null">
+        settle_refund_fee = #{settleRefundFee,jdbcType=INTEGER},
       </if>
       <if test="cashFee != null">
         cash_fee = #{cashFee,jdbcType=INTEGER},
+      </if>
+      <if test="refundCashFee != null">
+        refund_cash_fee = #{refundCashFee,jdbcType=INTEGER},
       </if>
       <if test="status != null">
         status = #{status,jdbcType=VARCHAR},
@@ -403,8 +419,9 @@
       total_fee = #{totalFee,jdbcType=INTEGER},
       refund_fee = #{refundFee,jdbcType=INTEGER},
       resp_refund_fee = #{respRefundFee,jdbcType=INTEGER},
-      refund_cash_fee = #{refundCashFee,jdbcType=INTEGER},
+      settle_refund_fee = #{settleRefundFee,jdbcType=INTEGER},
       cash_fee = #{cashFee,jdbcType=INTEGER},
+      refund_cash_fee = #{refundCashFee,jdbcType=INTEGER},
       status = #{status,jdbcType=VARCHAR},
       comments = #{comments,jdbcType=VARCHAR},
       refund_account = #{refundAccount,jdbcType=VARCHAR},
