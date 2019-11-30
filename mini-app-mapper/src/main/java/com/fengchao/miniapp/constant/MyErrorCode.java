@@ -104,6 +104,7 @@ public class MyErrorCode {
     public static final String REFUND_NO_FOUND = "@400158@没有找到退款记录 ";
     public static final String PAYMENT_OUT_TRAN_NO_WRONG = "@400159@没有找到微信订单记录 ";
     public static final String PAYMENT_FAILED = "@400160@微信订单支付未完成或已经关闭";
+    public static final String REFUND_NO_BLANK = "@400161@没有找到退款记录 ";
 
 
     public static String weChatErrMsg(String code,String msg){

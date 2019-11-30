@@ -40,14 +40,13 @@ public class LoginInfoController {
     @ApiOperation(value = "新建LoginInfo信息", notes="新建LoginInfo信息")
     @PostMapping("/info")
     public ResultObject<String>
-    createLoginInfo(HttpServletResponse response,
+    createLoginInfo(
                    @ApiParam(value="body",required=true)
                    @RequestBody @Valid LoginInfoPostBean data)
             throws Exception{
 
         String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
 
-        response.setStatus(400);
         log.info(_func+" param {}", JSON.toJSONString(data));
 
         String openId = data.getOpenId();
@@ -69,7 +68,6 @@ public class LoginInfoController {
             throw new Exception(MyErrorCode.MYSQL_INSERT_FAILED);
         }
 
-        response.setStatus(200);
         log.info(_func + " success id={}",newLoginInfo.getId());
         return new ResultObject<>(200,"ok",newLoginInfo.getId().toString());
     }
@@ -77,7 +75,7 @@ public class LoginInfoController {
     @ApiOperation(value = "查询登录信息列表", notes="查询登录信息列表")
     @GetMapping("/info/list")
     public ResultObject<PageInfo<LoginInfo>>
-    getLoginInfoList(HttpServletResponse response,
+    getLoginInfoList(
                     @ApiParam(value="pageIndex") @RequestParam(required = false) Integer pageIndex,
                     @ApiParam(value="pageSize") @RequestParam(required = false) Integer pageSize,
                     @ApiParam(value="openId") @RequestParam(required = false) String openId,
@@ -128,7 +126,6 @@ public class LoginInfoController {
             throw new Exception(MyErrorCode.MYSQL_SELECT_NOT_FOUND);
         }
 
-        response.setStatus(200);
         return new ResultObject<>(200, "success",pages);
 
     }

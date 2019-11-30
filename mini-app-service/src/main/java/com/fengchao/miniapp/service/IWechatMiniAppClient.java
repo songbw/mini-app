@@ -24,6 +24,9 @@ public interface IWechatMiniAppClient {
     queryRefund(WechatRefundListBean refund) throws Exception;
 
     void
+    queryRefundStatus(Refund refund) throws Exception;
+
+    void
     queryPayment(Payment payment) throws Exception;
 
     boolean

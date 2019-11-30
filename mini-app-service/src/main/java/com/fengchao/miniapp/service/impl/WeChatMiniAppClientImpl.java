@@ -719,6 +719,8 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         }
 
         Integer refundCount = Integer.valueOf(refundCountObj.toString());
+        refund.setRefundCount(refundCount);
+
         List<WechatRefundDetailBean> list = new ArrayList<>();
         refund.setList(list);
         int i;
@@ -759,6 +761,117 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
             list.add(bean);
         }
     }
+
+    @Override
+    public void
+    queryRefundStatus(Refund refund) throws Exception{
+        String _func = "微信小程序退款状态查询 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
+        if (log.isDebugEnabled()) {
+            log.info("{} enter: {}", _func, JSON.toJSONString(refund));
+        }
+        Map<String,Object> paramMap = new HashMap<>();
+        paramMap.put(WeChat.APP_ID_KEY,configuration.getWechatAppId());
+        paramMap.put(WeChat.MERCHANT_ID_KEY, WeChat.MINI_APP_PAYMENT_MCH_ID);
+        paramMap.put(WeChat.NONCE_STRING_KEY, XmlUtil.getRandomStringByLength(32));
+        paramMap.put(WeChat.OUT_REFUND_NO_KEY, refund.getRefundNo());
+
+        String sign = signParam(paramMap);
+        paramMap.put(WeChat.SIGN_KEY,sign);
+
+        String postBody = XmlUtil.map2xml(paramMap);
+        if (log.isDebugEnabled()) {
+            log.info("{} post body : {}", _func, postBody);
+        }
+        String respXml;
+
+        respXml = HttpClient431Util.doPostXml(postBody,WeChat.MINI_APP_REFUND_QUERY_URL);
+
+        if (null == respXml || respXml.isEmpty()){
+            String msg = MyErrorCode.WECHAT_API_RESP_MSG_MISSING;
+            throw new Exception(msg);
+        }
+
+        Map<String, Object> respMap = XmlUtil.xml2map(respXml);
+        Object returnCodeObj = respMap.get(WeChat.RETURN_CODE_KEY);
+        if (null == returnCodeObj || returnCodeObj.toString().isEmpty()){
+            throw new Exception(MyErrorCode.WECHAT_API_RESP_MSG_MISSING+ WeChat.RETURN_CODE_KEY);
+        }
+        String returnCode = returnCodeObj.toString();
+        Object msgObj = respMap.get(WeChat.RETURN_MESSAGE_KEY);
+        String msg = MyErrorCode.WECHAT_API_FAILED;
+        if (null != msgObj){
+            msg += msgObj.toString();
+        }
+        if (!WeChat.RETURN_CODE_SUCCESS.equals(returnCode)){
+            //接口调用出错
+            throw new Exception(msg);
+        }
+
+        Object resultCodeObj = respMap.get(WeChat.RESULT_CODE_KEY);
+        if (null == resultCodeObj || resultCodeObj.toString().isEmpty()){
+            throw new Exception(MyErrorCode.WECHAT_API_RESULT_CODE_MISSING);
+        }
+
+        String resultCode = resultCodeObj.toString();
+
+        if (!WeChat.RETURN_CODE_SUCCESS.equals(resultCode)){
+            //业务失败
+            Object errCodeObj = respMap.get(WeChat.RESP_ERR_CODE_KEY);
+            Object errMsgObj = respMap.get(WeChat.RESP_ERR_MESSAGE_KEY);
+            String errMsg = " ";
+            if (null != errCodeObj && !errCodeObj.toString().isEmpty()){
+                errMsg += errCodeObj.toString();
+            }
+            if (null != errMsgObj && !errMsgObj.toString().isEmpty()){
+                errMsg += " "+errMsgObj.toString();
+            }
+
+            log.info("{} {}",_func,errMsg);
+            throw new Exception(MyErrorCode.WECHAT_API_FAILED+errMsg);
+        }
+
+        Object refundCountObj = respMap.get(WeChat.REFUND_COUNT_KEY);
+        if (null == refundCountObj){
+            throw new Exception(MyErrorCode.WECHAT_API_RESP_MSG_MISSING+ WeChat.REFUND_COUNT_KEY);
+        }
+
+        Integer refundCount = Integer.valueOf(refundCountObj.toString());
+        if (1 != refundCount){
+            log.error("{} 微信查询异常： 一个退款单号对应多个退款记录");
+        }
+
+        int i;
+        for(i = 0; i < 1; i++) {
+            WechatRefundDetailBean bean = new WechatRefundDetailBean();
+            String num = "_"+String.valueOf(i);
+
+            Object respRefundFeeObj = respMap.get(WeChat.REFUND_FEE_KEY + num);
+            if (null != respRefundFeeObj && !respRefundFeeObj.toString().isEmpty()) {
+                refund.setRespRefundFee(Integer.valueOf(respRefundFeeObj.toString()));
+            }
+
+            Object refundStatusObj = respMap.get(WeChat.REFUND_STATUS_KEY + num);
+            if (null != refundStatusObj) {
+                refund.setStatus(refundStatusObj.toString());
+            }
+
+            Object refundTimeObj = respMap.get(WeChat.REFUND_SUCCESS_TIME_KEY + num);
+            if (null != refundTimeObj) {
+                refund.setSuccessTime(refundTimeObj.toString());
+            }
+
+            Object recvAccountObj = respMap.get(WeChat.RECV_ACCOUNT_KEY + num);
+            if (null != recvAccountObj) {
+                refund.setRefundRecvAccount(recvAccountObj.toString());
+            }
+
+            Object refundAccountObj = respMap.get(WeChat.REFUND_ACCOUNT_KEY+num);
+            if (null != refundAccountObj){
+                refund.setRefundAccount(refundAccountObj.toString());
+            }
+        }
+    }
+
 
     @Override
     public void

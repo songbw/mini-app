@@ -43,14 +43,13 @@ public class UserInfoController {
     @ApiOperation(value = "新建UserInfo信息", notes="新建UserInfo信息")
     @PostMapping("/openinfo")
     public ResultObject<String>
-    createUserInfo(HttpServletResponse response,
+    createUserInfo(
                @ApiParam(value="body",required=true)
                @RequestBody @Valid UserInfoPostBean data)
             throws Exception{
 
         String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
 
-        response.setStatus(400);
         log.info(_func+" param {}", JSON.toJSONString(data));
 
         String openId = data.getOpenId();
@@ -82,7 +81,6 @@ public class UserInfoController {
             throw new Exception(MyErrorCode.MYSQL_INSERT_FAILED);
         }
 
-        response.setStatus(200);
         log.info(_func + " success id={}",newUserInfo.getId());
         return new ResultObject<>(200,"ok",newUserInfo.getId().toString());
     }
@@ -90,8 +88,7 @@ public class UserInfoController {
     @ApiOperation(value = "删除UserInfo信息", notes="删除UserInfo信息")
     @DeleteMapping("/openinfo/{id}")
     public ResultObject<String>
-    deleteUserInfo(HttpServletResponse response,
-               @ApiParam(value="id",required=true)
+    deleteUserInfo(@ApiParam(value="id",required=true)
                @PathVariable("id") @NotNull(message = MyErrorCode.USERINFO_ID_BLANK) Long id
                )throws Exception{
 
@@ -115,7 +112,6 @@ public class UserInfoController {
             throw new Exception(e);
         }
 
-        response.setStatus(200);
         return new ResultObject<>(200, "success",id.toString());
 
     }
@@ -123,7 +119,7 @@ public class UserInfoController {
     @ApiOperation(value = "查询UserInfo", notes="查询UserInfo")
     @GetMapping("/openinfo/list")
     public ResultObject<PageInfo<UserInfo>>
-    getUserInfoList(HttpServletResponse response,
+    getUserInfoList(
                     @ApiParam(value="pageIndex") @RequestParam(required = false) Integer pageIndex,
                     @ApiParam(value="pageSize") @RequestParam(required = false) Integer pageSize,
                     @ApiParam(value="gender") @RequestParam(required = false) Integer gender,
@@ -170,7 +166,6 @@ public class UserInfoController {
             throw new Exception(MyErrorCode.MYSQL_SELECT_NOT_FOUND);
         }
 
-        response.setStatus(200);
         return new ResultObject<>(200, "success",pages);
 
     }
@@ -178,7 +173,7 @@ public class UserInfoController {
     @ApiOperation(value = "获取UserInfo信息", notes="获取UserInfo信息")
     @GetMapping("/openinfo")
     public ResultObject<UserInfo>
-    getUserInfoByOpenId(HttpServletResponse response,
+    getUserInfoByOpenId(
                    @ApiParam(value="openId",required=true)
                    @RequestParam @NotNull(message = MyErrorCode.OPEN_ID_BLANK) String openId
     )throws Exception{
@@ -197,7 +192,6 @@ public class UserInfoController {
             throw new Exception(MyErrorCode.MYSQL_SELECT_FAILED);
         }
 
-        response.setStatus(200);
         log.info("==={} 成功 {}",_func,JSON.toJSONString(userInfo));
         return new ResultObject<>(200, "success",userInfo);
 

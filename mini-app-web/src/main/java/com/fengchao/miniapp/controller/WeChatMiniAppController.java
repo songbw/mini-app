@@ -62,7 +62,7 @@ public class WeChatMiniAppController {
     @ApiOperation(value = "查询UserInfo", notes="查询UserInfo")
     @GetMapping("/token")
     public ResultObject<String>
-    getToken(HttpServletResponse response)throws Exception{
+    getToken()throws Exception{
         String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
         log.info("=== {} enter",_func);
         ResultObject<String> result = new ResultObject<>(200,"success",null);
@@ -71,7 +71,6 @@ public class WeChatMiniAppController {
         if (null != storedToken){
 
             result.setData(storedToken);
-            response.setStatus(200);
 
             log.info("=== {} 成功 got stored token {}",_func,storedToken);
             return result;
@@ -93,7 +92,7 @@ public class WeChatMiniAppController {
 
         String token = bean.getAccess_token();
         result.setData(token);
-        response.setStatus(200);
+
         redisDAO.storeWeChatToken(token,bean.getExpires_in());
 
         log.info("=== {} 成功 token = {} ",_func,token);
@@ -104,8 +103,7 @@ public class WeChatMiniAppController {
     @ApiOperation(value = "获取session", notes="获取session")
     @GetMapping("/login")
     public ResultObject<WeChatSessionResultBean>
-    getSession(HttpServletResponse response,
-               @RequestParam  @Valid @NotBlank(message=MyErrorCode.WECHAT_API_JS_CODE_BLANK) String jsCode)
+    getSession(@RequestParam  @Valid @NotBlank(message=MyErrorCode.WECHAT_API_JS_CODE_BLANK) String jsCode)
             throws Exception{
 
         String _func = "login";
@@ -129,7 +127,6 @@ public class WeChatMiniAppController {
 
         bean.setIsNewUser((null == info)?"1":"0");//1:是新用户 0:是老用户
         result.setData(bean);
-        response.setStatus(200);
         log.info("==={} 成功 {}",_func,JSON.toJSONString(bean));
         return result;
 
@@ -138,7 +135,7 @@ public class WeChatMiniAppController {
     @ApiOperation(value = "预支付交易会话", notes="预支付交易会话")
     @PostMapping("/unifiedOrder")
     public ResultObject<WechatPrepayBean>
-    postUnifiedOrder(HttpServletResponse response, HttpServletRequest request,
+    postUnifiedOrder(HttpServletRequest request,
                      @RequestBody  @Valid WechatOrderPostBean data)
             throws Exception{
 
@@ -173,7 +170,7 @@ public class WeChatMiniAppController {
         }
 
         result.setData(bean);
-        response.setStatus(200);
+
         log.info("=== {} 成功 {}",_func,JSON.toJSONString(bean));
         return result;
 
@@ -182,8 +179,7 @@ public class WeChatMiniAppController {
     @ApiOperation(value = "支付结果通知", notes="支付结果通知")
     @PostMapping("/payment/notify")
     public String
-    paymentNotify(HttpServletResponse response,
-                     @RequestBody  String xmlStr)
+    paymentNotify(@RequestBody  String xmlStr)
             throws Exception{
 
         String _func = "支付结果通知 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
@@ -309,8 +305,7 @@ public class WeChatMiniAppController {
     @ApiOperation(value = "支付成功更新订单", notes="支付成功更新订单")
     @PostMapping("/payment/status")
     public ResultObject<String>
-    updatePayment(HttpServletResponse response,
-                 @RequestBody  @Valid WechatPaymentQueryBean data)
+    updatePayment(@RequestBody  @Valid WechatPaymentQueryBean data)
             throws Exception{
 
         String _func = "支付成功更新订单状态 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
@@ -348,8 +343,7 @@ public class WeChatMiniAppController {
     @ApiOperation(value = "关闭订单", notes="关闭订单")
     @PostMapping("/payment/close")
     public ResultObject<String>
-    closePayment(HttpServletResponse response,
-                 @RequestBody  @Valid WechatPaymentQueryBean data)
+    closePayment(@RequestBody  @Valid WechatPaymentQueryBean data)
             throws Exception{
 
         String _func = "关闭订单 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
@@ -391,7 +385,7 @@ public class WeChatMiniAppController {
     @ApiOperation(value = "查询订单状态", notes="查询订单状态")
     @GetMapping("/payment")
     public ResultObject<Payment>
-    queryPayment(HttpServletResponse response,
+    queryPayment(
                  @ApiParam(value="openId",required=true)
                  @RequestParam @NotNull(message = MyErrorCode.OPEN_ID_BLANK) String openId,
                  @ApiParam(value="orderId",required=true)
@@ -432,8 +426,7 @@ public class WeChatMiniAppController {
     @ApiOperation(value = "申请退款", notes="申请退款")
     @PostMapping("/refund")
     public ResultObject<WechatRefundRespBean>
-    postRefund(HttpServletResponse response,
-                     @RequestBody  @Valid WechatRefundPostBean data)
+    postRefund(@RequestBody  @Valid WechatRefundPostBean data)
             throws Exception{
 
         String _func = "申请退款 ";
@@ -484,7 +477,7 @@ public class WeChatMiniAppController {
         bean.setMsg(refund.getComments());
 
         result.setData(bean);
-        response.setStatus(200);
+
         log.info("=== {}  {}",_func, refund.getStatus());
         return result;
 
@@ -493,8 +486,7 @@ public class WeChatMiniAppController {
     @ApiOperation(value = "退款结果通知", notes="退款结果通知")
     @PostMapping("/refund/notify")
     public String
-    refundNotify(HttpServletResponse response,
-               @RequestBody  String xmlStr)
+    refundNotify(@RequestBody  String xmlStr)
             throws Exception{
 
         String _func = "退款结果通知 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
@@ -639,9 +631,9 @@ public class WeChatMiniAppController {
     }
 
     @ApiOperation(value = "查询退款结果", notes="查询退款结果")
-    @GetMapping("/refund/query")
+    @GetMapping("/refund")
     public ResultObject<WechatRefundListBean>
-    queryRefund(HttpServletResponse response,
+    queryRefund(
                 @ApiParam(value="openId",required=true)
                 @RequestParam @NotNull(message = MyErrorCode.OPEN_ID_BLANK) String openId,
                 @ApiParam(value="orderId",required=true)
@@ -664,7 +656,8 @@ public class WeChatMiniAppController {
         WechatRefundListBean refundListBean = new WechatRefundListBean();
         refundListBean.setOrderId(refund.getOrderId());
         refundListBean.setTransactionId(refund.getTransactionId());
-
+        refundListBean.setTotalFee(refund.getTotalFee());
+        refundListBean.setCashFee(refund.getCashFee());
         try {
             weChatMiniAppClient.queryRefund(refundListBean);
         }catch (Exception e){
@@ -673,6 +666,44 @@ public class WeChatMiniAppController {
         }
         log.info("=== {} 成功",_func);
         return new ResultObject<>(200,"success",refundListBean);
+
+    }
+
+    @ApiOperation(value = "查询退款状态", notes="查询退款状态")
+    @GetMapping("/refund/{refundNo}")
+    public ResultObject<Refund>
+    getRefundStatus(
+            @ApiParam(value="openId",required=true)
+            @RequestParam @NotNull(message = MyErrorCode.OPEN_ID_BLANK) String openId,
+            @ApiParam(value="refundNo",required=true)
+            @PathVariable("refundNo") @NotBlank(message = MyErrorCode.REFUND_NO_BLANK) String refundNo
+    ) throws Exception{
+
+        String _func = "查询退款状态 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
+        log.info("=== {} 入参: openId={} refundNo={}",_func, openId, refundNo);
+
+        PageInfo<Refund>  pages = refundService.queryList(1,1,"id","DESC",
+                openId,refundNo,null,null,null);
+
+        if (null == pages || null == pages.getRows() || 0 == pages.getRows().size()){
+            String m = MyErrorCode.REFUND_NO_FOUND;
+            log.error("{} {}",_func,m);
+            throw new Exception(m);
+        }
+
+        Refund refund = pages.getRows().get(0);
+        if (!refund.getRefundRecvAccount().isEmpty() && !refund.getRefundAccount().isEmpty()){
+            log.info("{} 退款结果通知已经记录,不再重复处理",_func);
+            return new ResultObject<>(200,"success",refund);
+        }
+        try {
+            weChatMiniAppClient.queryRefundStatus(refund);
+        }catch (Exception e){
+            log.error("{} {}",_func,e.getMessage());
+            throw e;
+        }
+        log.info("=== {} 成功",_func);
+        return new ResultObject<>(200,"success",refund);
 
     }
 }
