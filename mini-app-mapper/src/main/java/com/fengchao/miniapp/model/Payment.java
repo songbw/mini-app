@@ -29,6 +29,8 @@ public class Payment {
 
     private String prepayId;
 
+    private String apiType;
+
     private String comments;
 
     private Date createTime;
@@ -137,6 +139,14 @@ public class Payment {
 
     public void setPrepayId(String prepayId) {
         this.prepayId = prepayId == null ? null : prepayId.trim();
+    }
+
+    public String getApiType() {
+        return apiType;
+    }
+
+    public void setApiType(String apiType) {
+        this.apiType = apiType == null ? null : apiType.trim();
     }
 
     public String getComments() {

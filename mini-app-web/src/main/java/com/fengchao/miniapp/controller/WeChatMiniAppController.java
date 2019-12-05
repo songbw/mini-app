@@ -3,6 +3,7 @@ package com.fengchao.miniapp.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.fengchao.miniapp.bean.*;
+import com.fengchao.miniapp.constant.ApiType;
 import com.fengchao.miniapp.constant.MyErrorCode;
 import com.fengchao.miniapp.constant.PaymentStatusType;
 import com.fengchao.miniapp.constant.WeChat;
@@ -58,9 +59,10 @@ public class WeChatMiniAppController {
     }
 
     @ApiOperation(value = "查询UserInfo", notes="查询UserInfo")
-    @GetMapping("/token")
+    @GetMapping("/token/{apiType}")
     public ResultObject<String>
-    getToken()throws Exception{
+    getToken(@ApiParam(value="apiType",required=true)  @PathVariable("apiType")  String apiType
+            )throws Exception{
         String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
         log.info("=== {} enter",_func);
         ResultObject<String> result = new ResultObject<>(200,"success",null);
@@ -76,7 +78,7 @@ public class WeChatMiniAppController {
 
         WeChatTokenResultBean bean;
         try{
-            bean = weChatMiniAppClient.getAccessToken();
+            bean = weChatMiniAppClient.getAccessToken(apiType);
         }catch (Exception e){
             log.error("{} {}",_func,e.getMessage());
             throw new Exception(e);
@@ -99,18 +101,23 @@ public class WeChatMiniAppController {
     }
 
     @ApiOperation(value = "获取session", notes="获取session")
-    @GetMapping("/login")
+    @GetMapping("/login/{apiType}")
     public ResultObject<WeChatSessionResultBean>
-    getSession(@RequestParam  @Valid @NotBlank(message=MyErrorCode.WECHAT_API_JS_CODE_BLANK) String jsCode)
-            throws Exception{
+    getSession(@ApiParam(value="apiType",required=true)  @PathVariable("apiType")  String apiType,
+                @RequestParam  @Valid @NotBlank(message=MyErrorCode.WECHAT_API_JS_CODE_BLANK) String jsCode
+            ) throws Exception{
 
         String _func = "login";
+        if (!ApiType.isValidCode(apiType)){
+            log.error("{} 不支持的API类型 {}",_func,apiType);
+            return new ResultObject<>(400,"不支持的API类型:"+apiType,null);
+        }
         log.info("==={} 参数 jsCode={}",_func,jsCode);
         ResultObject<WeChatSessionResultBean> result = new ResultObject<>(200,"success",null);
 
         WeChatSessionResultBean bean;
         try{
-            bean = weChatMiniAppClient.getSession(jsCode);
+            bean = weChatMiniAppClient.getSession(jsCode,apiType);
         }catch (Exception e){
             log.error("{} {}",_func,e.getMessage());
             throw e;
@@ -132,20 +139,25 @@ public class WeChatMiniAppController {
     }
 
     @ApiOperation(value = "预支付交易会话", notes="预支付交易会话")
-    @PostMapping("/unifiedOrder")
+    @PostMapping("/unifiedOrder/{apiType}")
     public ResultObject<WechatPrepayBean>
     postUnifiedOrder(HttpServletRequest request,
+                     @ApiParam(value="apiType",required=true)  @PathVariable("apiType")  String apiType,
                      @RequestBody  @Valid WechatOrderPostBean data)
             throws Exception{
 
-        String _func = "统一下单 ";
+        if (!ApiType.isValidCode(apiType)){
+            log.error("不支持的API类型 {}",apiType);
+            return new ResultObject<>(400,"不支持的API类型:"+apiType,null);
+        }
+        String _func = apiType+"统一下单 ";
         log.info("=== {} 入参 {}",_func,JSON.toJSONString(data));
         ResultObject<WechatPrepayBean> result = new ResultObject<>(200,"success",null);
         String ip = request.getRemoteAddr();
 
         WechatPrepayBean bean;
         try{
-            bean = weChatMiniAppClient.postPrepayId(data,ip);
+            bean = weChatMiniAppClient.postPrepayId(data,ip,apiType);
         }catch (Exception e){
             log.error("{} 失败 {}",_func,e.getMessage());
             throw e;
@@ -153,6 +165,7 @@ public class WeChatMiniAppController {
 
         Payment payment = new Payment();
         payment.setIp(ip);
+        payment.setApiType(apiType);
         payment.setOpenId(data.getOpenId());
         payment.setOrderId(data.getTradeNo());
         payment.setTotalFee(data.getTotalFee());
@@ -303,9 +316,10 @@ public class WeChatMiniAppController {
     }
 
     @ApiOperation(value = "支付成功更新订单", notes="支付成功更新订单")
-    @PostMapping("/payment/status")
+    @PostMapping("/payment/status/{apiType}")
     public ResultObject<String>
-    updatePayment(@RequestBody  @Valid WechatPaymentQueryBean data)
+    updatePayment(@ApiParam(value="apiType",required=true)  @PathVariable("apiType")  String apiType,
+            @RequestBody  @Valid WechatPaymentQueryBean data)
             throws Exception{
 
         String _func = "支付成功更新订单状态 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
@@ -326,7 +340,7 @@ public class WeChatMiniAppController {
         if (PaymentStatusType.PREPAY.getCode().equals(payment.getStatus())){
             log.info("{} 需要调用微信接口查询订单状态");
             try {
-                weChatMiniAppClient.queryPayment(payment);
+                weChatMiniAppClient.queryPayment(payment,apiType);
             }catch (Exception e){
                 log.error("{} {}",_func,e.getMessage());
                 throw e;
@@ -341,12 +355,17 @@ public class WeChatMiniAppController {
     }
 
     @ApiOperation(value = "关闭订单", notes="关闭订单")
-    @PostMapping("/payment/close")
+    @PostMapping("/payment/close/{apiType}")
     public ResultObject<String>
-    closePayment(@RequestBody  @Valid WechatPaymentQueryBean data)
+    closePayment(@ApiParam(value="apiType",required=true)  @PathVariable("apiType")  String apiType,
+                @RequestBody  @Valid WechatPaymentQueryBean data)
             throws Exception{
 
-        String _func = "关闭订单 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
+        if (!ApiType.isValidCode(apiType)){
+            log.error("不支持的API类型 {}",apiType);
+            return new ResultObject<>(400,"不支持的API类型:"+apiType,null);
+        }
+        String _func = apiType + "关闭订单 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         log.info("=== {} 入参: {}",_func, JSON.toJSON(data));
 
         String orderId = data.getOrderId();
@@ -363,7 +382,7 @@ public class WeChatMiniAppController {
         Payment payment = pages.getRows().get(0);
 
         boolean isOk ;
-        isOk = weChatMiniAppClient.closePayment(payment);
+        isOk = weChatMiniAppClient.closePayment(payment,apiType);
         if (!isOk){
             log.error("{} 失败",_func);
             return new ResultObject<>(400,"关闭订单失败","");
@@ -383,16 +402,20 @@ public class WeChatMiniAppController {
     }
 
     @ApiOperation(value = "查询订单状态", notes="查询订单状态")
-    @GetMapping("/payment")
+    @GetMapping("/payment/{apiType}")
     public ResultObject<Payment>
-    queryPayment(
+    queryPayment(@ApiParam(value="apiType",required=true)  @PathVariable("apiType")  String apiType,
                  @ApiParam(value="openId",required=true)
                  @RequestParam @NotNull(message = MyErrorCode.OPEN_ID_BLANK) String openId,
                  @ApiParam(value="orderId",required=true)
                  @RequestParam @NotNull(message = MyErrorCode.WECHAT_API_TRAN_NO_BLANK) String orderId
                 )throws Exception{
 
-        String _func = "查询订单状态 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
+        if (!ApiType.isValidCode(apiType)){
+            log.error("不支持的API类型 {}",apiType);
+            return new ResultObject<>(400,"不支持的API类型:"+apiType,null);
+        }
+        String _func = apiType+"查询订单状态 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         log.info("=== {} 入参: orderId={}",_func, orderId);
 
         PageInfo<Payment>  pages = paymentService.queryList(1,1,"id","DESC",
@@ -413,7 +436,7 @@ public class WeChatMiniAppController {
         }
 
         try {
-            weChatMiniAppClient.queryPayment(payment);
+            weChatMiniAppClient.queryPayment(payment,apiType);
         }catch (Exception e){
             log.error("{} {}",_func,e.getMessage());
             throw e;
@@ -424,12 +447,19 @@ public class WeChatMiniAppController {
     }
 
     @ApiOperation(value = "申请退款", notes="申请退款")
-    @PostMapping("/refund")
+    @PostMapping("/refund/{apiType}")
     public ResultObject<WechatRefundRespBean>
-    postRefund(@RequestBody  @Valid WechatRefundPostBean data)
+    postRefund(
+               @ApiParam(value="apiType",required=true)  @PathVariable("apiType")  String apiType,
+               @RequestBody  @Valid WechatRefundPostBean data)
             throws Exception{
 
-        String _func = "申请退款 ";
+        if (!ApiType.isValidCode(apiType)){
+            log.error("不支持的API类型 {}",apiType);
+            return new ResultObject<>(400,"不支持的API类型:"+apiType,null);
+        }
+
+        String _func = apiType+"申请退款 ";
         log.info("=== {} 入参 {}",_func,JSON.toJSONString(data));
         ResultObject<WechatRefundRespBean> result = new ResultObject<>(200,"success",null);
 
@@ -454,7 +484,7 @@ public class WeChatMiniAppController {
 
         Refund refund;
         try {
-            refund = weChatMiniAppClient.postRefund(data);
+            refund = weChatMiniAppClient.postRefund(data,apiType);
         }catch (Exception e){
             log.error("{} {}", _func,e.getMessage());
             throw e;
@@ -632,16 +662,20 @@ public class WeChatMiniAppController {
     }
 
     @ApiOperation(value = "查询退款结果", notes="查询退款结果")
-    @GetMapping("/refund")
+    @GetMapping("/refund/{apiType}")
     public ResultObject<WechatRefundListBean>
-    queryRefund(
+    queryRefund(@ApiParam(value="apiType",required=true)  @PathVariable("apiType")  String apiType,
                 @ApiParam(value="openId",required=true)
                 @RequestParam @NotNull(message = MyErrorCode.OPEN_ID_BLANK) String openId,
                 @ApiParam(value="orderId",required=true)
                 @RequestParam @NotNull(message = MyErrorCode.WECHAT_API_TRAN_NO_BLANK) String orderId
             ) throws Exception{
 
-        String _func = "查询退款结果 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
+        if (!ApiType.isValidCode(apiType)){
+            log.error("不支持的API类型 {}",apiType);
+            return new ResultObject<>(400,"不支持的API类型:"+apiType,null);
+        }
+        String _func = apiType+"查询退款结果 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         log.info("=== {} 入参: openId={} orderId={}",_func, openId, orderId);
 
         PageInfo<Refund>  pages = refundService.queryList(1,1,"id","DESC",
@@ -660,7 +694,7 @@ public class WeChatMiniAppController {
         refundListBean.setTotalFee(refund.getTotalFee());
         refundListBean.setCashFee(refund.getCashFee());
         try {
-            weChatMiniAppClient.queryRefund(refundListBean);
+            weChatMiniAppClient.queryRefund(refundListBean,apiType);
         }catch (Exception e){
             log.error("{} {}",_func,e.getMessage());
             throw e;
@@ -673,13 +707,17 @@ public class WeChatMiniAppController {
     @ApiOperation(value = "查询退款状态", notes="查询退款状态")
     @GetMapping("/refund/{refundNo}")
     public ResultObject<Refund>
-    getRefundStatus(
+    getRefundStatus(@ApiParam(value="apiType",required=true)  @PathVariable("apiType")  String apiType,
             @ApiParam(value="openId",required=true)
             @RequestParam @NotNull(message = MyErrorCode.OPEN_ID_BLANK) String openId,
             @ApiParam(value="refundNo",required=true)
             @PathVariable("refundNo") @NotBlank(message = MyErrorCode.REFUND_NO_BLANK) String refundNo
     ) throws Exception{
 
+        if (!ApiType.isValidCode(apiType)){
+            log.error("不支持的API类型 {}",apiType);
+            return new ResultObject<>(400,"不支持的API类型:"+apiType,null);
+        }
         String _func = "查询退款状态 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         log.info("=== {} 入参: openId={} refundNo={}",_func, openId, refundNo);
 
@@ -698,7 +736,7 @@ public class WeChatMiniAppController {
             return new ResultObject<>(200,"success",refund);
         }
         try {
-            weChatMiniAppClient.queryRefundStatus(refund);
+            weChatMiniAppClient.queryRefundStatus(refund,apiType);
         }catch (Exception e){
             log.error("{} {}",_func,e.getMessage());
             throw e;

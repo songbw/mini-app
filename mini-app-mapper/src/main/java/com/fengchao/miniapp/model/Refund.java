@@ -27,6 +27,8 @@ public class Refund {
 
     private Integer refundCashFee;
 
+    private String apiType;
+
     private String status;
 
     private String comments;
@@ -135,6 +137,14 @@ public class Refund {
 
     public void setRefundCashFee(Integer refundCashFee) {
         this.refundCashFee = refundCashFee;
+    }
+
+    public String getApiType() {
+        return apiType;
+    }
+
+    public void setApiType(String apiType) {
+        this.apiType = apiType == null ? null : apiType.trim();
     }
 
     public String getStatus() {

@@ -875,6 +875,76 @@ public class RefundExample {
             return (Criteria) this;
         }
 
+        public Criteria andApiTypeIsNull() {
+            addCriterion("api_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiTypeIsNotNull() {
+            addCriterion("api_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiTypeEqualTo(String value) {
+            addCriterion("api_type =", value, "apiType");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiTypeNotEqualTo(String value) {
+            addCriterion("api_type <>", value, "apiType");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiTypeGreaterThan(String value) {
+            addCriterion("api_type >", value, "apiType");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiTypeGreaterThanOrEqualTo(String value) {
+            addCriterion("api_type >=", value, "apiType");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiTypeLessThan(String value) {
+            addCriterion("api_type <", value, "apiType");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiTypeLessThanOrEqualTo(String value) {
+            addCriterion("api_type <=", value, "apiType");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiTypeLike(String value) {
+            addCriterion("api_type like", value, "apiType");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiTypeNotLike(String value) {
+            addCriterion("api_type not like", value, "apiType");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiTypeIn(List<String> values) {
+            addCriterion("api_type in", values, "apiType");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiTypeNotIn(List<String> values) {
+            addCriterion("api_type not in", values, "apiType");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiTypeBetween(String value1, String value2) {
+            addCriterion("api_type between", value1, value2, "apiType");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiTypeNotBetween(String value1, String value2) {
+            addCriterion("api_type not between", value1, value2, "apiType");
+            return (Criteria) this;
+        }
+
         public Criteria andStatusIsNull() {
             addCriterion("status is null");
             return (Criteria) this;

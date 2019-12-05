@@ -14,6 +14,7 @@
     <result column="settle_refund_fee" jdbcType="INTEGER" property="settleRefundFee" />
     <result column="cash_fee" jdbcType="INTEGER" property="cashFee" />
     <result column="refund_cash_fee" jdbcType="INTEGER" property="refundCashFee" />
+    <result column="api_type" jdbcType="VARCHAR" property="apiType" />
     <result column="status" jdbcType="VARCHAR" property="status" />
     <result column="comments" jdbcType="VARCHAR" property="comments" />
     <result column="refund_account" jdbcType="VARCHAR" property="refundAccount" />
@@ -82,8 +83,8 @@
   </sql>
   <sql id="Base_Column_List">
     id, open_id, refund_no, wechat_refund_no, transaction_id, order_id, total_fee, refund_fee, 
-    resp_refund_fee, settle_refund_fee, cash_fee, refund_cash_fee, status, comments, 
-    refund_account, refund_recv_account, success_time, create_time, update_time
+    resp_refund_fee, settle_refund_fee, cash_fee, refund_cash_fee, api_type, status, 
+    comments, refund_account, refund_recv_account, success_time, create_time, update_time
   </sql>
   <select id="selectByExample" parameterType="com.fengchao.miniapp.model.RefundExample" resultMap="BaseResultMap">
     select
@@ -123,17 +124,17 @@
     insert into refund (open_id, refund_no, wechat_refund_no, 
       transaction_id, order_id, total_fee, 
       refund_fee, resp_refund_fee, settle_refund_fee, 
-      cash_fee, refund_cash_fee, status, 
-      comments, refund_account, refund_recv_account, 
-      success_time, create_time, update_time
-      )
+      cash_fee, refund_cash_fee, api_type, 
+      status, comments, refund_account, 
+      refund_recv_account, success_time, create_time, 
+      update_time)
     values (#{openId,jdbcType=VARCHAR}, #{refundNo,jdbcType=VARCHAR}, #{wechatRefundNo,jdbcType=VARCHAR}, 
       #{transactionId,jdbcType=VARCHAR}, #{orderId,jdbcType=VARCHAR}, #{totalFee,jdbcType=INTEGER}, 
       #{refundFee,jdbcType=INTEGER}, #{respRefundFee,jdbcType=INTEGER}, #{settleRefundFee,jdbcType=INTEGER}, 
-      #{cashFee,jdbcType=INTEGER}, #{refundCashFee,jdbcType=INTEGER}, #{status,jdbcType=VARCHAR}, 
-      #{comments,jdbcType=VARCHAR}, #{refundAccount,jdbcType=VARCHAR}, #{refundRecvAccount,jdbcType=VARCHAR}, 
-      #{successTime,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
-      )
+      #{cashFee,jdbcType=INTEGER}, #{refundCashFee,jdbcType=INTEGER}, #{apiType,jdbcType=VARCHAR}, 
+      #{status,jdbcType=VARCHAR}, #{comments,jdbcType=VARCHAR}, #{refundAccount,jdbcType=VARCHAR}, 
+      #{refundRecvAccount,jdbcType=VARCHAR}, #{successTime,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.fengchao.miniapp.model.Refund">
     <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Long">
@@ -173,6 +174,9 @@
       </if>
       <if test="refundCashFee != null">
         refund_cash_fee,
+      </if>
+      <if test="apiType != null">
+        api_type,
       </if>
       <if test="status != null">
         status,
@@ -229,6 +233,9 @@
       </if>
       <if test="refundCashFee != null">
         #{refundCashFee,jdbcType=INTEGER},
+      </if>
+      <if test="apiType != null">
+        #{apiType,jdbcType=VARCHAR},
       </if>
       <if test="status != null">
         #{status,jdbcType=VARCHAR},
@@ -298,6 +305,9 @@
       <if test="record.refundCashFee != null">
         refund_cash_fee = #{record.refundCashFee,jdbcType=INTEGER},
       </if>
+      <if test="record.apiType != null">
+        api_type = #{record.apiType,jdbcType=VARCHAR},
+      </if>
       <if test="record.status != null">
         status = #{record.status,jdbcType=VARCHAR},
       </if>
@@ -338,6 +348,7 @@
       settle_refund_fee = #{record.settleRefundFee,jdbcType=INTEGER},
       cash_fee = #{record.cashFee,jdbcType=INTEGER},
       refund_cash_fee = #{record.refundCashFee,jdbcType=INTEGER},
+      api_type = #{record.apiType,jdbcType=VARCHAR},
       status = #{record.status,jdbcType=VARCHAR},
       comments = #{record.comments,jdbcType=VARCHAR},
       refund_account = #{record.refundAccount,jdbcType=VARCHAR},
@@ -385,6 +396,9 @@
       <if test="refundCashFee != null">
         refund_cash_fee = #{refundCashFee,jdbcType=INTEGER},
       </if>
+      <if test="apiType != null">
+        api_type = #{apiType,jdbcType=VARCHAR},
+      </if>
       <if test="status != null">
         status = #{status,jdbcType=VARCHAR},
       </if>
@@ -422,6 +436,7 @@
       settle_refund_fee = #{settleRefundFee,jdbcType=INTEGER},
       cash_fee = #{cashFee,jdbcType=INTEGER},
       refund_cash_fee = #{refundCashFee,jdbcType=INTEGER},
+      api_type = #{apiType,jdbcType=VARCHAR},
       status = #{status,jdbcType=VARCHAR},
       comments = #{comments,jdbcType=VARCHAR},
       refund_account = #{refundAccount,jdbcType=VARCHAR},

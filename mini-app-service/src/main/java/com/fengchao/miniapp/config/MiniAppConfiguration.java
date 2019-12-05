@@ -11,46 +11,50 @@ import javax.annotation.PostConstruct;
 /**
  * 中投科信所需的配置信息从bootstrap.yml,bootstrap-*.yml中获取
  */
-@ConfigurationProperties(/*ignoreUnknownFields = true,*/ prefix = "miniapp")
+@ConfigurationProperties(/*ignoreUnknownFields = true,*/ prefix = "weixin")
 @Component
 @Slf4j
 @Getter
 @Setter
 public class MiniAppConfiguration {
 
-    private String wechatAppId;
+    private String miniAppId;
 
-    private String wechatAppSecret;
+    private String miniAppSecret;
 
-    private String wechatAppApiUrl;
+    private String miniAppApiUrl;
 
+    private String jsAPIAppId;
+
+    private String jsAPIAppSecret;
 
     @PostConstruct//在servlet初始化的时候加载，并且只加载一次，和构造代码块的作用类似
     private void init() throws Exception{
         log.info("load miniApp properties start!");
 
-        if (null == wechatAppId){
-            String msg = "wechatAppId not found";
+        if (null == miniAppId){
+            String msg = "miniAppId not found";
             log.error(msg);
             throw new Exception(msg);
         }else {
-            log.info("wechatAppId = {}", wechatAppId);
+            log.info("miniAppId = {}", miniAppId);
         }
-        if (null == wechatAppSecret){
-            String msg = "wechatAppSecret not found";
+        if (null == miniAppSecret){
+            String msg = "miniAppSecret not found";
             log.error(msg);
             throw new Exception(msg);
         }else {
-            log.info("wechatAppSecret = {}", wechatAppSecret);
+            log.info("miniAppSecret = {}", miniAppSecret);
         }
-        if (null == wechatAppApiUrl){
-            String msg = "wechatAppApiUrl not found";
+        if (null == miniAppApiUrl){
+            String msg = "miniAppApiUrl not found";
             log.error(msg);
             throw new Exception(msg);
         }else {
-            log.info("wechatAppApiUrl = {}", wechatAppApiUrl);
+            log.info("miniAppApiUrl = {}", miniAppApiUrl);
         }
-
+        log.info("jsAPIAppId = {}",jsAPIAppId);
+        log.info("jsAPIAppSecret = {}",jsAPIAppSecret);
     }
 
 

@@ -15,6 +15,7 @@
     <result column="result" jdbcType="VARCHAR" property="result" />
     <result column="order_id" jdbcType="VARCHAR" property="orderId" />
     <result column="prepay_id" jdbcType="VARCHAR" property="prepayId" />
+    <result column="api_type" jdbcType="VARCHAR" property="apiType" />
     <result column="comments" jdbcType="VARCHAR" property="comments" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
@@ -79,7 +80,7 @@
   </sql>
   <sql id="Base_Column_List">
     id, open_id, ip, total_fee, status, resp_total_fee, bank_type, cash_fee, transaction_id, 
-    time_end, result, order_id, prepay_id, comments, create_time, update_time
+    time_end, result, order_id, prepay_id, api_type, comments, create_time, update_time
   </sql>
   <select id="selectByExample" parameterType="com.fengchao.miniapp.model.PaymentExample" resultMap="BaseResultMap">
     select
@@ -120,14 +121,14 @@
       status, resp_total_fee, bank_type, 
       cash_fee, transaction_id, time_end, 
       result, order_id, prepay_id, 
-      comments, create_time, update_time
-      )
+      api_type, comments, create_time, 
+      update_time)
     values (#{openId,jdbcType=VARCHAR}, #{ip,jdbcType=VARCHAR}, #{totalFee,jdbcType=INTEGER}, 
       #{status,jdbcType=INTEGER}, #{respTotalFee,jdbcType=INTEGER}, #{bankType,jdbcType=VARCHAR}, 
       #{cashFee,jdbcType=INTEGER}, #{transactionId,jdbcType=VARCHAR}, #{timeEnd,jdbcType=VARCHAR}, 
       #{result,jdbcType=VARCHAR}, #{orderId,jdbcType=VARCHAR}, #{prepayId,jdbcType=VARCHAR}, 
-      #{comments,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
-      )
+      #{apiType,jdbcType=VARCHAR}, #{comments,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.fengchao.miniapp.model.Payment">
     <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Long">
@@ -170,6 +171,9 @@
       </if>
       <if test="prepayId != null">
         prepay_id,
+      </if>
+      <if test="apiType != null">
+        api_type,
       </if>
       <if test="comments != null">
         comments,
@@ -217,6 +221,9 @@
       </if>
       <if test="prepayId != null">
         #{prepayId,jdbcType=VARCHAR},
+      </if>
+      <if test="apiType != null">
+        #{apiType,jdbcType=VARCHAR},
       </if>
       <if test="comments != null">
         #{comments,jdbcType=VARCHAR},
@@ -277,6 +284,9 @@
       <if test="record.prepayId != null">
         prepay_id = #{record.prepayId,jdbcType=VARCHAR},
       </if>
+      <if test="record.apiType != null">
+        api_type = #{record.apiType,jdbcType=VARCHAR},
+      </if>
       <if test="record.comments != null">
         comments = #{record.comments,jdbcType=VARCHAR},
       </if>
@@ -306,6 +316,7 @@
       result = #{record.result,jdbcType=VARCHAR},
       order_id = #{record.orderId,jdbcType=VARCHAR},
       prepay_id = #{record.prepayId,jdbcType=VARCHAR},
+      api_type = #{record.apiType,jdbcType=VARCHAR},
       comments = #{record.comments,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP}
@@ -352,6 +363,9 @@
       <if test="prepayId != null">
         prepay_id = #{prepayId,jdbcType=VARCHAR},
       </if>
+      <if test="apiType != null">
+        api_type = #{apiType,jdbcType=VARCHAR},
+      </if>
       <if test="comments != null">
         comments = #{comments,jdbcType=VARCHAR},
       </if>
@@ -378,6 +392,404 @@
       result = #{result,jdbcType=VARCHAR},
       order_id = #{orderId,jdbcType=VARCHAR},
       prepay_id = #{prepayId,jdbcType=VARCHAR},
+      api_type = #{apiType,jdbcType=VARCHAR},
+      comments = #{comments,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <resultMap id="BaseResultMap" type="com.fengchao.miniapp.model.Payment">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="open_id" jdbcType="VARCHAR" property="openId" />
+    <result column="ip" jdbcType="VARCHAR" property="ip" />
+    <result column="total_fee" jdbcType="INTEGER" property="totalFee" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="resp_total_fee" jdbcType="INTEGER" property="respTotalFee" />
+    <result column="bank_type" jdbcType="VARCHAR" property="bankType" />
+    <result column="cash_fee" jdbcType="INTEGER" property="cashFee" />
+    <result column="transaction_id" jdbcType="VARCHAR" property="transactionId" />
+    <result column="time_end" jdbcType="VARCHAR" property="timeEnd" />
+    <result column="result" jdbcType="VARCHAR" property="result" />
+    <result column="order_id" jdbcType="VARCHAR" property="orderId" />
+    <result column="prepay_id" jdbcType="VARCHAR" property="prepayId" />
+    <result column="api_type" jdbcType="VARCHAR" property="apiType" />
+    <result column="comments" jdbcType="VARCHAR" property="comments" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, open_id, ip, total_fee, status, resp_total_fee, bank_type, cash_fee, transaction_id, 
+    time_end, result, order_id, prepay_id, api_type, comments, create_time, update_time
+  </sql>
+  <select id="selectByExample" parameterType="com.fengchao.miniapp.model.PaymentExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    'id' as QUERYID,
+    <include refid="Base_Column_List" />
+    from payment
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from payment
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from payment
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.fengchao.miniapp.model.PaymentExample">
+    delete from payment
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.fengchao.miniapp.model.Payment">
+    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Long">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into payment (open_id, ip, total_fee, 
+      status, resp_total_fee, bank_type, 
+      cash_fee, transaction_id, time_end, 
+      result, order_id, prepay_id, 
+      api_type, comments, create_time, 
+      update_time)
+    values (#{openId,jdbcType=VARCHAR}, #{ip,jdbcType=VARCHAR}, #{totalFee,jdbcType=INTEGER}, 
+      #{status,jdbcType=INTEGER}, #{respTotalFee,jdbcType=INTEGER}, #{bankType,jdbcType=VARCHAR}, 
+      #{cashFee,jdbcType=INTEGER}, #{transactionId,jdbcType=VARCHAR}, #{timeEnd,jdbcType=VARCHAR}, 
+      #{result,jdbcType=VARCHAR}, #{orderId,jdbcType=VARCHAR}, #{prepayId,jdbcType=VARCHAR}, 
+      #{apiType,jdbcType=VARCHAR}, #{comments,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.fengchao.miniapp.model.Payment">
+    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Long">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into payment
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="openId != null">
+        open_id,
+      </if>
+      <if test="ip != null">
+        ip,
+      </if>
+      <if test="totalFee != null">
+        total_fee,
+      </if>
+      <if test="status != null">
+        status,
+      </if>
+      <if test="respTotalFee != null">
+        resp_total_fee,
+      </if>
+      <if test="bankType != null">
+        bank_type,
+      </if>
+      <if test="cashFee != null">
+        cash_fee,
+      </if>
+      <if test="transactionId != null">
+        transaction_id,
+      </if>
+      <if test="timeEnd != null">
+        time_end,
+      </if>
+      <if test="result != null">
+        result,
+      </if>
+      <if test="orderId != null">
+        order_id,
+      </if>
+      <if test="prepayId != null">
+        prepay_id,
+      </if>
+      <if test="apiType != null">
+        api_type,
+      </if>
+      <if test="comments != null">
+        comments,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="openId != null">
+        #{openId,jdbcType=VARCHAR},
+      </if>
+      <if test="ip != null">
+        #{ip,jdbcType=VARCHAR},
+      </if>
+      <if test="totalFee != null">
+        #{totalFee,jdbcType=INTEGER},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="respTotalFee != null">
+        #{respTotalFee,jdbcType=INTEGER},
+      </if>
+      <if test="bankType != null">
+        #{bankType,jdbcType=VARCHAR},
+      </if>
+      <if test="cashFee != null">
+        #{cashFee,jdbcType=INTEGER},
+      </if>
+      <if test="transactionId != null">
+        #{transactionId,jdbcType=VARCHAR},
+      </if>
+      <if test="timeEnd != null">
+        #{timeEnd,jdbcType=VARCHAR},
+      </if>
+      <if test="result != null">
+        #{result,jdbcType=VARCHAR},
+      </if>
+      <if test="orderId != null">
+        #{orderId,jdbcType=VARCHAR},
+      </if>
+      <if test="prepayId != null">
+        #{prepayId,jdbcType=VARCHAR},
+      </if>
+      <if test="apiType != null">
+        #{apiType,jdbcType=VARCHAR},
+      </if>
+      <if test="comments != null">
+        #{comments,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.fengchao.miniapp.model.PaymentExample" resultType="java.lang.Long">
+    select count(*) from payment
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update payment
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.openId != null">
+        open_id = #{record.openId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.ip != null">
+        ip = #{record.ip,jdbcType=VARCHAR},
+      </if>
+      <if test="record.totalFee != null">
+        total_fee = #{record.totalFee,jdbcType=INTEGER},
+      </if>
+      <if test="record.status != null">
+        status = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.respTotalFee != null">
+        resp_total_fee = #{record.respTotalFee,jdbcType=INTEGER},
+      </if>
+      <if test="record.bankType != null">
+        bank_type = #{record.bankType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cashFee != null">
+        cash_fee = #{record.cashFee,jdbcType=INTEGER},
+      </if>
+      <if test="record.transactionId != null">
+        transaction_id = #{record.transactionId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.timeEnd != null">
+        time_end = #{record.timeEnd,jdbcType=VARCHAR},
+      </if>
+      <if test="record.result != null">
+        result = #{record.result,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orderId != null">
+        order_id = #{record.orderId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.prepayId != null">
+        prepay_id = #{record.prepayId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.apiType != null">
+        api_type = #{record.apiType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.comments != null">
+        comments = #{record.comments,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null">
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null">
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update payment
+    set id = #{record.id,jdbcType=BIGINT},
+      open_id = #{record.openId,jdbcType=VARCHAR},
+      ip = #{record.ip,jdbcType=VARCHAR},
+      total_fee = #{record.totalFee,jdbcType=INTEGER},
+      status = #{record.status,jdbcType=INTEGER},
+      resp_total_fee = #{record.respTotalFee,jdbcType=INTEGER},
+      bank_type = #{record.bankType,jdbcType=VARCHAR},
+      cash_fee = #{record.cashFee,jdbcType=INTEGER},
+      transaction_id = #{record.transactionId,jdbcType=VARCHAR},
+      time_end = #{record.timeEnd,jdbcType=VARCHAR},
+      result = #{record.result,jdbcType=VARCHAR},
+      order_id = #{record.orderId,jdbcType=VARCHAR},
+      prepay_id = #{record.prepayId,jdbcType=VARCHAR},
+      api_type = #{record.apiType,jdbcType=VARCHAR},
+      comments = #{record.comments,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.fengchao.miniapp.model.Payment">
+    update payment
+    <set>
+      <if test="openId != null">
+        open_id = #{openId,jdbcType=VARCHAR},
+      </if>
+      <if test="ip != null">
+        ip = #{ip,jdbcType=VARCHAR},
+      </if>
+      <if test="totalFee != null">
+        total_fee = #{totalFee,jdbcType=INTEGER},
+      </if>
+      <if test="status != null">
+        status = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="respTotalFee != null">
+        resp_total_fee = #{respTotalFee,jdbcType=INTEGER},
+      </if>
+      <if test="bankType != null">
+        bank_type = #{bankType,jdbcType=VARCHAR},
+      </if>
+      <if test="cashFee != null">
+        cash_fee = #{cashFee,jdbcType=INTEGER},
+      </if>
+      <if test="transactionId != null">
+        transaction_id = #{transactionId,jdbcType=VARCHAR},
+      </if>
+      <if test="timeEnd != null">
+        time_end = #{timeEnd,jdbcType=VARCHAR},
+      </if>
+      <if test="result != null">
+        result = #{result,jdbcType=VARCHAR},
+      </if>
+      <if test="orderId != null">
+        order_id = #{orderId,jdbcType=VARCHAR},
+      </if>
+      <if test="prepayId != null">
+        prepay_id = #{prepayId,jdbcType=VARCHAR},
+      </if>
+      <if test="apiType != null">
+        api_type = #{apiType,jdbcType=VARCHAR},
+      </if>
+      <if test="comments != null">
+        comments = #{comments,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.fengchao.miniapp.model.Payment">
+    update payment
+    set open_id = #{openId,jdbcType=VARCHAR},
+      ip = #{ip,jdbcType=VARCHAR},
+      total_fee = #{totalFee,jdbcType=INTEGER},
+      status = #{status,jdbcType=INTEGER},
+      resp_total_fee = #{respTotalFee,jdbcType=INTEGER},
+      bank_type = #{bankType,jdbcType=VARCHAR},
+      cash_fee = #{cashFee,jdbcType=INTEGER},
+      transaction_id = #{transactionId,jdbcType=VARCHAR},
+      time_end = #{timeEnd,jdbcType=VARCHAR},
+      result = #{result,jdbcType=VARCHAR},
+      order_id = #{orderId,jdbcType=VARCHAR},
+      prepay_id = #{prepayId,jdbcType=VARCHAR},
+      api_type = #{apiType,jdbcType=VARCHAR},
       comments = #{comments,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP}

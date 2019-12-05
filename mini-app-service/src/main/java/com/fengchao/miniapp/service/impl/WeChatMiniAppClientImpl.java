@@ -4,26 +4,20 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.fengchao.miniapp.bean.*;
 import com.fengchao.miniapp.config.MiniAppConfiguration;
-import com.fengchao.miniapp.constant.MyErrorCode;
-import com.fengchao.miniapp.constant.PaymentStatusType;
-import com.fengchao.miniapp.constant.WeChat;
-import com.fengchao.miniapp.constant.WeChatErrorCode;
+import com.fengchao.miniapp.constant.*;
 import com.fengchao.miniapp.model.Payment;
 import com.fengchao.miniapp.model.Refund;
 import com.fengchao.miniapp.service.IWechatMiniAppClient;
 import com.fengchao.miniapp.utils.HttpClient431Util;
 import com.fengchao.miniapp.utils.Md5Util;
-import com.fengchao.miniapp.utils.RedisDAO;
 import com.fengchao.miniapp.utils.XmlUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.cache.CacheProperties;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import sun.misc.BASE64Decoder;
-import sun.security.provider.MD5;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -79,12 +73,12 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
     }
 
-    private JSONObject accessWeChatApi(String path,Map<String,String> params) throws Exception{
+    private JSONObject accessMiniApiToken(String path,Map<String,String> params) throws Exception{
         String _func = "获取accessToken接口 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         if (log.isDebugEnabled()) {
             log.info("{} 参数 {}", _func, JSON.toJSON(params));
         }
-        String url = configuration.getWechatAppApiUrl() + path;
+        String url = configuration.getMiniAppApiUrl() + path;
         String result;
 
         try{
@@ -123,7 +117,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
     }
 
-    private String buildRedundNo(){
+    private String buildRefundNo(String appId){
         Long timeStampMs = LocalDateTime.now().toInstant(ZoneOffset.of("+8")).toEpochMilli();
         Long timeStampS = timeStampMs/1000;
         String timeStamp = timeStampS.toString();
@@ -137,7 +131,9 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
                 sb.append("0");
         }
         sb.append(triRandom);
-        return configuration.getWechatAppId() + timeStamp + sb.toString();
+
+        return appId + timeStamp + sb.toString();
+
     }
 
     public String DecodePkcs7(String base64Str) throws Exception{
@@ -180,19 +176,34 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
     }
 
     @Override
+    public String getAppId(String apiType){
+        if (ApiType.MINI.getCode().equals(apiType)){
+            return configuration.getMiniAppId();
+        }else {
+            return configuration.getJsAPIAppId();
+        }
+    }
+
+    @Override
     public WeChatTokenResultBean
-    getAccessToken()
+    getAccessToken(String apiType)
             throws Exception{
         String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
 
         Map<String,String> params = new HashMap<>();
         params.put(WeChat.GRANT_TYPE_KEY,WeChat.GRANT_TYPE_DEFAULT);
-        params.put(WeChat.APP_ID_KEY,configuration.getWechatAppId());
-        params.put(WeChat.SECRET_KEY,configuration.getWechatAppSecret());
+
+        if (ApiType.JSAPI.getCode().equals(apiType)){
+            params.put(WeChat.APP_ID_KEY, configuration.getJsAPIAppId());
+            params.put(WeChat.SECRET_KEY, configuration.getJsAPIAppSecret());
+        }else {
+            params.put(WeChat.APP_ID_KEY, configuration.getMiniAppId());
+            params.put(WeChat.SECRET_KEY, configuration.getMiniAppId());
+        }
 
         JSONObject json;
         try{
-            json = accessWeChatApi(WeChat.GET_ACCESS_TOKEN_PATH,params);
+            json = accessMiniApiToken(WeChat.GET_ACCESS_TOKEN_PATH,params);
         }catch (Exception e){
             throw e;
         }
@@ -224,20 +235,26 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
     @Override
     public WeChatSessionResultBean
-    getSession(String jsCode)throws Exception {
+    getSession(String jsCode, String apiType)throws Exception {
         String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
         if (log.isDebugEnabled()) {
             log.info("{} 参数： jsCode={}", _func, jsCode);
         }
         Map<String, String> params = new HashMap<>();
-        params.put(WeChat.APP_ID_KEY, configuration.getWechatAppId());
-        params.put(WeChat.SECRET_KEY, configuration.getWechatAppSecret());
+        if (ApiType.JSAPI.getCode().equals(apiType)){
+            params.put(WeChat.APP_ID_KEY, configuration.getJsAPIAppId());
+            params.put(WeChat.SECRET_KEY, configuration.getJsAPIAppSecret());
+        }else {
+            params.put(WeChat.APP_ID_KEY, configuration.getMiniAppId());
+            params.put(WeChat.SECRET_KEY, configuration.getMiniAppId());
+        }
+
         params.put(WeChat.JS_CODE_KEY, jsCode);
         params.put(WeChat.GRANT_TYPE_KEY, WeChat.GRANT_TYPE_AUTH_CODE);
 
         JSONObject json;
         try {
-            json = accessWeChatApi(WeChat.GET_CODE2SESSION_PATH, params);
+            json = accessMiniApiToken(WeChat.GET_CODE2SESSION_PATH, params);
         } catch (Exception e) {
             throw e;
         }
@@ -333,14 +350,16 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
     @Override
     public WechatPrepayBean
-    postPrepayId(WechatOrderPostBean data,String ip) throws Exception{
+    postPrepayId(WechatOrderPostBean data,String ip, String apiType) throws Exception{
         String _func = "统一下单接口 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         if (log.isDebugEnabled()) {
             log.debug("{} param: {}", _func, JSON.toJSONString(data));
         }
 
+        String appId = getAppId(apiType);
+
         Map<String,Object> paramMap = new HashMap<>();
-        paramMap.put(WeChat.APP_ID_KEY,configuration.getWechatAppId());
+        paramMap.put(WeChat.APP_ID_KEY,appId);
         paramMap.put(WeChat.MERCHANT_ID_KEY, WeChat.MINI_APP_PAYMENT_MCH_ID);
         paramMap.put(WeChat.NONCE_STRING_KEY, XmlUtil.getRandomStringByLength(32));
         paramMap.put(WeChat.BODY_KEY, data.getBody());
@@ -429,7 +448,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
             throw new Exception(msg);
         }
         String respAppId = respAppIdObj.toString();
-        if (respAppId.isEmpty() || !configuration.getWechatAppId().equals(respAppId)){
+        if (respAppId.isEmpty() || !appId.equals(respAppId)){
             String msg = MyErrorCode.WECHAT_API_RESP_APP_ID_WRONG;
             log.error("{} {}",_func,msg);
             throw new Exception(msg);
@@ -465,7 +484,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
         Map<String,Object> beanMap = new HashMap<>();
         String packageStr = WeChat.PREPAY_ID_KEY+"="+prepayId;
-        beanMap.put("appId",configuration.getWechatAppId());
+        beanMap.put("appId",appId);
         beanMap.put("nonceStr", respNonce);
         beanMap.put("package", packageStr);
         beanMap.put("signType", WeChat.SIGN_TYPE_MD5);
@@ -526,13 +545,15 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
     @Override
     public Refund
-    postRefund(WechatRefundPostBean data) throws Exception{
-        String _func = "微信小程序退款接口 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
+    postRefund(WechatRefundPostBean data, String apiType) throws Exception{
+        String _func = "微信支付退款接口 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         log.info("{} param: {}",_func,JSON.toJSONString(data));
 
-        String refundNo = buildRedundNo();
+        String appId = getAppId(apiType);
+
+        String refundNo = buildRefundNo(appId);
         Map<String,Object> paramMap = new HashMap<>();
-        paramMap.put(WeChat.APP_ID_KEY,configuration.getWechatAppId());
+        paramMap.put(WeChat.APP_ID_KEY,appId);
         paramMap.put(WeChat.MERCHANT_ID_KEY, WeChat.MINI_APP_PAYMENT_MCH_ID);
         paramMap.put(WeChat.NONCE_STRING_KEY, XmlUtil.getRandomStringByLength(32));
         paramMap.put(WeChat.OUT_TRADE_NO_KEY, data.getOrderId());
@@ -583,6 +604,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
         Refund refund = new Refund();
         BeanUtils.copyProperties(data,refund);
+        refund.setApiType(apiType);
         refund.setRefundNo(refundNo);
         refund.setCreateTime(new Date());
         refund.setUpdateTime(new Date());
@@ -649,12 +671,14 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
     @Override
     public void
-    queryRefund(WechatRefundListBean refund) throws Exception{
-        String _func = "微信小程序退款查询 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
+    queryRefund(WechatRefundListBean refund,String apiType) throws Exception{
+        String _func = "微信支付退款查询 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         log.info("{} orderId= {}",_func,refund.getOrderId());
 
+        String appId = getAppId(apiType);
+
         Map<String,Object> paramMap = new HashMap<>();
-        paramMap.put(WeChat.APP_ID_KEY,configuration.getWechatAppId());
+        paramMap.put(WeChat.APP_ID_KEY,appId);
         paramMap.put(WeChat.MERCHANT_ID_KEY, WeChat.MINI_APP_PAYMENT_MCH_ID);
         paramMap.put(WeChat.NONCE_STRING_KEY, XmlUtil.getRandomStringByLength(32));
         paramMap.put(WeChat.OUT_TRADE_NO_KEY, refund.getOrderId());
@@ -764,13 +788,13 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
     @Override
     public void
-    queryRefundStatus(Refund refund) throws Exception{
+    queryRefundStatus(Refund refund, String apiType) throws Exception{
         String _func = "微信小程序退款状态查询 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         if (log.isDebugEnabled()) {
             log.info("{} enter: {}", _func, JSON.toJSONString(refund));
         }
         Map<String,Object> paramMap = new HashMap<>();
-        paramMap.put(WeChat.APP_ID_KEY,configuration.getWechatAppId());
+        paramMap.put(WeChat.APP_ID_KEY,getAppId(apiType));
         paramMap.put(WeChat.MERCHANT_ID_KEY, WeChat.MINI_APP_PAYMENT_MCH_ID);
         paramMap.put(WeChat.NONCE_STRING_KEY, XmlUtil.getRandomStringByLength(32));
         paramMap.put(WeChat.OUT_REFUND_NO_KEY, refund.getRefundNo());
@@ -875,12 +899,13 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
     @Override
     public void
-    queryPayment(Payment payment) throws Exception{
+    queryPayment(Payment payment, String apiType) throws Exception{
         String _func = "微信小程序查询订单接口 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         log.info("{} orderId= {}",_func,payment.getOrderId());
 
+        String appId = getAppId(apiType);
         Map<String,Object> paramMap = new HashMap<>();
-        paramMap.put(WeChat.APP_ID_KEY,configuration.getWechatAppId());
+        paramMap.put(WeChat.APP_ID_KEY,appId);
         paramMap.put(WeChat.MERCHANT_ID_KEY, WeChat.MINI_APP_PAYMENT_MCH_ID);
         paramMap.put(WeChat.NONCE_STRING_KEY, XmlUtil.getRandomStringByLength(32));
         paramMap.put(WeChat.OUT_TRADE_NO_KEY, payment.getOrderId());
@@ -984,12 +1009,12 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
     @Override
     public boolean
-    closePayment(Payment payment) throws Exception{
+    closePayment(Payment payment, String apiType) throws Exception{
         String _func = "微信小程序关闭订单接口 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         log.info("{} orderId= {}",_func,payment.getOrderId());
 
         Map<String,Object> paramMap = new HashMap<>();
-        paramMap.put(WeChat.APP_ID_KEY,configuration.getWechatAppId());
+        paramMap.put(WeChat.APP_ID_KEY,getAppId(apiType));
         paramMap.put(WeChat.MERCHANT_ID_KEY, WeChat.MINI_APP_PAYMENT_MCH_ID);
         paramMap.put(WeChat.NONCE_STRING_KEY, XmlUtil.getRandomStringByLength(32));
         paramMap.put(WeChat.OUT_TRADE_NO_KEY, payment.getOrderId());
