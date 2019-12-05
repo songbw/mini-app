@@ -22,16 +22,12 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
-import org.springframework.validation.Validator;
-import sun.security.util.AuthResources_fr;
 
 import javax.net.ssl.SSLContext;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,8 +65,8 @@ public class HttpClient431Util {
         try {
             List<NameValuePair> pairs = null;
             if (params != null && !params.isEmpty()) {
-                pairs = new ArrayList<NameValuePair>(params.size());
-                for (Map.Entry<String, String> entry : params.entrySet()) {
+                pairs = new ArrayList<>(params.size());
+                for (Map.Entry<String, String> entry : params.entrySet()){
                     String value = entry.getValue();
                     if (value != null) {
                         pairs.add(new BasicNameValuePair(entry.getKey(), value));
@@ -134,11 +130,12 @@ public class HttpClient431Util {
     public static String doPostXml(String params, String url) throws Exception {
 
         String _func = "doPostXml";
-        CloseableHttpClient httpClient = null;
+        CloseableHttpClient httpClient;
         CloseableHttpResponse response = null;
         if (isBlank(url)) {
             throw new Exception(MyErrorCode.ADDRESS_BLANK);
         }
+        String result = null;
         try {
             httpClient = getSingleSSLConnection(null);
             HttpPost httpPost = new HttpPost(url);
@@ -151,48 +148,46 @@ public class HttpClient431Util {
             httpPost.setEntity(stringEntity);
 
             // 执行请求
-            response = httpClient.execute(httpPost);
-            if (null == response || null == response.getStatusLine()){
-                String msg = url+" post "+MyErrorCode.HTTP_NO_RESPONSE;
-                log.error("doPostXml {}",msg);
-                throw new Exception(msg);
+            try {
+                response = httpClient.execute(httpPost);
+            }catch (Exception e){
+                log.error("{} {}",_func,e.getMessage(),e);
+                throw new Exception(MyErrorCode.HTTP_ERROR + e.getMessage());
+            }
+            if (null == response || null == response.getStatusLine()) {
+                log.error("{} {} no response", _func,url);
+                throw new Exception(MyErrorCode.HTTP_NO_RESPONSE);
             }
             int statusCode = response.getStatusLine().getStatusCode();
             if (log.isDebugEnabled()) {
-                log.debug("http post 返回:{},{}", statusCode, JSONUtil.toJsonString(response));
+                log.debug("{} http post 返回:{},{}", _func, statusCode, JSONUtil.toJsonString(response));
             }
             if (statusCode != 200) {
                 Header header = response.getFirstHeader("location");
-                log.info("http post 返回:{},{}", statusCode,header.getValue());
+                log.info("{} http post 返回:{},{}", _func, statusCode, header.getValue());
                 return header.getValue();
             }
             HttpEntity entity = response.getEntity();
-            String result = null;
+
             if (entity != null) {
                 result = EntityUtils.toString(entity, DEFAULT_RES_CHARSET);
                 EntityUtils.consume(entity);
             }
-            log.info("http post 返回:{},{}", statusCode,result);
-            return result;
-        } catch (Exception e) {
-            String msg = MyErrorCode.HTTP_ERROR+e.getMessage();
-            log.info("http post 异常:{}", e.getMessage(),e);
-            throw new Exception(msg);
-        } finally {
-            try {
-                if (httpClient != null) {
-                    httpClient.close();
-                }
+            log.info("http post 返回:{},{}", statusCode, result);
 
-                if (response != null) {
-                    response.close();
-                }
-            } catch (IOException e) {
-                log.info("http post 关闭资源异常:{}", e.getMessage(), e);
-            }
+        } catch (Exception e) {
+            String msg = MyErrorCode.HTTP_ERROR + e.getMessage();
+            log.error("{} http post 异常:{}", _func, e.getMessage(), e);
+            throw new Exception(msg);
+        }
+        try {
+            httpClient.close();
+            response.close();
+        } catch (IOException e) {
+            log.info("{} http post 关闭资源异常:{}", _func,e.getMessage(), e);
         }
 
-
+        return result;
     }
 
     public static String doGet(Map<String, String> params, String url) throws Exception {
@@ -211,7 +206,7 @@ public class HttpClient431Util {
             httpClient = getSingleSSLConnection(null);
             List<NameValuePair> pairs = null;
             if (params != null && !params.isEmpty()) {
-                pairs = new ArrayList<NameValuePair>(params.size());
+                pairs = new ArrayList<>(params.size());
                 for (Map.Entry<String, String> entry : params.entrySet()) {
                     String value = entry.getValue();
                     if (value != null) {
@@ -354,13 +349,12 @@ public class HttpClient431Util {
     private static CloseableHttpClient getSingleSSLConnection(KeyStore truststore) throws Exception {
         CloseableHttpClient httpClient ;
         try {
-            SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(truststore, new TrustStrategy() {
-                @Override
+            SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(truststore, /*new TrustStrategy() {                @Override
                 public boolean isTrusted(X509Certificate[] paramArrayOfX509Certificate,
                                          String paramString) throws CertificateException {
                     return true;
                 }
-            }).build();
+            }*/(X509Certificate[] paramArrayOfX509Certificate,String paramString)->true).build();
             SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext, SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
             httpClient = HttpClients.custom().setSSLSocketFactory(sslsf).setDefaultRequestConfig(config).build();
             return httpClient;
