@@ -79,24 +79,24 @@ public class RedisDAO {
         template.delete(STORE_PREFIX + oldToken);
     }
 
-    public void storeWeChatToken(String token, Integer expire) {
+    public void storeWeChatToken(String token, Integer expire,String appId) {
         if (null == token || null == expire || token.isEmpty()){
             log.error("storeWeChatToken 入参缺失");
             return;
         }
         log.info("storeWeChatToken : {}",token);
         ValueOperations<String, String> ops = template.opsForValue();
-        String oldToken = ops.get(STORE_PREFIX+WECHAT_TOKEN_KEY);
+        String oldToken = ops.get(STORE_PREFIX+WECHAT_TOKEN_KEY+appId);
         if (null != oldToken) {
-            template.delete(STORE_PREFIX+WECHAT_TOKEN_KEY);
+            template.delete(STORE_PREFIX+WECHAT_TOKEN_KEY+appId);
         }
 
-        ops.set(STORE_PREFIX+WECHAT_TOKEN_KEY, token, expire-5,TimeUnit.SECONDS);
+        ops.set(STORE_PREFIX+WECHAT_TOKEN_KEY+appId, token, expire-5,TimeUnit.SECONDS);
     }
-    public String getWeChatToken() {
+    public String getWeChatToken(String appId) {
 
         ValueOperations<String, String> ops = template.opsForValue();
-        return ops.get(STORE_PREFIX+WECHAT_TOKEN_KEY);
+        return ops.get(STORE_PREFIX+WECHAT_TOKEN_KEY+appId);
 
     }
 }

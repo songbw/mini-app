@@ -85,7 +85,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
             result = HttpClient431Util.doGet(params,url);
         }catch (Exception e){
             String msg = MyErrorCode.WECHAT_API_FAILED+e.getMessage();
-            log.error("{} {}",_func,msg);
+            log.error("{} {}",_func,e.getMessage(),e);
             throw new Exception(msg);
         }
 
@@ -101,7 +101,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
             json = JSON.parseObject(result);
         }catch (Exception e){
             String msg = MyErrorCode.WECHAT_API_FAILED+e.getMessage();
-            log.error("{} {}",_func,msg);
+            log.error("{} {}",_func,e.getMessage(),e);
             throw new Exception(msg);
         }
 
@@ -177,10 +177,22 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
     @Override
     public String getAppId(String apiType){
+
         if (ApiType.MINI.getCode().equals(apiType)){
             return configuration.getMiniAppId();
         }else {
             return configuration.getJsAPIAppId();
+        }
+    }
+
+    //聚合支付中标记的支付类型, 凤巢微信小程序支付:fcwxxcx  凤巢微信公众号支付:fcwx  凤巢微信H5支付:fcwxh5
+    @Override
+    public String getPayType(String apiType){
+
+        if (ApiType.MINI.getCode().equals(apiType)){
+            return "fcwxxcx";
+        }else {
+            return "fcwx";
         }
     }
 
@@ -198,13 +210,14 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
             params.put(WeChat.SECRET_KEY, configuration.getJsAPIAppSecret());
         }else {
             params.put(WeChat.APP_ID_KEY, configuration.getMiniAppId());
-            params.put(WeChat.SECRET_KEY, configuration.getMiniAppId());
+            params.put(WeChat.SECRET_KEY, configuration.getMiniAppSecret());
         }
 
         JSONObject json;
         try{
             json = accessMiniApiToken(WeChat.GET_ACCESS_TOKEN_PATH,params);
         }catch (Exception e){
+            log.error(e.getMessage());
             throw e;
         }
 
@@ -246,7 +259,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
             params.put(WeChat.SECRET_KEY, configuration.getJsAPIAppSecret());
         }else {
             params.put(WeChat.APP_ID_KEY, configuration.getMiniAppId());
-            params.put(WeChat.SECRET_KEY, configuration.getMiniAppId());
+            params.put(WeChat.SECRET_KEY, configuration.getMiniAppSecret());
         }
 
         params.put(WeChat.JS_CODE_KEY, jsCode);
@@ -551,13 +564,13 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
         String appId = getAppId(apiType);
 
-        String refundNo = buildRefundNo(appId);
+        String forWxRefundNo = buildRefundNo(appId);
         Map<String,Object> paramMap = new HashMap<>();
         paramMap.put(WeChat.APP_ID_KEY,appId);
         paramMap.put(WeChat.MERCHANT_ID_KEY, WeChat.MINI_APP_PAYMENT_MCH_ID);
         paramMap.put(WeChat.NONCE_STRING_KEY, XmlUtil.getRandomStringByLength(32));
         paramMap.put(WeChat.OUT_TRADE_NO_KEY, data.getOrderId());
-        paramMap.put(WeChat.OUT_REFUND_NO_KEY, refundNo);
+        paramMap.put(WeChat.OUT_REFUND_NO_KEY, forWxRefundNo);
         paramMap.put(WeChat.TOTAL_FEE_KEY, data.getTotalFee());
         paramMap.put(WeChat.REFUND_FEE_KEY, data.getRefundFee());
         paramMap.put(WeChat.NOTIFY_URL_KEY,WeChat.MINI_APP_REFUND_NOTIFY);
@@ -605,7 +618,8 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         Refund refund = new Refund();
         BeanUtils.copyProperties(data,refund);
         refund.setApiType(apiType);
-        refund.setRefundNo(refundNo);
+        refund.setRefundNo(data.getRefundNo());
+        refund.setWechatRefundNo(forWxRefundNo);
         refund.setCreateTime(new Date());
         refund.setUpdateTime(new Date());
 

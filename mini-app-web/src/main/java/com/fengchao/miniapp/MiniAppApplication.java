@@ -10,7 +10,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.scheduling.annotation.EnableAsync;
 
-// @EnableFeignClients
+@EnableFeignClients
 @EnableDiscoveryClient
 @SpringBootApplication(/*exclude={DataSourceAutoConfiguration.class, DruidDataSourceAutoConfigure.class}*/)
 @EnableConfigurationProperties

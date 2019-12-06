@@ -18,6 +18,10 @@ public class WechatRefundPostBean {
     @ApiModelProperty(value = "用户唯一标识", example = "1dsdsdssdsds")
     private String openId;
 
+    @NotBlank(message = MyErrorCode.REFUND_NO_BLANK)
+    @ApiModelProperty(value = "工单系统退款号", example = "11111")
+    private String refundNo;
+
     @NotBlank(message = MyErrorCode.WECHAT_API_TRAN_NO_BLANK)
     @ApiModelProperty(value = "订单号", example = "11111111")
     private String orderId;

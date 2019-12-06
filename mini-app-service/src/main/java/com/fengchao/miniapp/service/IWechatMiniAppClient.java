@@ -34,4 +34,7 @@ public interface IWechatMiniAppClient {
 
     String
     getAppId(String apiType);
+
+    String
+    getPayType(String apiType);
 }

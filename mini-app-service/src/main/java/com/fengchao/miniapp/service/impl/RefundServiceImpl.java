@@ -149,6 +149,7 @@ public class RefundServiceImpl implements IRefundService {
                                        String orderKey,
                                        String openId,
                                        String refundNo,
+                                       String forWxRefundNo,
                                        String orderId,
                                        Date createTimeBegin,
                                        Date createTimeEnd)
@@ -166,6 +167,9 @@ public class RefundServiceImpl implements IRefundService {
         }
         if (null != refundNo){
             criteria.andRefundNoEqualTo(refundNo);
+        }
+        if (null != forWxRefundNo){
+            criteria.andWechatRefundNoEqualTo(forWxRefundNo);
         }
         if(null != createTimeBegin){
             criteria.andCreateTimeGreaterThanOrEqualTo(createTimeBegin);

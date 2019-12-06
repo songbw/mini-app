@@ -3,10 +3,13 @@ package com.fengchao.miniapp.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.fengchao.miniapp.bean.*;
+import com.fengchao.miniapp.client.http.IAggPayClient;
 import com.fengchao.miniapp.constant.ApiType;
 import com.fengchao.miniapp.constant.MyErrorCode;
 import com.fengchao.miniapp.constant.PaymentStatusType;
 import com.fengchao.miniapp.constant.WeChat;
+import com.fengchao.miniapp.dto.WSPayPaymentNotifyBean;
+import com.fengchao.miniapp.dto.WSPayRefundNotifyBean;
 import com.fengchao.miniapp.model.Payment;
 import com.fengchao.miniapp.model.Refund;
 import com.fengchao.miniapp.model.UserInfo;
@@ -46,15 +49,22 @@ public class WeChatMiniAppController {
     private UserInfoServiceImpl userInfoService;
     private PaymentServiceImpl paymentService;
     private RefundServiceImpl refundService;
+    private IAggPayClient aggPayClient;
 
     @Autowired
-    public WeChatMiniAppController(RefundServiceImpl refundService,PaymentServiceImpl paymentService,UserInfoServiceImpl userInfoServic,RedisDAO redisDAO,WeChatMiniAppClientImpl weChatMiniAppClient){
+    public WeChatMiniAppController(IAggPayClient aggPayClient,
+                                   RefundServiceImpl refundService,
+                                   PaymentServiceImpl paymentService,
+                                   UserInfoServiceImpl userInfoServic,
+                                   RedisDAO redisDAO,
+                                   WeChatMiniAppClientImpl weChatMiniAppClient){
 
         this.weChatMiniAppClient = weChatMiniAppClient;
         this.redisDAO = redisDAO;
         this.userInfoService = userInfoServic;
         this.paymentService = paymentService;
         this.refundService = refundService;
+        this.aggPayClient = aggPayClient;
 
     }
 
@@ -63,11 +73,16 @@ public class WeChatMiniAppController {
     public ResultObject<String>
     getToken(@ApiParam(value="apiType",required=true)  @PathVariable("apiType")  String apiType
             )throws Exception{
-        String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
-        log.info("=== {} enter",_func);
-        ResultObject<String> result = new ResultObject<>(200,"success",null);
 
-        String storedToken = redisDAO.getWeChatToken();
+        String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
+        if (!ApiType.isValidCode(apiType)){
+            log.error("{} 不支持的API类型 {}",_func,apiType);
+            return new ResultObject<>(400,"不支持的API类型:"+apiType,null);
+        }
+        log.info("=== {}-{} enter",apiType,_func);
+        ResultObject<String> result = new ResultObject<>(200,"success",null);
+        String appId = weChatMiniAppClient.getAppId(apiType);
+        String storedToken = redisDAO.getWeChatToken(appId);
         if (null != storedToken){
 
             result.setData(storedToken);
@@ -93,7 +108,7 @@ public class WeChatMiniAppController {
         String token = bean.getAccess_token();
         result.setData(token);
 
-        redisDAO.storeWeChatToken(token,bean.getExpires_in());
+        redisDAO.storeWeChatToken(token,bean.getExpires_in(),appId);
 
         log.info("=== {} 成功 token = {} ",_func,token);
         return result;
@@ -310,7 +325,41 @@ public class WeChatMiniAppController {
             log.error("{} 更新记录失败 {}",_func,e.getMessage());
         }
 
-        log.info("=== {} exit 更新记录成功",_func);
+        log.info("=== {} 更新记录成功",_func);
+
+        WSPayPaymentNotifyBean bean = new WSPayPaymentNotifyBean();
+        bean.setOrderNo(payment.getOrderId());
+        bean.setPayType(weChatMiniAppClient.getPayType(payment.getApiType()));
+        bean.setTradeNo(tranIdObj.toString());
+        if (null != timeEndObj) {
+            bean.setTradeDate(timeEndObj.toString());
+        }
+        String totalFee = totalFeeObj.toString();
+        /*
+        int feeSize = totalFee.length();
+        String totalFeeYuan;
+        if (2 < feeSize){
+            totalFeeYuan = totalFee.substring(0,feeSize-2)+"."+totalFee.substring(feeSize-2);
+        } else {
+            if (2 == feeSize) {
+                totalFeeYuan = "0." + totalFee;
+            }else if(1 == feeSize){
+                totalFeeYuan = "0.0"+totalFee;
+            }else{
+                log.error("{} 通知信息中付款金额为空",_func);
+                totalFeeYuan = "0.00";
+            }
+        }
+        bean.setPayFee(totalFeeYuan);
+        */
+        bean.setPayFee(totalFee);
+        log.info("{} try通知聚合支付付款完成:  {}",_func,JSON.toJSONString(bean));
+        try{
+            aggPayClient.postAggPayPaymentNotify(bean);
+        }catch (Exception e){
+            log.error("{} {}",_func,e.getMessage(),e);
+        }
+        log.info("{} 通知聚合支付付款 成功",_func);
 
         return okXml;
     }
@@ -602,12 +651,12 @@ public class WeChatMiniAppController {
         }
 
         String orderId = orderIdObj.toString();
-        String refundNo = outRefundNoObj.toString();
+        String forWxRefundNo = outRefundNoObj.toString();
         PageInfo<Refund> pages ;
         Refund refund ;
         try{
             pages = refundService.queryList(1,1,"id","DESC",
-                    null,refundNo,orderId,null,null);
+                    null,null,forWxRefundNo,orderId,null,null);
         }catch (Exception e){
             log.error("{} {}",_func,e.getMessage());
             throw e;
@@ -656,7 +705,42 @@ public class WeChatMiniAppController {
             log.error("{} 更新退款记录失败 {}",_func,e.getMessage());
         }
 
-        log.info("=== {} exit 更新退款记录成功",_func);
+        log.info("=== {} 更新退款记录成功",_func);
+
+        WSPayRefundNotifyBean bean = new WSPayRefundNotifyBean();
+        bean.setRefundNo(refund.getRefundNo());
+        bean.setOrderNo(refund.getOrderId());
+        bean.setPayType(weChatMiniAppClient.getPayType(refund.getApiType()));
+        bean.setTradeNo(refund.getWechatRefundNo());
+        if (null != timeEndObj) {
+            bean.setTradeDate(timeEndObj.toString());
+        }
+        /*
+        String totalFee = settleFeeObj.toString();
+        int feeSize = totalFee.length();
+        String totalFeeYuan;
+        if (2 < feeSize){
+            totalFeeYuan = totalFee.substring(0,feeSize-2)+"."+totalFee.substring(feeSize-2);
+        } else {
+            if (2 == feeSize) {
+                totalFeeYuan = "0." + totalFee;
+            }else if(1 == feeSize){
+                totalFeeYuan = "0.0"+totalFee;
+            }else{
+                log.error("{} 通知信息中退款金额为空",_func);
+                totalFeeYuan = "0.00";
+            }
+        }
+        bean.setRefundFee(totalFeeYuan);
+        */
+        bean.setRefundFee(settleFeeObj.toString());
+        log.info("{} try通知聚合支付退款完成:  {}",_func,JSON.toJSONString(bean));
+        try{
+            aggPayClient.postAggPayRefundNotify(bean);
+        }catch (Exception e){
+            log.error("{} {}",_func,e.getMessage(),e);
+        }
+        log.info("{} 通知聚合支付退款 成功",_func);
         return okXml;
 
     }
@@ -679,7 +763,7 @@ public class WeChatMiniAppController {
         log.info("=== {} 入参: openId={} orderId={}",_func, openId, orderId);
 
         PageInfo<Refund>  pages = refundService.queryList(1,1,"id","DESC",
-                    openId,null,orderId,null,null);
+                    openId,null,null,orderId,null,null);
 
         if (null == pages || null == pages.getRows() || 0 == pages.getRows().size()){
             String m = MyErrorCode.REFUND_NO_FOUND;
@@ -705,7 +789,7 @@ public class WeChatMiniAppController {
     }
 
     @ApiOperation(value = "查询退款状态", notes="查询退款状态")
-    @GetMapping("/refund/{refundNo}")
+    @GetMapping("/refund/{apiType}/{refundNo}")
     public ResultObject<Refund>
     getRefundStatus(@ApiParam(value="apiType",required=true)  @PathVariable("apiType")  String apiType,
             @ApiParam(value="openId",required=true)
@@ -722,7 +806,7 @@ public class WeChatMiniAppController {
         log.info("=== {} 入参: openId={} refundNo={}",_func, openId, refundNo);
 
         PageInfo<Refund>  pages = refundService.queryList(1,1,"id","DESC",
-                openId,refundNo,null,null,null);
+                openId,refundNo,null,null,null,null);
 
         if (null == pages || null == pages.getRows() || 0 == pages.getRows().size()){
             String m = MyErrorCode.REFUND_NO_FOUND;

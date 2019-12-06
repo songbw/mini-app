@@ -192,9 +192,9 @@ public class HttpClient431Util {
 
     public static String doGet(Map<String, String> params, String url) throws Exception {
         String _func = "Http_doGet ";
-        if (log.isDebugEnabled()) {
+        //if (log.isDebugEnabled()) {
             log.info("{} 参数 {}", _func, JSON.toJSONString(params));
-        }
+        //}
         CloseableHttpClient httpClient = null;
         CloseableHttpResponse response = null;
         if (isBlank(url)) {
