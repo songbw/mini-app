@@ -305,73 +305,73 @@ public class RefundExample {
             return (Criteria) this;
         }
 
-        public Criteria andWechatRefundNoIsNull() {
-            addCriterion("wechat_refund_no is null");
+        public Criteria andRemoteRefundNoIsNull() {
+            addCriterion("remote_refund_no is null");
             return (Criteria) this;
         }
 
-        public Criteria andWechatRefundNoIsNotNull() {
-            addCriterion("wechat_refund_no is not null");
+        public Criteria andRemoteRefundNoIsNotNull() {
+            addCriterion("remote_refund_no is not null");
             return (Criteria) this;
         }
 
-        public Criteria andWechatRefundNoEqualTo(String value) {
-            addCriterion("wechat_refund_no =", value, "wechatRefundNo");
+        public Criteria andRemoteRefundNoEqualTo(String value) {
+            addCriterion("remote_refund_no =", value, "remoteRefundNo");
             return (Criteria) this;
         }
 
-        public Criteria andWechatRefundNoNotEqualTo(String value) {
-            addCriterion("wechat_refund_no <>", value, "wechatRefundNo");
+        public Criteria andRemoteRefundNoNotEqualTo(String value) {
+            addCriterion("remote_refund_no <>", value, "remoteRefundNo");
             return (Criteria) this;
         }
 
-        public Criteria andWechatRefundNoGreaterThan(String value) {
-            addCriterion("wechat_refund_no >", value, "wechatRefundNo");
+        public Criteria andRemoteRefundNoGreaterThan(String value) {
+            addCriterion("remote_refund_no >", value, "remoteRefundNo");
             return (Criteria) this;
         }
 
-        public Criteria andWechatRefundNoGreaterThanOrEqualTo(String value) {
-            addCriterion("wechat_refund_no >=", value, "wechatRefundNo");
+        public Criteria andRemoteRefundNoGreaterThanOrEqualTo(String value) {
+            addCriterion("remote_refund_no >=", value, "remoteRefundNo");
             return (Criteria) this;
         }
 
-        public Criteria andWechatRefundNoLessThan(String value) {
-            addCriterion("wechat_refund_no <", value, "wechatRefundNo");
+        public Criteria andRemoteRefundNoLessThan(String value) {
+            addCriterion("remote_refund_no <", value, "remoteRefundNo");
             return (Criteria) this;
         }
 
-        public Criteria andWechatRefundNoLessThanOrEqualTo(String value) {
-            addCriterion("wechat_refund_no <=", value, "wechatRefundNo");
+        public Criteria andRemoteRefundNoLessThanOrEqualTo(String value) {
+            addCriterion("remote_refund_no <=", value, "remoteRefundNo");
             return (Criteria) this;
         }
 
-        public Criteria andWechatRefundNoLike(String value) {
-            addCriterion("wechat_refund_no like", value, "wechatRefundNo");
+        public Criteria andRemoteRefundNoLike(String value) {
+            addCriterion("remote_refund_no like", value, "remoteRefundNo");
             return (Criteria) this;
         }
 
-        public Criteria andWechatRefundNoNotLike(String value) {
-            addCriterion("wechat_refund_no not like", value, "wechatRefundNo");
+        public Criteria andRemoteRefundNoNotLike(String value) {
+            addCriterion("remote_refund_no not like", value, "remoteRefundNo");
             return (Criteria) this;
         }
 
-        public Criteria andWechatRefundNoIn(List<String> values) {
-            addCriterion("wechat_refund_no in", values, "wechatRefundNo");
+        public Criteria andRemoteRefundNoIn(List<String> values) {
+            addCriterion("remote_refund_no in", values, "remoteRefundNo");
             return (Criteria) this;
         }
 
-        public Criteria andWechatRefundNoNotIn(List<String> values) {
-            addCriterion("wechat_refund_no not in", values, "wechatRefundNo");
+        public Criteria andRemoteRefundNoNotIn(List<String> values) {
+            addCriterion("remote_refund_no not in", values, "remoteRefundNo");
             return (Criteria) this;
         }
 
-        public Criteria andWechatRefundNoBetween(String value1, String value2) {
-            addCriterion("wechat_refund_no between", value1, value2, "wechatRefundNo");
+        public Criteria andRemoteRefundNoBetween(String value1, String value2) {
+            addCriterion("remote_refund_no between", value1, value2, "remoteRefundNo");
             return (Criteria) this;
         }
 
-        public Criteria andWechatRefundNoNotBetween(String value1, String value2) {
-            addCriterion("wechat_refund_no not between", value1, value2, "wechatRefundNo");
+        public Criteria andRemoteRefundNoNotBetween(String value1, String value2) {
+            addCriterion("remote_refund_no not between", value1, value2, "remoteRefundNo");
             return (Criteria) this;
         }
 

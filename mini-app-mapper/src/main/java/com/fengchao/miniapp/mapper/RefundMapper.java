@@ -8,7 +8,6 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
 
-
 @Mapper
 @Component(value = "RefundMapper")
 public interface RefundMapper {

@@ -5,7 +5,7 @@
     <id column="id" jdbcType="BIGINT" property="id" />
     <result column="open_id" jdbcType="VARCHAR" property="openId" />
     <result column="refund_no" jdbcType="VARCHAR" property="refundNo" />
-    <result column="wechat_refund_no" jdbcType="VARCHAR" property="wechatRefundNo" />
+    <result column="remote_refund_no" jdbcType="VARCHAR" property="remoteRefundNo" />
     <result column="transaction_id" jdbcType="VARCHAR" property="transactionId" />
     <result column="order_id" jdbcType="VARCHAR" property="orderId" />
     <result column="total_fee" jdbcType="INTEGER" property="totalFee" />
@@ -82,7 +82,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, open_id, refund_no, wechat_refund_no, transaction_id, order_id, total_fee, refund_fee, 
+    id, open_id, refund_no, remote_refund_no, transaction_id, order_id, total_fee, refund_fee, 
     resp_refund_fee, settle_refund_fee, cash_fee, refund_cash_fee, api_type, status, 
     comments, refund_account, refund_recv_account, success_time, create_time, update_time
   </sql>
@@ -121,14 +121,14 @@
     <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Long">
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into refund (open_id, refund_no, wechat_refund_no, 
+    insert into refund (open_id, refund_no, remote_refund_no, 
       transaction_id, order_id, total_fee, 
       refund_fee, resp_refund_fee, settle_refund_fee, 
       cash_fee, refund_cash_fee, api_type, 
       status, comments, refund_account, 
       refund_recv_account, success_time, create_time, 
       update_time)
-    values (#{openId,jdbcType=VARCHAR}, #{refundNo,jdbcType=VARCHAR}, #{wechatRefundNo,jdbcType=VARCHAR}, 
+    values (#{openId,jdbcType=VARCHAR}, #{refundNo,jdbcType=VARCHAR}, #{remoteRefundNo,jdbcType=VARCHAR}, 
       #{transactionId,jdbcType=VARCHAR}, #{orderId,jdbcType=VARCHAR}, #{totalFee,jdbcType=INTEGER}, 
       #{refundFee,jdbcType=INTEGER}, #{respRefundFee,jdbcType=INTEGER}, #{settleRefundFee,jdbcType=INTEGER}, 
       #{cashFee,jdbcType=INTEGER}, #{refundCashFee,jdbcType=INTEGER}, #{apiType,jdbcType=VARCHAR}, 
@@ -148,8 +148,8 @@
       <if test="refundNo != null">
         refund_no,
       </if>
-      <if test="wechatRefundNo != null">
-        wechat_refund_no,
+      <if test="remoteRefundNo != null">
+        remote_refund_no,
       </if>
       <if test="transactionId != null">
         transaction_id,
@@ -207,8 +207,8 @@
       <if test="refundNo != null">
         #{refundNo,jdbcType=VARCHAR},
       </if>
-      <if test="wechatRefundNo != null">
-        #{wechatRefundNo,jdbcType=VARCHAR},
+      <if test="remoteRefundNo != null">
+        #{remoteRefundNo,jdbcType=VARCHAR},
       </if>
       <if test="transactionId != null">
         #{transactionId,jdbcType=VARCHAR},
@@ -278,8 +278,8 @@
       <if test="record.refundNo != null">
         refund_no = #{record.refundNo,jdbcType=VARCHAR},
       </if>
-      <if test="record.wechatRefundNo != null">
-        wechat_refund_no = #{record.wechatRefundNo,jdbcType=VARCHAR},
+      <if test="record.remoteRefundNo != null">
+        remote_refund_no = #{record.remoteRefundNo,jdbcType=VARCHAR},
       </if>
       <if test="record.transactionId != null">
         transaction_id = #{record.transactionId,jdbcType=VARCHAR},
@@ -339,7 +339,7 @@
     set id = #{record.id,jdbcType=BIGINT},
       open_id = #{record.openId,jdbcType=VARCHAR},
       refund_no = #{record.refundNo,jdbcType=VARCHAR},
-      wechat_refund_no = #{record.wechatRefundNo,jdbcType=VARCHAR},
+      remote_refund_no = #{record.remoteRefundNo,jdbcType=VARCHAR},
       transaction_id = #{record.transactionId,jdbcType=VARCHAR},
       order_id = #{record.orderId,jdbcType=VARCHAR},
       total_fee = #{record.totalFee,jdbcType=INTEGER},
@@ -369,8 +369,8 @@
       <if test="refundNo != null">
         refund_no = #{refundNo,jdbcType=VARCHAR},
       </if>
-      <if test="wechatRefundNo != null">
-        wechat_refund_no = #{wechatRefundNo,jdbcType=VARCHAR},
+      <if test="remoteRefundNo != null">
+        remote_refund_no = #{remoteRefundNo,jdbcType=VARCHAR},
       </if>
       <if test="transactionId != null">
         transaction_id = #{transactionId,jdbcType=VARCHAR},
@@ -427,7 +427,7 @@
     update refund
     set open_id = #{openId,jdbcType=VARCHAR},
       refund_no = #{refundNo,jdbcType=VARCHAR},
-      wechat_refund_no = #{wechatRefundNo,jdbcType=VARCHAR},
+      remote_refund_no = #{remoteRefundNo,jdbcType=VARCHAR},
       transaction_id = #{transactionId,jdbcType=VARCHAR},
       order_id = #{orderId,jdbcType=VARCHAR},
       total_fee = #{totalFee,jdbcType=INTEGER},

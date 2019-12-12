@@ -10,6 +10,7 @@ import com.fengchao.miniapp.model.Refund;
 import com.fengchao.miniapp.service.IWechatMiniAppClient;
 import com.fengchao.miniapp.utils.HttpClient431Util;
 import com.fengchao.miniapp.utils.Md5Util;
+import com.fengchao.miniapp.utils.RandomString;
 import com.fengchao.miniapp.utils.XmlUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -114,25 +115,6 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         log.info("{} 返回 {}",_func,JSON.toJSONString(json));
 
         return json;
-
-    }
-
-    private String buildRefundNo(String appId){
-        Long timeStampMs = LocalDateTime.now().toInstant(ZoneOffset.of("+8")).toEpochMilli();
-        Long timeStampS = timeStampMs/1000;
-        String timeStamp = timeStampS.toString();
-        Random random = new Random();
-
-        String triRandom = random.nextInt(1000) + "";
-        StringBuilder sb = new StringBuilder();
-        int randLength = triRandom.length();
-        if (randLength < 3) {
-            for (int i = 1; i <= 3 - randLength; i++)
-                sb.append("0");
-        }
-        sb.append(triRandom);
-
-        return appId + timeStamp + sb.toString();
 
     }
 
@@ -564,7 +546,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
         String appId = getAppId(apiType);
 
-        String forWxRefundNo = buildRefundNo(appId);
+        String forWxRefundNo = RandomString.buildRefundNo(appId);
         Map<String,Object> paramMap = new HashMap<>();
         paramMap.put(WeChat.APP_ID_KEY,appId);
         paramMap.put(WeChat.MERCHANT_ID_KEY, WeChat.MINI_APP_PAYMENT_MCH_ID);
@@ -619,7 +601,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         BeanUtils.copyProperties(data,refund);
         refund.setApiType(apiType);
         refund.setRefundNo(data.getRefundNo());
-        refund.setWechatRefundNo(forWxRefundNo);
+        refund.setRemoteRefundNo(forWxRefundNo);
         refund.setCreateTime(new Date());
         refund.setUpdateTime(new Date());
 
@@ -652,7 +634,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
             throw new Exception(MyErrorCode.WECHAT_API_RESP_MSG_MISSING+ WeChat.OUT_REFUND_NO_KEY);
         }
         String respRefundNo = respRefundNoObj.toString();
-        refund.setWechatRefundNo(respRefundNo);
+        refund.setRemoteRefundNo(respRefundNo);
 
         Object respRefundFeeObj = respMap.get(WeChat.REFUND_FEE_KEY);
         if (null == respRefundFeeObj || respRefundFeeObj.toString().isEmpty()){

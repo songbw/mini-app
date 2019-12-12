@@ -43,7 +43,7 @@ public class PaymentServiceImpl implements IPaymentService {
             id = mapper.insertSelective(record);
         }catch (Exception e){
             String msg = MyErrorCode.MYSQL_OPERATE_EXCEPTION +e.getMessage();
-            log.error(_func + msg);
+            log.error("{} {}",_func,e.getMessage(),e);
             throw new Exception(msg);
         }
 

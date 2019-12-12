@@ -23,7 +23,7 @@ public interface IRefundService {
                                 String orderKey,
                                 String openId,
                                 String refundNo,
-                                String forWxRefundNo,
+                                String forRemoteRefundNo,
                                 String orderId,
                                 Date createTimeBegin,
                                 Date createTimeEnd) throws Exception;

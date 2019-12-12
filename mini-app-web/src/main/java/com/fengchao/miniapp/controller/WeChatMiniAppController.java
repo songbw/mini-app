@@ -68,7 +68,7 @@ public class WeChatMiniAppController {
 
     }
 
-    @ApiOperation(value = "查询UserInfo", notes="查询UserInfo")
+    @ApiOperation(value = "获取token", notes="获取token")
     @GetMapping("/token/{apiType}")
     public ResultObject<String>
     getToken(@ApiParam(value="apiType",required=true)  @PathVariable("apiType")  String apiType
@@ -550,7 +550,7 @@ public class WeChatMiniAppController {
         }
         WechatRefundRespBean bean = new WechatRefundRespBean();
         bean.setRefundNo(refund.getRefundNo());
-        bean.setWechatRefundNo(refund.getWechatRefundNo());
+        bean.setWechatRefundNo(refund.getRemoteRefundNo());
         bean.setRefundFee(refund.getRespRefundFee());
         bean.setCode(refund.getStatus());
         bean.setMsg(refund.getComments());
@@ -711,7 +711,7 @@ public class WeChatMiniAppController {
         bean.setRefundNo(refund.getRefundNo());
         bean.setOrderNo(refund.getOrderId());
         bean.setPayType(weChatMiniAppClient.getPayType(refund.getApiType()));
-        bean.setTradeNo(refund.getWechatRefundNo());
+        bean.setTradeNo(refund.getRemoteRefundNo());
         if (null != timeEndObj) {
             bean.setTradeDate(timeEndObj.toString());
         }

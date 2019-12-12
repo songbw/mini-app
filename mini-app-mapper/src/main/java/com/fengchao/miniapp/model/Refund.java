@@ -9,7 +9,7 @@ public class Refund {
 
     private String refundNo;
 
-    private String wechatRefundNo;
+    private String remoteRefundNo;
 
     private String transactionId;
 
@@ -67,12 +67,12 @@ public class Refund {
         this.refundNo = refundNo == null ? null : refundNo.trim();
     }
 
-    public String getWechatRefundNo() {
-        return wechatRefundNo;
+    public String getRemoteRefundNo() {
+        return remoteRefundNo;
     }
 
-    public void setWechatRefundNo(String wechatRefundNo) {
-        this.wechatRefundNo = wechatRefundNo == null ? null : wechatRefundNo.trim();
+    public void setRemoteRefundNo(String remoteRefundNo) {
+        this.remoteRefundNo = remoteRefundNo == null ? null : remoteRefundNo.trim();
     }
 
     public String getTransactionId() {

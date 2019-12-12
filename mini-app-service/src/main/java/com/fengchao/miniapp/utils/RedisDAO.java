@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 public class RedisDAO {
     private static final String STORE_PREFIX = "wechatminiapp-";
     private static final String WECHAT_TOKEN_KEY = "wechattoken";
+    private static final String ALIPAY_TOKEN_KEY = "alipaytoken";
 
     @Autowired
     private StringRedisTemplate template;
@@ -97,6 +98,28 @@ public class RedisDAO {
 
         ValueOperations<String, String> ops = template.opsForValue();
         return ops.get(STORE_PREFIX+WECHAT_TOKEN_KEY+appId);
+
+    }
+
+    public void storeAliPayToken(String token, Integer expire,String appId) {
+        String _func = "storeAliPayToken";
+        if (null == token || null == expire || token.isEmpty()){
+            log.error("{} 入参缺失",_func);
+            return;
+        }
+        log.info("{} : {}",_func,token);
+        ValueOperations<String, String> ops = template.opsForValue();
+        String oldToken = ops.get(STORE_PREFIX+ALIPAY_TOKEN_KEY+appId);
+        if (null != oldToken) {
+            template.delete(STORE_PREFIX+ALIPAY_TOKEN_KEY+appId);
+        }
+
+        ops.set(STORE_PREFIX+ALIPAY_TOKEN_KEY+appId, token, expire-5,TimeUnit.SECONDS);
+    }
+    public String getAliPayToken(String appId) {
+
+        ValueOperations<String, String> ops = template.opsForValue();
+        return ops.get(STORE_PREFIX+ALIPAY_TOKEN_KEY+appId);
 
     }
 }

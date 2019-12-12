@@ -106,6 +106,13 @@ public class MyErrorCode {
     public static final String PAYMENT_FAILED = "@400160@微信订单支付未完成或已经关闭";
     public static final String REFUND_NO_BLANK = "@400161@退款号不可为空 ";
 
+    public static final String ALIPAY_SDK_SUCCESS = "支付宝SDK接口成功 ";
+    public static final String ALIPAY_SDK_FAILED = "@440001@支付宝SDK失败 ";
+    public static final String ALIPAY_SDK_RESPONSE_NULL = "@440002@支付宝SDK网络请求无响应 ";
+    public static final String ALIPAY_SDK_GET_TOKEN_FAILED = "@440003@支付宝SDK获取TOKEN失败 ";
+    public static final String ALIPAY_SDK_CODE_BLANK = "@440003@支付宝SDK获取token 参数code不能为空 ";
+    public static final String ALIPAY_SDK_REFUND_FAILED = "@440004@支付宝SDK退款失败 ";
+    public static final String ALIPAY_SDK_REFUND_QUERY_FAILED = "@440005@支付宝SDK查询退款失败 ";
 
     public static String weChatErrMsg(String code,String msg){
         return "@10"+code+"@"+msg;

@@ -28,6 +28,8 @@ public class MiniAppConfiguration {
 
     private String jsAPIAppSecret;
 
+    private String aliPayAppId;
+
     @PostConstruct//在servlet初始化的时候加载，并且只加载一次，和构造代码块的作用类似
     private void init() throws Exception{
         log.info("load miniApp properties start!");
@@ -55,11 +57,7 @@ public class MiniAppConfiguration {
         }
         log.info("jsAPIAppId = {}",jsAPIAppId);
         log.info("jsAPIAppSecret = {}",jsAPIAppSecret);
+        log.info("aliPayAppId={}",aliPayAppId);
     }
-
-
-
-
-
 
 }
