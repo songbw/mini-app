@@ -4,10 +4,10 @@
     <property name="server_name" value="miniApp"/>
     <property name="maxFileSize" value="100MB"/>
     <property name="maxHistory" value="180"/>
-    <springProfile name="test,prod,wuxi">
+    <springProfile name="dev,test,prod,wuxi">
         <property name="log_dir" value="/data/logs/miniApp"/>
     </springProfile>
-    <springProfile name="dev,local,localTest">
+    <springProfile name="local,localTest">
         <property name="log_dir" value="./logs"/>
     </springProfile>
     <!-- 控制台输出 -->

@@ -47,10 +47,15 @@ pagehelper:
       params: count=countSql
 
 # 微信支付接口配置相关
-weixin:
-  miniAppId: wxb28f0336ad53ceda
-  miniAppSecret: ea5f6b5996b2cee31c4e942e7eb2b20f
-  miniAppApiUrl: https://api.weixin.qq.com/
+#weixin:
+#  ids[0]:
+#    iAppId: "01"
+#    miniAppId: "wxb28f0336ad53ceda"
+#    miniAppSecret: "ea5f6b5996b2cee31c4e942e7eb2b20f"
+#    miniAppApiUrl: "https://api.weixin.qq.com/"
+#    payNotify: "https://xcx-dev.weesharing.com/wechat/payment/notify"
+#    refundNotify: "https://xcx-dev.weesharing.com/wechat/refund/notify"
+#    jsAPIAppId: "wxe5b7d5b7722a1577"
+#    jsAPIAppSecret: "f17f8edb74126bb95538194ec79ffde7"
 
-  jsAPIAppId: wxe5b7d5b7722a1577
-  jsAPIAppSecret: f17f8edb74126bb95538194ec79ffde7
+

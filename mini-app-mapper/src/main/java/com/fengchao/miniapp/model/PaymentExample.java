@@ -1035,6 +1035,76 @@ public class PaymentExample {
             return (Criteria) this;
         }
 
+        public Criteria andIAppIdIsNull() {
+            addCriterion("i_app_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIAppIdIsNotNull() {
+            addCriterion("i_app_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIAppIdEqualTo(String value) {
+            addCriterion("i_app_id =", value, "iAppId");
+            return (Criteria) this;
+        }
+
+        public Criteria andIAppIdNotEqualTo(String value) {
+            addCriterion("i_app_id <>", value, "iAppId");
+            return (Criteria) this;
+        }
+
+        public Criteria andIAppIdGreaterThan(String value) {
+            addCriterion("i_app_id >", value, "iAppId");
+            return (Criteria) this;
+        }
+
+        public Criteria andIAppIdGreaterThanOrEqualTo(String value) {
+            addCriterion("i_app_id >=", value, "iAppId");
+            return (Criteria) this;
+        }
+
+        public Criteria andIAppIdLessThan(String value) {
+            addCriterion("i_app_id <", value, "iAppId");
+            return (Criteria) this;
+        }
+
+        public Criteria andIAppIdLessThanOrEqualTo(String value) {
+            addCriterion("i_app_id <=", value, "iAppId");
+            return (Criteria) this;
+        }
+
+        public Criteria andIAppIdLike(String value) {
+            addCriterion("i_app_id like", value, "iAppId");
+            return (Criteria) this;
+        }
+
+        public Criteria andIAppIdNotLike(String value) {
+            addCriterion("i_app_id not like", value, "iAppId");
+            return (Criteria) this;
+        }
+
+        public Criteria andIAppIdIn(List<String> values) {
+            addCriterion("i_app_id in", values, "iAppId");
+            return (Criteria) this;
+        }
+
+        public Criteria andIAppIdNotIn(List<String> values) {
+            addCriterion("i_app_id not in", values, "iAppId");
+            return (Criteria) this;
+        }
+
+        public Criteria andIAppIdBetween(String value1, String value2) {
+            addCriterion("i_app_id between", value1, value2, "iAppId");
+            return (Criteria) this;
+        }
+
+        public Criteria andIAppIdNotBetween(String value1, String value2) {
+            addCriterion("i_app_id not between", value1, value2, "iAppId");
+            return (Criteria) this;
+        }
+
         public Criteria andCommentsIsNull() {
             addCriterion("comments is null");
             return (Criteria) this;

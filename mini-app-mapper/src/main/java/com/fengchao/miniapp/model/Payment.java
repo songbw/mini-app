@@ -31,6 +31,8 @@ public class Payment {
 
     private String apiType;
 
+    private String iAppId;
+
     private String comments;
 
     private Date createTime;
@@ -147,6 +149,14 @@ public class Payment {
 
     public void setApiType(String apiType) {
         this.apiType = apiType == null ? null : apiType.trim();
+    }
+
+    public String getiAppId() {
+        return iAppId;
+    }
+
+    public void setiAppId(String iAppId) {
+        this.iAppId = iAppId == null ? null : iAppId.trim();
     }
 
     public String getComments() {

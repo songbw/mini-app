@@ -74,12 +74,22 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
     }
 
-    private JSONObject accessMiniApiToken(String path,Map<String,String> params) throws Exception{
+    private JSONObject accessMiniApiToken(String path,Map<String,String> params, String iAppId) throws Exception{
         String _func = "获取accessToken接口 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         if (log.isDebugEnabled()) {
             log.info("{} 参数 {}", _func, JSON.toJSON(params));
         }
-        String url = configuration.getMiniAppApiUrl() + path;
+        AllConfigurationBean config = getConfig(iAppId);
+        if (null == config){
+            String msg = MyErrorCode.I_APP_ID_INVALID;
+            throw new Exception(msg);
+        }
+        if (null == config.getMiniAppApiUrl()){
+            String msg = MyErrorCode.CONFIG_MISSING+ " 微信API url";
+            log.error("{} {}",_func,msg);
+            throw new Exception(msg);
+        }
+        String url = config.getMiniAppApiUrl() + path;
         String result;
 
         try{
@@ -158,12 +168,24 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
     }
 
     @Override
-    public String getAppId(String apiType){
+    public String
+    getAppId(String apiType, String iAppId) throws Exception{
+
+        AllConfigurationBean config = getConfig(iAppId);
+        if (null == config){
+            String msg = MyErrorCode.I_APP_ID_INVALID;
+            throw new Exception(msg);
+        }
+        if (null == config.getJsAPIAppId() || null == config.getMiniAppId()){
+            String msg = MyErrorCode.CONFIG_MISSING+ " 微信API url";
+            log.error("getApId {}",msg);
+            throw new Exception(msg);
+        }
 
         if (ApiType.MINI.getCode().equals(apiType)){
-            return configuration.getMiniAppId();
+            return config.getMiniAppId();
         }else {
-            return configuration.getJsAPIAppId();
+            return config.getJsAPIAppId();
         }
     }
 
@@ -180,24 +202,30 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
     @Override
     public WeChatTokenResultBean
-    getAccessToken(String apiType)
+    getAccessToken(String apiType,String iAppId)
             throws Exception{
         String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
+
+        AllConfigurationBean config = getConfig(iAppId);
+        if (null == config){
+            String msg = MyErrorCode.I_APP_ID_INVALID;
+            throw new Exception(msg);
+        }
 
         Map<String,String> params = new HashMap<>();
         params.put(WeChat.GRANT_TYPE_KEY,WeChat.GRANT_TYPE_DEFAULT);
 
         if (ApiType.JSAPI.getCode().equals(apiType)){
-            params.put(WeChat.APP_ID_KEY, configuration.getJsAPIAppId());
-            params.put(WeChat.SECRET_KEY, configuration.getJsAPIAppSecret());
+            params.put(WeChat.APP_ID_KEY, config.getJsAPIAppId());
+            params.put(WeChat.SECRET_KEY, config.getJsAPIAppSecret());
         }else {
-            params.put(WeChat.APP_ID_KEY, configuration.getMiniAppId());
-            params.put(WeChat.SECRET_KEY, configuration.getMiniAppSecret());
+            params.put(WeChat.APP_ID_KEY, config.getMiniAppId());
+            params.put(WeChat.SECRET_KEY, config.getMiniAppSecret());
         }
 
         JSONObject json;
         try{
-            json = accessMiniApiToken(WeChat.GET_ACCESS_TOKEN_PATH,params);
+            json = accessMiniApiToken(WeChat.GET_ACCESS_TOKEN_PATH,params,iAppId);
         }catch (Exception e){
             log.error(e.getMessage());
             throw e;
@@ -230,18 +258,24 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
     @Override
     public WeChatSessionResultBean
-    getSession(String jsCode, String apiType)throws Exception {
+    getSession(String jsCode, String apiType, String iAppId)throws Exception {
         String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
         if (log.isDebugEnabled()) {
-            log.info("{} 参数： jsCode={}", _func, jsCode);
+            log.info("{} 参数： jsCode={}, iAppId={}", _func, jsCode,iAppId);
         }
+        AllConfigurationBean config = getConfig(iAppId);
+        if (null == config){
+            String msg = MyErrorCode.I_APP_ID_INVALID;
+            throw new Exception(msg);
+        }
+
         Map<String, String> params = new HashMap<>();
         if (ApiType.JSAPI.getCode().equals(apiType)){
-            params.put(WeChat.APP_ID_KEY, configuration.getJsAPIAppId());
-            params.put(WeChat.SECRET_KEY, configuration.getJsAPIAppSecret());
+            params.put(WeChat.APP_ID_KEY, config.getJsAPIAppId());
+            params.put(WeChat.SECRET_KEY, config.getJsAPIAppSecret());
         }else {
-            params.put(WeChat.APP_ID_KEY, configuration.getMiniAppId());
-            params.put(WeChat.SECRET_KEY, configuration.getMiniAppSecret());
+            params.put(WeChat.APP_ID_KEY, config.getMiniAppId());
+            params.put(WeChat.SECRET_KEY, config.getMiniAppSecret());
         }
 
         params.put(WeChat.JS_CODE_KEY, jsCode);
@@ -249,7 +283,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
         JSONObject json;
         try {
-            json = accessMiniApiToken(WeChat.GET_CODE2SESSION_PATH, params);
+            json = accessMiniApiToken(WeChat.GET_CODE2SESSION_PATH, params,iAppId);
         } catch (Exception e) {
             throw e;
         }
@@ -345,13 +379,17 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
     @Override
     public WechatPrepayBean
-    postPrepayId(WechatOrderPostBean data,String ip, String apiType) throws Exception{
+    postPrepayId(WechatOrderPostBean data,String ip, String apiType,String iAppId) throws Exception{
         String _func = "统一下单接口 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         if (log.isDebugEnabled()) {
-            log.debug("{} param: {}", _func, JSON.toJSONString(data));
+            log.debug("{} param: {}, iAppId={}", _func, JSON.toJSONString(data),iAppId);
         }
-
-        String appId = getAppId(apiType);
+        AllConfigurationBean config = getConfig(iAppId);
+        if (null == config){
+            String msg = MyErrorCode.I_APP_ID_INVALID;
+            throw new Exception(msg);
+        }
+        String appId = getAppId(apiType,iAppId);
 
         Map<String,Object> paramMap = new HashMap<>();
         paramMap.put(WeChat.APP_ID_KEY,appId);
@@ -362,7 +400,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         paramMap.put(WeChat.TOTAL_FEE_KEY, data.getTotalFee());
         paramMap.put(WeChat.OPEN_ID_KEY, data.getOpenId());
         paramMap.put(WeChat.SPBILL_CREATE_IP_KEY,ip);
-        paramMap.put(WeChat.NOTIFY_URL_KEY,WeChat.MINI_APP_PAYMENT_NOTIFY);
+        paramMap.put(WeChat.NOTIFY_URL_KEY, config.getPayNotify());
         paramMap.put(WeChat.TRADE_TYPE_KEY,WeChat.TRADE_TYPE_JSAPI);
 
         try {
@@ -540,11 +578,16 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
     @Override
     public Refund
-    postRefund(WechatRefundPostBean data, String apiType) throws Exception{
+    postRefund(WechatRefundPostBean data, String apiType,String iAppId) throws Exception{
         String _func = "微信支付退款接口 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         log.info("{} param: {}",_func,JSON.toJSONString(data));
 
-        String appId = getAppId(apiType);
+        String appId = getAppId(apiType,iAppId);
+        AllConfigurationBean config = getConfig(iAppId);
+        if (null == config){
+            String msg = MyErrorCode.I_APP_ID_INVALID;
+            throw new Exception(msg);
+        }
 
         String forWxRefundNo = RandomString.buildRefundNo(appId);
         Map<String,Object> paramMap = new HashMap<>();
@@ -555,7 +598,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         paramMap.put(WeChat.OUT_REFUND_NO_KEY, forWxRefundNo);
         paramMap.put(WeChat.TOTAL_FEE_KEY, data.getTotalFee());
         paramMap.put(WeChat.REFUND_FEE_KEY, data.getRefundFee());
-        paramMap.put(WeChat.NOTIFY_URL_KEY,WeChat.MINI_APP_REFUND_NOTIFY);
+        paramMap.put(WeChat.NOTIFY_URL_KEY, config.getRefundNotify());
 
         String sign = signParam(paramMap);
         paramMap.put(WeChat.SIGN_KEY,sign);
@@ -667,11 +710,11 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
     @Override
     public void
-    queryRefund(WechatRefundListBean refund,String apiType) throws Exception{
+    queryRefund(WechatRefundListBean refund,String apiType,String iAppId) throws Exception{
         String _func = "微信支付退款查询 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         log.info("{} orderId= {}",_func,refund.getOrderId());
 
-        String appId = getAppId(apiType);
+        String appId = getAppId(apiType,iAppId);
 
         Map<String,Object> paramMap = new HashMap<>();
         paramMap.put(WeChat.APP_ID_KEY,appId);
@@ -784,13 +827,13 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
 
     @Override
     public void
-    queryRefundStatus(Refund refund, String apiType) throws Exception{
+    queryRefundStatus(Refund refund, String apiType,String iAppId) throws Exception{
         String _func = "微信小程序退款状态查询 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         if (log.isDebugEnabled()) {
             log.info("{} enter: {}", _func, JSON.toJSONString(refund));
         }
         Map<String,Object> paramMap = new HashMap<>();
-        paramMap.put(WeChat.APP_ID_KEY,getAppId(apiType));
+        paramMap.put(WeChat.APP_ID_KEY,getAppId(apiType,iAppId));
         paramMap.put(WeChat.MERCHANT_ID_KEY, WeChat.MINI_APP_PAYMENT_MCH_ID);
         paramMap.put(WeChat.NONCE_STRING_KEY, XmlUtil.getRandomStringByLength(32));
         paramMap.put(WeChat.OUT_REFUND_NO_KEY, refund.getRefundNo());
@@ -897,9 +940,9 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
     public void
     queryPayment(Payment payment, String apiType) throws Exception{
         String _func = "微信小程序查询订单接口 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
-        log.info("{} orderId= {}",_func,payment.getOrderId());
+        log.info("{} orderId= {} iAppId={}",_func,payment.getOrderId(),payment.getiAppId());
 
-        String appId = getAppId(apiType);
+        String appId = getAppId(apiType,payment.getiAppId());
         Map<String,Object> paramMap = new HashMap<>();
         paramMap.put(WeChat.APP_ID_KEY,appId);
         paramMap.put(WeChat.MERCHANT_ID_KEY, WeChat.MINI_APP_PAYMENT_MCH_ID);
@@ -1010,7 +1053,7 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         log.info("{} orderId= {}",_func,payment.getOrderId());
 
         Map<String,Object> paramMap = new HashMap<>();
-        paramMap.put(WeChat.APP_ID_KEY,getAppId(apiType));
+        paramMap.put(WeChat.APP_ID_KEY,getAppId(apiType,payment.getiAppId()));
         paramMap.put(WeChat.MERCHANT_ID_KEY, WeChat.MINI_APP_PAYMENT_MCH_ID);
         paramMap.put(WeChat.NONCE_STRING_KEY, XmlUtil.getRandomStringByLength(32));
         paramMap.put(WeChat.OUT_TRADE_NO_KEY, payment.getOrderId());
@@ -1068,6 +1111,46 @@ public class WeChatMiniAppClientImpl implements IWechatMiniAppClient {
         }
 
         return true;
+    }
+
+    @Override
+    public boolean
+    isValidIAppId(String iAppId){
+        if (null == iAppId || iAppId.isEmpty()){
+            return false;
+        }
+
+        AllConfigurationBean bean = getConfig(iAppId);
+        if (null != bean && null != bean.getIAppId()){
+            return true;
+        }else{
+            return false;
+        }
+
+    }
+
+    private AllConfigurationBean getConfig(String iAppId) {
+        String _func = "获取配置项: ";
+        if (null == iAppId || iAppId.isEmpty()){
+            log.error("{} iAppId 缺失",_func);
+            return null;
+        }
+
+        List<AllConfigurationBean> list = configuration.getIds();
+        if (null == list || 0 == list.size()){
+            log.error("{} 没有发现任何配置项",_func);
+            return null;
+        }
+
+        for (AllConfigurationBean b: list){
+            if (b.getIAppId().equals(iAppId)){
+                log.info("{} {}",_func,JSON.toJSONString(b));
+                return b;
+            }
+        }
+
+        log.error("{} 没有发现iAppId={} 的配置项",_func,iAppId);
+        return null;
     }
 }
 

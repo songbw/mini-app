@@ -8,6 +8,7 @@ import com.fengchao.miniapp.constant.MyErrorCode;
 import com.fengchao.miniapp.constant.PaymentStatusType;
 import com.fengchao.miniapp.dto.WSPayPaymentNotifyBean;
 import com.fengchao.miniapp.model.Payment;
+import com.fengchao.miniapp.model.PaymentExample;
 import com.fengchao.miniapp.model.Refund;
 import com.fengchao.miniapp.service.impl.AliPaySDKClient;
 import com.fengchao.miniapp.service.impl.PaymentServiceImpl;
@@ -19,6 +20,7 @@ import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.EscapedErrors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -26,6 +28,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 @Validated
@@ -55,7 +58,7 @@ public class AliPayController {
         this.aggPayClient = aggPayClient;
 
     }
-
+/*
     @ApiOperation(value = "获取支付宝token", notes="获取支付宝token")
     @GetMapping("/token")
     public ResultObject<String>
@@ -100,7 +103,7 @@ public class AliPayController {
         return result;
 
     }
-
+*/
     @ApiOperation(value = "支付宝申请退款", notes="支付宝申请退款")
     @PostMapping("/refund")
     public ResultObject<AliPayRefundRespBean>
@@ -118,9 +121,24 @@ public class AliPayController {
         String totalFeeStr = data.getTotalFee().toString();
         String openId = data.getOpenId();
 
+        PageInfo<Payment> pages;
+        try{
+            pages = paymentService.queryList(1,1,"id","DESC",
+                    null,orderId,null,null);
+        }catch (Exception e){
+            log.error("{} 查询支付记录失败",_func);
+            throw e;
+        }
+
+        if (null == pages || null == pages.getRows() || 0 == pages.getRows().size()){
+            String msg = MyErrorCode.ALIPAY_PAYMENT_NULL;
+            log.error("{} {}",_func,msg);
+            throw new Exception(msg);
+        }
+
         AliPayRefundRespBean bean;
         try {
-            bean = aliPaySDKClient.refund(orderId, Float.valueOf(refundFeeYuan));
+            bean = aliPaySDKClient.refund(orderId, Float.valueOf(refundFeeYuan),pages.getRows().get(0).getiAppId());
         } catch (Exception e) {
             log.error("{} {}", _func, e.getMessage());
             throw e;
@@ -212,6 +230,7 @@ public class AliPayController {
 
         Payment payment = new Payment();
         payment.setIp(ip);
+        payment.setiAppId(data.getIAppId());
         payment.setApiType(ApiType.ALIPAY_PHONE_WEB.getCode());
         payment.setOpenId(data.getOpenId());
         payment.setOrderId(data.getTradeNo());

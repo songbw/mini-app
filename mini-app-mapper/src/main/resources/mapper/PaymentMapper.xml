@@ -16,6 +16,7 @@
     <result column="order_id" jdbcType="VARCHAR" property="orderId" />
     <result column="prepay_id" jdbcType="VARCHAR" property="prepayId" />
     <result column="api_type" jdbcType="VARCHAR" property="apiType" />
+    <result column="i_app_id" jdbcType="VARCHAR" property="iAppId" />
     <result column="comments" jdbcType="VARCHAR" property="comments" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
@@ -80,7 +81,8 @@
   </sql>
   <sql id="Base_Column_List">
     id, open_id, ip, total_fee, status, resp_total_fee, bank_type, cash_fee, transaction_id, 
-    time_end, result, order_id, prepay_id, api_type, comments, create_time, update_time
+    time_end, result, order_id, prepay_id, api_type, i_app_id, comments, create_time, 
+    update_time
   </sql>
   <select id="selectByExample" parameterType="com.fengchao.miniapp.model.PaymentExample" resultMap="BaseResultMap">
     select
@@ -121,14 +123,14 @@
       status, resp_total_fee, bank_type, 
       cash_fee, transaction_id, time_end, 
       result, order_id, prepay_id, 
-      api_type, comments, create_time, 
-      update_time)
+      api_type, i_app_id, comments, 
+      create_time, update_time)
     values (#{openId,jdbcType=VARCHAR}, #{ip,jdbcType=VARCHAR}, #{totalFee,jdbcType=INTEGER}, 
       #{status,jdbcType=INTEGER}, #{respTotalFee,jdbcType=INTEGER}, #{bankType,jdbcType=VARCHAR}, 
       #{cashFee,jdbcType=INTEGER}, #{transactionId,jdbcType=VARCHAR}, #{timeEnd,jdbcType=VARCHAR}, 
       #{result,jdbcType=VARCHAR}, #{orderId,jdbcType=VARCHAR}, #{prepayId,jdbcType=VARCHAR}, 
-      #{apiType,jdbcType=VARCHAR}, #{comments,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP})
+      #{apiType,jdbcType=VARCHAR}, #{iAppId,jdbcType=VARCHAR}, #{comments,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.fengchao.miniapp.model.Payment">
     <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Long">
@@ -174,6 +176,9 @@
       </if>
       <if test="apiType != null">
         api_type,
+      </if>
+      <if test="iAppId != null">
+        i_app_id,
       </if>
       <if test="comments != null">
         comments,
@@ -224,6 +229,9 @@
       </if>
       <if test="apiType != null">
         #{apiType,jdbcType=VARCHAR},
+      </if>
+      <if test="iAppId != null">
+        #{iAppId,jdbcType=VARCHAR},
       </if>
       <if test="comments != null">
         #{comments,jdbcType=VARCHAR},
@@ -287,6 +295,9 @@
       <if test="record.apiType != null">
         api_type = #{record.apiType,jdbcType=VARCHAR},
       </if>
+      <if test="record.iAppId != null">
+        i_app_id = #{record.iAppId,jdbcType=VARCHAR},
+      </if>
       <if test="record.comments != null">
         comments = #{record.comments,jdbcType=VARCHAR},
       </if>
@@ -317,6 +328,7 @@
       order_id = #{record.orderId,jdbcType=VARCHAR},
       prepay_id = #{record.prepayId,jdbcType=VARCHAR},
       api_type = #{record.apiType,jdbcType=VARCHAR},
+      i_app_id = #{record.iAppId,jdbcType=VARCHAR},
       comments = #{record.comments,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP}
@@ -366,6 +378,9 @@
       <if test="apiType != null">
         api_type = #{apiType,jdbcType=VARCHAR},
       </if>
+      <if test="iAppId != null">
+        i_app_id = #{iAppId,jdbcType=VARCHAR},
+      </if>
       <if test="comments != null">
         comments = #{comments,jdbcType=VARCHAR},
       </if>
@@ -393,6 +408,7 @@
       order_id = #{orderId,jdbcType=VARCHAR},
       prepay_id = #{prepayId,jdbcType=VARCHAR},
       api_type = #{apiType,jdbcType=VARCHAR},
+      i_app_id = #{iAppId,jdbcType=VARCHAR},
       comments = #{comments,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP}

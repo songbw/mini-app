@@ -7,6 +7,9 @@ public class MyErrorCode {
     public static final String COMMON_PARAM_SHOW = " 入参: ";
     public static final String COMMON_PARAM_NULL = "@410001@入参为空 ";
     public static final String COMMON_ERROR = "@410002@一般性错误 ";
+    public static final String CONFIG_MISSING = "@410004@配置项缺失 ";
+    public static final String I_APP_ID_BLANK = "@410005@iAppId缺失 ";
+    public static final String I_APP_ID_INVALID = "@410006@iAppId未配置,不支持 ";
     public static final String COMMON_JSON_WRONG = "@420001@JSON解析错误 ";
     public static final String COMMON_MD5_FAILED = "@420002@MD5构造错误 ";
     public static final String COMMON_XML_FAILED = "@420003@XML解析错误 ";
@@ -113,6 +116,7 @@ public class MyErrorCode {
     public static final String ALIPAY_SDK_CODE_BLANK = "@440003@支付宝SDK获取token 参数code不能为空 ";
     public static final String ALIPAY_SDK_REFUND_FAILED = "@440004@支付宝SDK退款失败 ";
     public static final String ALIPAY_SDK_REFUND_QUERY_FAILED = "@440005@支付宝SDK查询退款失败 ";
+    public static final String ALIPAY_PAYMENT_NULL = "@440006@支付宝付款记录不存在 ";
 
     public static String weChatErrMsg(String code,String msg){
         return "@10"+code+"@"+msg;

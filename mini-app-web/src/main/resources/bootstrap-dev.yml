@@ -1,10 +1,5 @@
 
 spring:
-  cloud:
-    config:
-      enabled: false
-      discovery:
-        enabled: false
 
   datasource:
     url: jdbc:mysql://192.168.200.37:3306/mini_app_payment?characterEncoding=utf8&useSSL=false&autoReconnect=true&failOverReadOnly=false&maxReconnects=10&serverTimezone=GMT%2B8

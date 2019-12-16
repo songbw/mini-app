@@ -11,19 +11,19 @@ import java.util.Map;
 public interface IAliPaySDKClient {
 
     AliPaySignParamBean
-    signParam(Map<String,String> map);
+    signParam(Map<String,String> map,String iAppId);
 
     boolean
     verifySign(Map<String,String> map);
 
     WeChatTokenResultBean
-    getToken(String code) throws Exception;
+    getToken(String code,String iAppId) throws Exception;
 
     String
-    getAppId();
+    getAppId(String iAppId);
 
     AliPayRefundRespBean
-    refund(String tradeNo, Float amount) throws Exception;
+    refund(String tradeNo, Float amount,String iAppId) throws Exception;
 
     Payment
     handlePaymentNotify(HttpServletRequest request);

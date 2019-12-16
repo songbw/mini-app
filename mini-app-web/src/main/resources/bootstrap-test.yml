@@ -9,12 +9,6 @@ spring:
   jackson:
     time-zone: GMT+8
 
-  cloud:
-    config:
-      enabled: false
-      discovery:
-        enabled: false
-
   # Redis
   cache:
     type: redis
@@ -50,3 +44,14 @@ management:
   endpoint:
     health:
       show-details: ALWAYS
+
+weixin:
+  ids[0]:
+    iAppId: "01"
+    miniAppId: "wxb28f0336ad53ceda"
+    miniAppSecret: "ea5f6b5996b2cee31c4e942e7eb2b20f"
+    miniAppApiUrl: "https://api.weixin.qq.com/"
+    payNotif: "https://xcx-dev.weesharing.com/wechat/payment/notify/01"
+    refundNotify: "https://xcx-dev.weesharing.com/wechat/refund/notify/01"
+    jsAPIAppId: "wxe5b7d5b7722a1577"
+    jsAPIAppSecret: "f17f8edb74126bb95538194ec79ffde7"

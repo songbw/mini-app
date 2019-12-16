@@ -29,6 +29,8 @@ public class Refund {
 
     private String apiType;
 
+    private String iAppId;
+
     private String status;
 
     private String comments;
@@ -145,6 +147,14 @@ public class Refund {
 
     public void setApiType(String apiType) {
         this.apiType = apiType == null ? null : apiType.trim();
+    }
+
+    public String getiAppId() {
+        return iAppId;
+    }
+
+    public void setiAppId(String iAppId) {
+        this.iAppId = iAppId == null ? null : iAppId.trim();
     }
 
     public String getStatus() {

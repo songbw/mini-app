@@ -45,7 +45,7 @@ public class AliPaySDKClient implements IAliPaySDKClient {
 
     @Override
     public AliPaySignParamBean
-    signParam(Map<String,String> map){
+    signParam(Map<String,String> map, String iAppId){
         String _func = "支付宝SDK签名: ";
         log.info("{} 入参 {}",_func, JSON.toJSON(map));
         String content = AlipaySignature.getSignCheckContentV2(map);
@@ -61,7 +61,7 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         AliPaySignParamBean bean = new AliPaySignParamBean();
         bean.setSign(sign);
         bean.setSignType(AliPay.SIGN_TYPE_VALUE);
-        bean.setAppId(getAppId());
+        bean.setAppId(getAppId(iAppId));
 
         return bean;
     }
@@ -87,11 +87,11 @@ public class AliPaySDKClient implements IAliPaySDKClient {
 
     @Override
     public WeChatTokenResultBean
-    getToken(String code) throws Exception {
+    getToken(String code,String iAppId) throws Exception {
         String _func = "支付宝获取token: ";
         log.info("{} 入参 {}",_func,code);
 
-        String appId = getAppId();
+        String appId = getAppId(iAppId);
         Map<String,String> map = new HashMap<>();
         map.put(AliPay.GRANT_TYPE_KEY,AliPay.GRANT_TYPE_AUTH_CODE);
         map.put(AliPay.CODE_KEY,code);
@@ -130,18 +130,19 @@ public class AliPaySDKClient implements IAliPaySDKClient {
     }
 
     @Override
-    public String getAppId(){
-        return (null == configuration.getAliPayAppId())?
-                AliPay.FC_APPID_DEFAULT:configuration.getAliPayAppId();
+    public String getAppId(String iAppId){
+        AllConfigurationBean bean = configuration.getConfig(iAppId);
+        return (null == bean || null == bean.getAliPayAppId())?
+                AliPay.FC_APPID_DEFAULT:bean.getAliPayAppId();
     }
 
     @Override
     public AliPayRefundRespBean
-    refund(String tradeNo,Float amount) throws Exception{
+    refund(String tradeNo,Float amount,String iAppId) throws Exception{
         String _func = "支付宝退款: ";
         log.info("{} 入参 {}",_func,tradeNo);
 
-        String appId = getAppId();
+        String appId = getAppId(iAppId);
         String refundNo = RandomString.buildRefundNo(appId);
         Map<String,Object> map = new HashMap<>();
         map.put(AliPay.OUT_TRADE_NO_KEY,tradeNo);
@@ -194,12 +195,6 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         String _func = "handlePaymentNotify: ";
         Map<String,String> params = request2Map(request);
         if (!verifySign(params)){
-            return null;
-        }
-
-        String appId = params.get(AliPay.APP_ID_KEY);
-        if (!appId.equals(getAppId())){
-            log.error("appId={} 不匹配",appId);
             return null;
         }
 
@@ -277,7 +272,7 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         String _func = "支付宝退款查询 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         log.info("{} orderId= {}",_func,refund.getOrderId());
 
-        String appId = getAppId();
+        String appId = getAppId(refund.getiAppId());
         Map<String,String> map = new HashMap<>();
         map.put(AliPay.OUT_TRADE_NO_KEY,refund.getOrderId());
         map.put(AliPay.OUT_REQUEST_NO_KEY,refund.getRefundNo());

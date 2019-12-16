@@ -30,4 +30,8 @@ public class WechatOrderPostBean {
     @ApiModelProperty(value="支付金额", example="123")
     private Integer totalFee;
 
+    @NotBlank(message = MyErrorCode.I_APP_ID_BLANK)
+    @ApiModelProperty(value="应用端号", example="01")
+    private String iAppId;
+
 }

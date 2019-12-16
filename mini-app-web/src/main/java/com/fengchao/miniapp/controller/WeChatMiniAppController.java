@@ -71,7 +71,8 @@ public class WeChatMiniAppController {
     @ApiOperation(value = "获取token", notes="获取token")
     @GetMapping("/token/{apiType}")
     public ResultObject<String>
-    getToken(@ApiParam(value="apiType",required=true)  @PathVariable("apiType")  String apiType
+    getToken(@ApiParam(value="apiType",required=true)  @PathVariable("apiType")  String apiType,
+             @RequestParam  @Valid @NotBlank(message=MyErrorCode.I_APP_ID_BLANK) String iAppId
             )throws Exception{
 
         String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
@@ -81,7 +82,7 @@ public class WeChatMiniAppController {
         }
         log.info("=== {}-{} enter",apiType,_func);
         ResultObject<String> result = new ResultObject<>(200,"success",null);
-        String appId = weChatMiniAppClient.getAppId(apiType);
+        String appId = weChatMiniAppClient.getAppId(apiType,iAppId);
         String storedToken = redisDAO.getWeChatToken(appId);
         if (null != storedToken){
 
@@ -93,7 +94,7 @@ public class WeChatMiniAppController {
 
         WeChatTokenResultBean bean;
         try{
-            bean = weChatMiniAppClient.getAccessToken(apiType);
+            bean = weChatMiniAppClient.getAccessToken(apiType,iAppId);
         }catch (Exception e){
             log.error("{} {}",_func,e.getMessage());
             throw new Exception(e);
@@ -119,11 +120,12 @@ public class WeChatMiniAppController {
     @GetMapping("/login/{apiType}")
     public ResultObject<WeChatSessionResultBean>
     getSession(@ApiParam(value="apiType",required=true)  @PathVariable("apiType")  String apiType,
-                @RequestParam  @Valid @NotBlank(message=MyErrorCode.WECHAT_API_JS_CODE_BLANK) String jsCode
+                @RequestParam  @Valid @NotBlank(message=MyErrorCode.WECHAT_API_JS_CODE_BLANK) String jsCode,
+               @RequestParam  @Valid @NotBlank(message=MyErrorCode.I_APP_ID_BLANK) String iAppId
             ) throws Exception{
 
         String _func = "login";
-        if (!ApiType.isValidCode(apiType)){
+        if (null == apiType ||!ApiType.isValidCode(apiType)){
             log.error("{} 不支持的API类型 {}",_func,apiType);
             return new ResultObject<>(400,"不支持的API类型:"+apiType,null);
         }
@@ -132,7 +134,7 @@ public class WeChatMiniAppController {
 
         WeChatSessionResultBean bean;
         try{
-            bean = weChatMiniAppClient.getSession(jsCode,apiType);
+            bean = weChatMiniAppClient.getSession(jsCode,apiType,iAppId);
         }catch (Exception e){
             log.error("{} {}",_func,e.getMessage());
             throw e;
@@ -167,18 +169,24 @@ public class WeChatMiniAppController {
         }
         String _func = apiType+"统一下单 ";
         log.info("=== {} 入参 {}",_func,JSON.toJSONString(data));
+        if (null == data.getIAppId() || data.getIAppId().isEmpty()){
+            String msg = MyErrorCode.I_APP_ID_BLANK;
+            log.error("{} {}",_func,msg);
+            return new ResultObject<>(400,msg,null);
+        }
         ResultObject<WechatPrepayBean> result = new ResultObject<>(200,"success",null);
         String ip = request.getRemoteAddr();
-
+        String iAppId = data.getIAppId();
         WechatPrepayBean bean;
         try{
-            bean = weChatMiniAppClient.postPrepayId(data,ip,apiType);
+            bean = weChatMiniAppClient.postPrepayId(data,ip,apiType,iAppId);
         }catch (Exception e){
             log.error("{} 失败 {}",_func,e.getMessage());
             throw e;
         }
 
         Payment payment = new Payment();
+        payment.setiAppId(iAppId);
         payment.setIp(ip);
         payment.setApiType(apiType);
         payment.setOpenId(data.getOpenId());
@@ -533,12 +541,13 @@ public class WeChatMiniAppController {
 
         Refund refund;
         try {
-            refund = weChatMiniAppClient.postRefund(data,apiType);
+            refund = weChatMiniAppClient.postRefund(data,apiType,payment.getiAppId());
         }catch (Exception e){
             log.error("{} {}", _func,e.getMessage());
             throw e;
         }
 
+        refund.setiAppId(payment.getiAppId());
         String refundStatus = refund.getStatus();
         if (WeChat.RETURN_CODE_SUCCESS.equals(refundStatus)) {
             refund.setComments("申请退款成功,等待结果中");
@@ -778,7 +787,7 @@ public class WeChatMiniAppController {
         refundListBean.setTotalFee(refund.getTotalFee());
         refundListBean.setCashFee(refund.getCashFee());
         try {
-            weChatMiniAppClient.queryRefund(refundListBean,apiType);
+            weChatMiniAppClient.queryRefund(refundListBean,apiType,refund.getiAppId());
         }catch (Exception e){
             log.error("{} {}",_func,e.getMessage());
             throw e;
@@ -820,7 +829,7 @@ public class WeChatMiniAppController {
             return new ResultObject<>(200,"success",refund);
         }
         try {
-            weChatMiniAppClient.queryRefundStatus(refund,apiType);
+            weChatMiniAppClient.queryRefundStatus(refund,apiType,refund.getiAppId());
         }catch (Exception e){
             log.error("{} {}",_func,e.getMessage());
             throw e;
