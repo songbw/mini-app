@@ -31,11 +31,11 @@ public class RefundServiceImpl implements IRefundService {
     public Long
     insert(Refund record)
             throws Exception{
-        String _func = "新增退款记录 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
+        String functionDescription = "新增退款记录 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         if (null == record){
             throw new Exception(MyErrorCode.COMMON_PARAM_NULL);
         }
-        log.info("{}  {}  {}",_func ,MyErrorCode.COMMON_PARAM_SHOW , JSON.toJSONString(record));
+        log.info("{}  {}  {}",functionDescription ,MyErrorCode.COMMON_PARAM_SHOW , JSON.toJSONString(record));
         int id;
         try {
             id = mapper.insertSelective(record);
@@ -48,36 +48,36 @@ public class RefundServiceImpl implements IRefundService {
             throw new Exception(MyErrorCode.MYSQL_INSERT_FAILED);
         }
 
-        log.info("{} {} {}",_func , MyErrorCode.MYSQL_INSERT_SUCCESS ,record.getId().toString());
+        log.info("{} {} {}",functionDescription , MyErrorCode.MYSQL_INSERT_SUCCESS ,record.getId().toString());
         return record.getId();
     }
 
     @Override
     public void
     deleteById(Long id) throws Exception{
-        String _func = "删除退款记录 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
+        String functionDescription = "删除退款记录 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         if (null == id || 0 == id){
             throw new Exception(MyErrorCode.COMMON_PARAM_NULL);
         }
-        log.info("{} {} {}",_func ,MyErrorCode.COMMON_PARAM_SHOW,id);
+        log.info("{} {} {}",functionDescription ,MyErrorCode.COMMON_PARAM_SHOW,id);
         try {
             mapper.deleteByPrimaryKey(id);
         }catch (Exception e){
             String msg = MyErrorCode.MYSQL_OPERATE_EXCEPTION +e.getMessage();
-            log.error("{} 异常 {}",_func,e.getMessage(),e);
+            log.error("{} 异常 {}",functionDescription,e.getMessage(),e);
             throw new Exception(msg);
         }
-        log.info(_func + MyErrorCode.MYSQL_DELETE_SUCCESS+id.toString());
+        log.info(functionDescription + MyErrorCode.MYSQL_DELETE_SUCCESS+id.toString());
     }
 
     @Override
     public Refund
     selectByOpenId(String openId) throws Exception{
-        String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
+        String functionDescription = Thread.currentThread().getStackTrace()[1].getMethodName();
         if (null == openId || openId.isEmpty()){
             throw new Exception(MyErrorCode.COMMON_PARAM_NULL);
         }
-        log.info("{} {} {}", _func , MyErrorCode.COMMON_PARAM_SHOW, openId);
+        log.info("{} {} {}", functionDescription , MyErrorCode.COMMON_PARAM_SHOW, openId);
 
         RefundExample example = new RefundExample();
         RefundExample.Criteria criteria = example.createCriteria();
@@ -89,11 +89,11 @@ public class RefundServiceImpl implements IRefundService {
             result = mapper.selectByExample(example);
         }catch (Exception e){
             String msg = MyErrorCode.MYSQL_OPERATE_EXCEPTION +e.getMessage();
-            log.error("{} {}",_func , msg,e);
+            log.error("{} {}",functionDescription , msg,e);
             throw new Exception(msg);
         }
 
-        log.info(_func + MyErrorCode.MYSQL_SELECT_SUCCESS +JSON.toJSONString(result));
+        log.info(functionDescription + MyErrorCode.MYSQL_SELECT_SUCCESS +JSON.toJSONString(result));
         if (0 < result.size()) {
             return result.get(0);
         }else {
@@ -104,41 +104,41 @@ public class RefundServiceImpl implements IRefundService {
     @Override
     public void
     update(Refund record) throws Exception{
-        String _func = "更新退款记录 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
+        String functionDescription = "更新退款记录 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         if (null == record || null == record.getId()){
             throw new Exception(MyErrorCode.COMMON_PARAM_NULL);
         }
-        log.info("{} {} {}",_func ,MyErrorCode.COMMON_PARAM_SHOW,JSON.toJSONString(record));
+        log.info("{} {} {}",functionDescription ,MyErrorCode.COMMON_PARAM_SHOW,JSON.toJSONString(record));
         try {
             mapper.updateByPrimaryKeySelective(record);
         }catch (Exception e){
-            log.error("{} mapper.updateByPrimaryKeySelective Exception {}",_func,e.getMessage(),e);
+            log.error("{} mapper.updateByPrimaryKeySelective Exception {}",functionDescription,e.getMessage(),e);
             throw new Exception(e);
         }
-        log.info("{} success ",_func);
+        log.info("{} success ",functionDescription);
     }
 
     @Override
     public Refund
     getRecordById(Long id) throws Exception{
-        String _func = "根据ID获取退款记录 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
+        String functionDescription = "根据ID获取退款记录 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         if (null == id || 0 == id){
             throw new Exception(MyErrorCode.COMMON_PARAM_NULL);
         }
-        log.info("{} {}  {}",_func,MyErrorCode.COMMON_PARAM_SHOW,id);
+        log.info("{} {}  {}",functionDescription,MyErrorCode.COMMON_PARAM_SHOW,id);
         Refund userInfo;
         try {
             userInfo = mapper.selectByPrimaryKey(id);
         }catch (Exception e){
             String msg = MyErrorCode.MYSQL_OPERATE_EXCEPTION+e.getMessage();
-            log.error("{} {}",_func,msg,e);
+            log.error("{} {}",functionDescription,msg,e);
             throw new Exception(msg);
         }
         if (null == userInfo){
             throw new Exception(MyErrorCode.MYSQL_SELECT_NOT_FOUND);
         }
 
-        log.info("{}  {}  {}",_func,MyErrorCode.MYSQL_SELECT_SUCCESS,JSON.toJSONString(userInfo));
+        log.info("{}  {}  {}",functionDescription,MyErrorCode.MYSQL_SELECT_SUCCESS,JSON.toJSONString(userInfo));
         return userInfo;
     }
 
@@ -155,7 +155,7 @@ public class RefundServiceImpl implements IRefundService {
                                        Date createTimeEnd)
             throws Exception{
 
-        String _func = "查询退款记录 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
+        String functionDescription = "查询退款记录 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         RefundExample example = new RefundExample();
         RefundExample.Criteria criteria = example.createCriteria();
         criteria.andOpenIdIsNotNull();
@@ -186,7 +186,7 @@ public class RefundServiceImpl implements IRefundService {
             list = mapper.selectByExample(example);
         }catch (Exception e){
             String msg=MyErrorCode.MYSQL_OPERATE_EXCEPTION+e.getMessage();
-            log.error("{} {}",_func,msg,e);
+            log.error("{} {}",functionDescription,msg,e);
             throw new Exception(msg);
         }
 

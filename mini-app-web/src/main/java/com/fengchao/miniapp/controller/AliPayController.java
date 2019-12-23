@@ -8,7 +8,6 @@ import com.fengchao.miniapp.constant.MyErrorCode;
 import com.fengchao.miniapp.constant.PaymentStatusType;
 import com.fengchao.miniapp.dto.WSPayPaymentNotifyBean;
 import com.fengchao.miniapp.model.Payment;
-import com.fengchao.miniapp.model.PaymentExample;
 import com.fengchao.miniapp.model.Refund;
 import com.fengchao.miniapp.service.impl.AliPaySDKClient;
 import com.fengchao.miniapp.service.impl.PaymentServiceImpl;
@@ -20,16 +19,12 @@ import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.EscapedErrors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
 @Validated
 @Api(tags="AliPayAPI", description = "支付宝支付接口", produces = "application/json;charset=UTF-8")
@@ -65,9 +60,9 @@ public class AliPayController {
     getToken(@ApiParam(value="code",required=true)  @Valid @NotBlank(message = MyErrorCode.ALIPAY_SDK_CODE_BLANK) @RequestParam("code")  String code
     )throws Exception{
 
-        String _func = "获取支付宝token";Thread.currentThread().getStackTrace()[1].getMethodName();
+        String functionDescription = "获取支付宝token";Thread.currentThread().getStackTrace()[1].getMethodName();
 
-        log.info("=== {} 入参 code={}",_func,code);
+        log.info("=== {} 入参 code={}",functionDescription,code);
         ResultObject<String> result = new ResultObject<>(200,"success",null);
 
         String appId = aliPaySDKClient.getAppId();
@@ -76,7 +71,7 @@ public class AliPayController {
 
             result.setData(storedToken);
 
-            log.info("=== {} 成功 got stored token {}",_func,storedToken);
+            log.info("=== {} 成功 got stored token {}",functionDescription,storedToken);
             return result;
         }
 
@@ -84,13 +79,13 @@ public class AliPayController {
         try{
             bean = aliPaySDKClient.getToken(code);
         }catch (Exception e){
-            log.error("{} {}",_func,e.getMessage());
+            log.error("{} {}",functionDescription,e.getMessage());
             throw e;
         }
 
         if (null == bean){
             String m = MyErrorCode.ALIPAY_SDK_GET_TOKEN_FAILED;
-            log.error("{} {}",_func,m);
+            log.error("{} {}",functionDescription,m);
             throw new Exception(m);
         }
 
@@ -99,7 +94,7 @@ public class AliPayController {
 
         redisDAO.storeAliPayToken(token,bean.getExpires_in(),appId);
 
-        log.info("=== {} 成功 token = {} ",_func,token);
+        log.info("=== {} 成功 token = {} ",functionDescription,token);
         return result;
 
     }
@@ -111,8 +106,8 @@ public class AliPayController {
             @RequestBody  @Valid AliPayRefundPostBean data)
             throws Exception {
 
-        String _func = "支付宝申请退款 ";
-        log.info("=== {} 入参 {}", _func, JSON.toJSONString(data));
+        String functionDescription = "支付宝申请退款 ";
+        log.info("=== {} 入参 {}", functionDescription, JSON.toJSONString(data));
         ResultObject<AliPayRefundRespBean> result = new ResultObject<>(200, "success", null);
 
         String orderId = data.getOrderId();
@@ -126,13 +121,13 @@ public class AliPayController {
             pages = paymentService.queryList(1,1,"id","DESC",
                     null,orderId,null,null);
         }catch (Exception e){
-            log.error("{} 查询支付记录失败",_func);
+            log.error("{} 查询支付记录失败",functionDescription);
             throw e;
         }
 
         if (null == pages || null == pages.getRows() || 0 == pages.getRows().size()){
             String msg = MyErrorCode.ALIPAY_PAYMENT_NULL;
-            log.error("{} {}",_func,msg);
+            log.error("{} {}",functionDescription,msg);
             throw new Exception(msg);
         }
 
@@ -140,7 +135,7 @@ public class AliPayController {
         try {
             bean = aliPaySDKClient.refund(orderId, Float.valueOf(refundFeeYuan),pages.getRows().get(0).getiAppId());
         } catch (Exception e) {
-            log.error("{} {}", _func, e.getMessage());
+            log.error("{} {}", functionDescription, e.getMessage());
             throw e;
         }
 
@@ -167,12 +162,12 @@ public class AliPayController {
         try {
             refundService.insert(refund);
         } catch (Exception e) {
-            log.error("{} 退款记录插入失败 {}", _func, e.getMessage());
+            log.error("{} 退款记录插入失败 {}", functionDescription, e.getMessage());
         }
 
         result.setData(bean);
 
-        log.info("=== {}  {}", _func, JSON.toJSONString(refund));
+        log.info("=== {}  {}", functionDescription, JSON.toJSONString(refund));
         return result;
 
     }
@@ -181,20 +176,20 @@ public class AliPayController {
     @PostMapping("/notify")
     public String
     paymentNotify(HttpServletRequest request
-                ) throws Exception {
+                 ) {
 
-        String _func = "支付宝付款回调 ";
-        log.info("=== {} 入参 {}", _func, JSON.toJSONString(request));
+        String functionDescription = "支付宝付款回调 ";
+        log.info("=== {} 入参 {}", functionDescription, JSON.toJSONString(request));
 
         String resultOk = "success";
         String resultFailed = "fail";
 
         Payment payment = aliPaySDKClient.handlePaymentNotify(request);
         if (null == payment){
-            log.info("=== {} 失败", _func);
+            log.info("=== {} 失败", functionDescription);
             return resultFailed;
         }
-        log.info("=== {} 更新记录成功", _func);
+        log.info("=== {} 更新记录成功", functionDescription);
 
         WSPayPaymentNotifyBean bean = new WSPayPaymentNotifyBean();
         bean.setOrderNo(payment.getOrderId());
@@ -203,15 +198,16 @@ public class AliPayController {
         if (null != payment.getTimeEnd() && !payment.getTimeEnd().isEmpty()) {
             bean.setTradeDate(payment.getTimeEnd());
         }
-        if (null != payment.getTotalFee() && 0 != payment.getTotalFee())
-        bean.setPayFee(payment.getTotalFee().toString());
-        log.info("{} try通知聚合支付付款完成:  {}",_func,JSON.toJSONString(bean));
+        if(null != payment.getTotalFee() && 0 != payment.getTotalFee()) {
+            bean.setPayFee(payment.getTotalFee().toString());
+        }
+        log.info("{} try通知聚合支付付款完成:  {}",functionDescription,JSON.toJSONString(bean));
         try{
             aggPayClient.postAggPayPaymentNotify(bean);
         }catch (Exception e){
-            log.error("{} {}",_func,e.getMessage(),e);
+            log.error("{} {}",functionDescription,e.getMessage(),e);
         }
-        log.info("{} 通知聚合支付付款 成功",_func);
+        log.info("{} 通知聚合支付付款 成功",functionDescription);
 
         return resultOk;
     }
@@ -221,10 +217,10 @@ public class AliPayController {
     public ResultObject<WechatPrepayBean>
     tryPrepay(HttpServletRequest request,
               @RequestBody  @Valid WechatOrderPostBean data)
-            throws Exception{
+            {
 
-        String _func = "支付宝预支付 ";
-        log.info("=== {} 入参 {}",_func,JSON.toJSONString(data));
+        String functionDescription = "支付宝预支付 ";
+        log.info("=== {} 入参 {}",functionDescription,JSON.toJSONString(data));
         ResultObject<WechatPrepayBean> result = new ResultObject<>(200,"success",null);
         String ip = request.getRemoteAddr();
 
@@ -250,7 +246,7 @@ public class AliPayController {
         bean.setResult("success");
         result.setData(bean);
 
-        log.info("=== {} 成功 {}",_func,JSON.toJSONString(bean));
+        log.info("=== {} 成功 {}",functionDescription,JSON.toJSONString(bean));
         return result;
 
     }
@@ -266,15 +262,15 @@ public class AliPayController {
                 @RequestParam @NotNull(message = MyErrorCode.WECHAT_API_TRAN_NO_BLANK) String orderId
     ) throws Exception{
 
-        String _func = "支付宝查询退款结果 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
-        log.info("=== {} 入参: refundNo={} orderId={}",_func, refundNo, orderId);
+        String functionDescription = "支付宝查询退款结果 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
+        log.info("=== {} 入参: refundNo={} orderId={}",functionDescription, refundNo, orderId);
 
         PageInfo<Refund> pages = refundService.queryList(1,1,"id","DESC",
                 null,refundNo,null,orderId,null,null);
 
         if (null == pages || null == pages.getRows() || 0 == pages.getRows().size()){
             String m = MyErrorCode.REFUND_NO_FOUND;
-            log.error("{} {}",_func,m);
+            log.error("{} {}",functionDescription,m);
             throw new Exception(m);
         }
 
@@ -283,10 +279,10 @@ public class AliPayController {
         try {
             bean = aliPaySDKClient.queryRefund(refund);
         }catch (Exception e){
-            log.error("{} {}",_func,e.getMessage());
+            log.error("{} {}",functionDescription,e.getMessage());
             throw e;
         }
-        log.info("=== {} 成功",_func);
+        log.info("=== {} 成功",functionDescription);
         return new ResultObject<>(200,"success",bean);
 
     }

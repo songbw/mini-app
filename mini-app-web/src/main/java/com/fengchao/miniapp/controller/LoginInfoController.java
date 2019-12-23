@@ -45,9 +45,9 @@ public class LoginInfoController {
                    @RequestBody @Valid LoginInfoPostBean data)
             throws Exception{
 
-        String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
+        String functionDescription = Thread.currentThread().getStackTrace()[1].getMethodName();
 
-        log.info(_func+" param {}", JSON.toJSONString(data));
+        log.info(functionDescription+" param {}", JSON.toJSONString(data));
 
         String openId = data.getOpenId();
 
@@ -68,7 +68,7 @@ public class LoginInfoController {
             throw new Exception(MyErrorCode.MYSQL_INSERT_FAILED);
         }
 
-        log.info(_func + " success id={}",newLoginInfo.getId());
+        log.info(functionDescription + " success id={}",newLoginInfo.getId());
         return new ResultObject<>(200,"ok",newLoginInfo.getId().toString());
     }
 
@@ -88,9 +88,9 @@ public class LoginInfoController {
                     @ApiParam(value="platform") @RequestParam(required = false) String platform
                     ) throws Exception{
 
-        String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
+        String functionDescription = Thread.currentThread().getStackTrace()[1].getMethodName();
 
-        log.info(_func+ MyErrorCode.COMMON_PARAM_SHOW
+        log.info(functionDescription+ MyErrorCode.COMMON_PARAM_SHOW
                 +" pageIndex="+pageIndex
                 +" pageSize="+pageSize
                 +" system="+system

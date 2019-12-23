@@ -48,9 +48,9 @@ public class UserInfoController {
                @RequestBody @Valid UserInfoPostBean data)
             throws Exception{
 
-        String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
+        String functionDescription = Thread.currentThread().getStackTrace()[1].getMethodName();
 
-        log.info(_func+" param {}", JSON.toJSONString(data));
+        log.info(functionDescription+" param {}", JSON.toJSONString(data));
 
         String openId = data.getOpenId();
 
@@ -81,7 +81,7 @@ public class UserInfoController {
             throw new Exception(MyErrorCode.MYSQL_INSERT_FAILED);
         }
 
-        log.info(_func + " success id={}",newUserInfo.getId());
+        log.info(functionDescription + " success id={}",newUserInfo.getId());
         return new ResultObject<>(200,"ok",newUserInfo.getId().toString());
     }
 
@@ -92,9 +92,9 @@ public class UserInfoController {
                @PathVariable("id") @NotNull(message = MyErrorCode.USERINFO_ID_BLANK) Long id
                )throws Exception{
 
-        String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
+        String functionDescription = Thread.currentThread().getStackTrace()[1].getMethodName();
 
-        log.info(_func+" param: id={}",id);
+        log.info(functionDescription+" param: id={}",id);
 
         UserInfo userInfo;
         try {
@@ -130,9 +130,9 @@ public class UserInfoController {
                     @ApiParam(value="city") @RequestParam(required = false) String city
                 ) throws Exception{
 
-        String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
+        String functionDescription = Thread.currentThread().getStackTrace()[1].getMethodName();
 
-        log.info(_func+MyErrorCode.COMMON_PARAM_SHOW
+        log.info(functionDescription+MyErrorCode.COMMON_PARAM_SHOW
                 +" pageIndex="+pageIndex
                 +" pageSize="+pageSize
                 +" gender="+gender
@@ -178,9 +178,9 @@ public class UserInfoController {
                    @RequestParam @NotNull(message = MyErrorCode.OPEN_ID_BLANK) String openId
     )throws Exception{
 
-        String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
+        String functionDescription = Thread.currentThread().getStackTrace()[1].getMethodName();
 
-        log.info("==={} 参数: openId={}",_func,openId);
+        log.info("==={} 参数: openId={}",functionDescription,openId);
 
         UserInfo userInfo;
         try {
@@ -192,7 +192,7 @@ public class UserInfoController {
             throw new Exception(MyErrorCode.MYSQL_SELECT_FAILED);
         }
 
-        log.info("==={} 成功 {}",_func,JSON.toJSONString(userInfo));
+        log.info("==={} 成功 {}",functionDescription,JSON.toJSONString(userInfo));
         return new ResultObject<>(200, "success",userInfo);
 
     }

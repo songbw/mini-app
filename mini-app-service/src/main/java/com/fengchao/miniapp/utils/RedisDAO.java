@@ -102,12 +102,12 @@ public class RedisDAO {
     }
 
     public void storeAliPayToken(String token, Integer expire,String appId) {
-        String _func = "storeAliPayToken";
+        String functionDescription = "storeAliPayToken";
         if (null == token || null == expire || token.isEmpty()){
-            log.error("{} 入参缺失",_func);
+            log.error("{} 入参缺失",functionDescription);
             return;
         }
-        log.info("{} : {}",_func,token);
+        log.info("{} : {}",functionDescription,token);
         ValueOperations<String, String> ops = template.opsForValue();
         String oldToken = ops.get(STORE_PREFIX+ALIPAY_TOKEN_KEY+appId);
         if (null != oldToken) {

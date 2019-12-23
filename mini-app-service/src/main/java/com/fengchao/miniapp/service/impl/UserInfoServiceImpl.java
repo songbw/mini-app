@@ -31,63 +31,63 @@ public class UserInfoServiceImpl implements IUserInfoService {
     public Long
     insert(UserInfo record)
             throws Exception{
-        String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
+        String functionDescription = Thread.currentThread().getStackTrace()[1].getMethodName();
         if (null == record){
-            String msg = _func+ MyErrorCode.COMMON_PARAM_NULL;
+            String msg = functionDescription+ MyErrorCode.COMMON_PARAM_NULL;
             log.error(msg);
             throw new Exception(msg);
         }
-        log.info(_func +MyErrorCode.COMMON_PARAM_SHOW +JSON.toJSONString(record));
+        log.info(functionDescription +MyErrorCode.COMMON_PARAM_SHOW +JSON.toJSONString(record));
         int id;
         try {
             id = mapper.insertSelective(record);
         }catch (Exception e){
             String msg = MyErrorCode.MYSQL_OPERATE_EXCEPTION +e.getMessage();
-            log.error(_func + msg);
+            log.error(functionDescription + msg);
             throw new Exception(msg);
         }
 
         if (0 == id){
             String msg = MyErrorCode.MYSQL_INSERT_FAILED;
-            log.error(_func+msg);
+            log.error(functionDescription+msg);
             throw new Exception(msg);
         }
 
-        log.info(_func + MyErrorCode.MYSQL_INSERT_SUCCESS +record.getId().toString());
+        log.info(functionDescription + MyErrorCode.MYSQL_INSERT_SUCCESS +record.getId().toString());
         return record.getId();
     }
 
     @Override
     public void
     deleteById(Long id) throws Exception{
-        String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
+        String functionDescription = Thread.currentThread().getStackTrace()[1].getMethodName();
         if (null == id || 0 == id){
-            String msg = _func + MyErrorCode.COMMON_PARAM_NULL;
+            String msg = functionDescription + MyErrorCode.COMMON_PARAM_NULL;
             log.error(msg);
             throw new Exception(msg);
         }
-        log.info(_func + MyErrorCode.COMMON_PARAM_SHOW+id);
+        log.info(functionDescription + MyErrorCode.COMMON_PARAM_SHOW+id);
         try {
             mapper.deleteByPrimaryKey(id);
         }catch (Exception e){
             String msg = MyErrorCode.MYSQL_OPERATE_EXCEPTION +e.getMessage();
-            log.error(_func + msg);
+            log.error(functionDescription + msg);
             throw new Exception(msg);
         }
-        log.info(_func + MyErrorCode.MYSQL_DELETE_SUCCESS+id.toString());
+        log.info(functionDescription + MyErrorCode.MYSQL_DELETE_SUCCESS+id.toString());
     }
 
     @Override
     public UserInfo
     selectByOpenId(String openId) throws Exception{
-        String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
+        String functionDescription = Thread.currentThread().getStackTrace()[1].getMethodName();
         if (null == openId || openId.isEmpty()){
-            String msg = _func + MyErrorCode.COMMON_PARAM_NULL;
+            String msg = functionDescription + MyErrorCode.COMMON_PARAM_NULL;
             log.error(msg);
             throw new Exception(msg);
         }
         if (log.isDebugEnabled()) {
-            log.info("{} {} {}",_func , MyErrorCode.COMMON_PARAM_SHOW , openId);
+            log.info("{} {} {}",functionDescription , MyErrorCode.COMMON_PARAM_SHOW , openId);
         }
         UserInfoExample example = new UserInfoExample();
         UserInfoExample.Criteria criteria = example.createCriteria();
@@ -99,12 +99,12 @@ public class UserInfoServiceImpl implements IUserInfoService {
             result = mapper.selectByExample(example);
         }catch (Exception e){
             String msg = MyErrorCode.MYSQL_OPERATE_EXCEPTION +e.getMessage();
-            log.error("{} {}",_func , msg);
+            log.error("{} {}",functionDescription , msg);
             throw new Exception(msg);
         }
 
         if (log.isDebugEnabled()) {
-            log.info("{} {} {}",_func , MyErrorCode.MYSQL_SELECT_SUCCESS , JSON.toJSONString(result));
+            log.info("{} {} {}",functionDescription , MyErrorCode.MYSQL_SELECT_SUCCESS , JSON.toJSONString(result));
         }
         if (0 < result.size()) {
             return result.get(0);
@@ -116,46 +116,46 @@ public class UserInfoServiceImpl implements IUserInfoService {
     @Override
     public void
     update(UserInfo record) throws Exception{
-        String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
+        String functionDescription = Thread.currentThread().getStackTrace()[1].getMethodName();
         if (null == record || null == record.getId()){
-            String msg = _func + MyErrorCode.COMMON_PARAM_NULL;
+            String msg = functionDescription + MyErrorCode.COMMON_PARAM_NULL;
             log.error(msg);
             throw new Exception(msg);
         }
-        log.info(_func + MyErrorCode.COMMON_PARAM_SHOW+JSON.toJSONString(record));
+        log.info(functionDescription + MyErrorCode.COMMON_PARAM_SHOW+JSON.toJSONString(record));
         try {
             mapper.updateByPrimaryKeySelective(record);
         }catch (Exception e){
-            log.error(_func + " mapper.updateByPrimaryKeySelective Exception {}",e.getMessage());
+            log.error(functionDescription + " mapper.updateByPrimaryKeySelective Exception {}",e.getMessage());
             throw new Exception(e);
         }
-        log.info(_func + " success");
+        log.info(functionDescription + " success");
     }
 
     @Override
     public UserInfo
     getRecordById(Long id) throws Exception{
-        String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
+        String functionDescription = Thread.currentThread().getStackTrace()[1].getMethodName();
         if (null == id || 0 == id){
-            String msg = _func + MyErrorCode.COMMON_PARAM_NULL;
+            String msg = functionDescription + MyErrorCode.COMMON_PARAM_NULL;
             log.error(msg);
             throw new Exception(msg);
         }
-        log.info(_func+MyErrorCode.COMMON_PARAM_SHOW+id);
+        log.info(functionDescription+MyErrorCode.COMMON_PARAM_SHOW+id);
         UserInfo userInfo;
         try {
             userInfo = mapper.selectByPrimaryKey(id);
         }catch (Exception e){
             String msg = MyErrorCode.MYSQL_OPERATE_EXCEPTION+e.getMessage();
-            log.error(_func+msg);
+            log.error(functionDescription+msg);
             throw new Exception(msg);
         }
         if (null == userInfo){
-            log.error(_func+MyErrorCode.MYSQL_SELECT_NOT_FOUND);
+            log.error(functionDescription+MyErrorCode.MYSQL_SELECT_NOT_FOUND);
             throw new Exception(MyErrorCode.MYSQL_SELECT_NOT_FOUND);
         }
 
-        log.info(_func+MyErrorCode.MYSQL_SELECT_SUCCESS+JSON.toJSONString(userInfo));
+        log.info(functionDescription+MyErrorCode.MYSQL_SELECT_SUCCESS+JSON.toJSONString(userInfo));
         return userInfo;
     }
 
@@ -172,7 +172,7 @@ public class UserInfoServiceImpl implements IUserInfoService {
                                         Date createTimeEnd)
             throws Exception{
 
-        String _func = Thread.currentThread().getStackTrace()[1].getMethodName();
+        String functionDescription = Thread.currentThread().getStackTrace()[1].getMethodName();
         UserInfoExample example = new UserInfoExample();
         UserInfoExample.Criteria criteria = example.createCriteria();
         criteria.andOpenIdIsNotNull();
@@ -203,7 +203,7 @@ public class UserInfoServiceImpl implements IUserInfoService {
             list = mapper.selectByExample(example);
         }catch (Exception e){
             String msg=MyErrorCode.MYSQL_OPERATE_EXCEPTION+e.getMessage();
-            log.error(_func+msg);
+            log.error(functionDescription+msg);
             throw new Exception(msg);
         }
 

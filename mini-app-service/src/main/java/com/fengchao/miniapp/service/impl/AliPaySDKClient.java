@@ -46,15 +46,15 @@ public class AliPaySDKClient implements IAliPaySDKClient {
     @Override
     public AliPaySignParamBean
     signParam(Map<String,String> map, String iAppId){
-        String _func = "支付宝SDK签名: ";
-        log.info("{} 入参 {}",_func, JSON.toJSON(map));
+        String functionDescription = "支付宝SDK签名: ";
+        log.info("{} 入参 {}",functionDescription, JSON.toJSON(map));
         String content = AlipaySignature.getSignCheckContentV2(map);
-        log.info("{} 拼接待签名字符串 {}",_func,content);
+        log.info("{} 拼接待签名字符串 {}",functionDescription,content);
         String sign;
         try{
             sign = AlipaySignature.rsa256Sign(content, AliPay.FC_PRIVATE_KEY_VALUE,AliPay.CHARSET);
         }catch (Exception e){
-            log.error("{} {}",_func,e.getMessage(),e);
+            log.error("{} {}",functionDescription,e.getMessage(),e);
             return null;
         }
 
@@ -69,27 +69,27 @@ public class AliPaySDKClient implements IAliPaySDKClient {
     @Override
     public boolean
     verifySign(Map<String,String> map){
-        String _func = "支付宝SDK验签: ";
-        log.info("{} 入参 {}",_func, JSON.toJSON(map));
+        String functionDescription = "支付宝SDK验签: ";
+        log.info("{} 入参 {}",functionDescription, JSON.toJSON(map));
 
         boolean result;
 
         try {
             result = AlipaySignature.rsaCertCheckV2(map, AliPay.PUBLIC_KEY_VALUE, AliPay.CHARSET, AliPay.SIGN_TYPE_VALUE);
         }catch (Exception e){
-            log.error("{} {}",_func,e.getMessage(),e);
+            log.error("{} {}",functionDescription,e.getMessage(),e);
             return false;
         }
 
-        log.info("{} 结果为 ",_func,result);
+        log.info("{} 结果为 ",functionDescription,result);
         return result;
     }
 
     @Override
     public WeChatTokenResultBean
     getToken(String code,String iAppId) throws Exception {
-        String _func = "支付宝获取token: ";
-        log.info("{} 入参 {}",_func,code);
+        String functionDescription = "支付宝获取token: ";
+        log.info("{} 入参 {}",functionDescription,code);
 
         String appId = getAppId(iAppId);
         Map<String,String> map = new HashMap<>();
@@ -109,23 +109,23 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         try {
             resp = alipayClient.execute(request);
         }catch (Exception e){
-            log.error("{} {}",_func,e.getMessage(),e);
+            log.error("{} {}",functionDescription,e.getMessage(),e);
             throw e;
         }
 
         if (null == resp){
-            log.error("{} 获取 token 失败",_func);
+            log.error("{} 获取 token 失败",functionDescription);
             throw new Exception(MyErrorCode.ALIPAY_SDK_RESPONSE_NULL);
         }
         if (!resp.isSuccess()){
-            log.error("{} 获取 token 失败 {}",_func,resp.getMsg());
+            log.error("{} 获取 token 失败 {}",functionDescription,resp.getMsg());
             throw new Exception(MyErrorCode.ALIPAY_SDK_GET_TOKEN_FAILED+resp.getMsg());
         }
 
         WeChatTokenResultBean bean = new WeChatTokenResultBean();
         bean.setAccess_token(resp.getAppAuthToken());
         bean.setExpires_in(Integer.valueOf(resp.getExpiresIn()));
-        log.info("{} 获取token={} expires={}",_func,resp.getAppAuthToken(), resp.getExpiresIn());
+        log.info("{} 获取token={} expires={}",functionDescription,resp.getAppAuthToken(), resp.getExpiresIn());
         return bean;
     }
 
@@ -139,8 +139,8 @@ public class AliPaySDKClient implements IAliPaySDKClient {
     @Override
     public AliPayRefundRespBean
     refund(String tradeNo,Float amount,String iAppId) throws Exception{
-        String _func = "支付宝退款: ";
-        log.info("{} 入参 {}",_func,tradeNo);
+        String functionDescription = "支付宝退款: ";
+        log.info("{} 入参 {}",functionDescription,tradeNo);
 
         String appId = getAppId(iAppId);
         String refundNo = RandomString.buildRefundNo(appId);
@@ -163,20 +163,20 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         try{
             resp = alipayClient.execute(request);
         }catch (AlipayApiException e){
-            log.error("{} {}",_func,e.getMessage(),e);
+            log.error("{} {}",functionDescription,e.getMessage(),e);
             throw new Exception(MyErrorCode.ALIPAY_SDK_FAILED+e.getErrMsg());
         }
 
         if (null == resp){
-            log.error("{} 失败",_func);
+            log.error("{} 失败",functionDescription);
             throw new Exception(MyErrorCode.ALIPAY_SDK_RESPONSE_NULL);
         }
         if (!resp.isSuccess()){
-            log.error("{} 失败 {}",_func,resp.getMsg());
+            log.error("{} 失败 {}",functionDescription,resp.getMsg());
             throw new Exception(MyErrorCode.ALIPAY_SDK_REFUND_FAILED+resp.getMsg());
         }
 
-        log.info("{} SDK 返回 {}",_func,JSON.toJSONString(resp));
+        log.info("{} SDK 返回 {}",functionDescription,JSON.toJSONString(resp));
 
         AliPayRefundRespBean bean = new AliPayRefundRespBean();
         bean.setRefundNo(refundNo);
@@ -186,13 +186,13 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         bean.setRefundDate(resp.getGmtRefundPay());
         bean.setAliPayLoginId(resp.getBuyerLogonId());
 
-        log.info("{} 完成 ",_func);
+        log.info("{} 完成 ",functionDescription);
         return bean;
     }
 
     @Override
     public Payment handlePaymentNotify(HttpServletRequest request){
-        String _func = "handlePaymentNotify: ";
+        String functionDescription = "handlePaymentNotify: ";
         Map<String,String> params = request2Map(request);
         if (!verifySign(params)){
             return null;
@@ -209,18 +209,18 @@ public class AliPaySDKClient implements IAliPaySDKClient {
             pages = paymentService.queryList(1,1,"id","DESC",
                     null,tradeNo,null,null);
         }catch (Exception e){
-            log.error("{} {}",_func,e.getMessage());
+            log.error("{} {}",functionDescription,e.getMessage());
         }
 
         if (null == pages || null == pages.getRows() || 0 == pages.getRows().size()){
-            log.error("{} {}",_func,MyErrorCode.PAYMENT_NO_FOUND);
+            log.error("{} {}",functionDescription,MyErrorCode.PAYMENT_NO_FOUND);
             record = new Payment();
         }else{
             record = pages.getRows().get(0);
             if (PaymentStatusType.OK.getCode().equals(record.getStatus())
                     || PaymentStatusType.FAILED.getCode().equals(record.getStatus())) {
 
-                log.info("{} 支付结果已经记录,不再重复处理", _func);
+                log.info("{} 支付结果已经记录,不再重复处理", functionDescription);
                 return null;
             }
         }
@@ -269,8 +269,8 @@ public class AliPaySDKClient implements IAliPaySDKClient {
 
     public AliPayRefundQueryResultBean
     queryRefund(Refund refund) throws Exception{
-        String _func = "支付宝退款查询 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
-        log.info("{} orderId= {}",_func,refund.getOrderId());
+        String functionDescription = "支付宝退款查询 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
+        log.info("{} orderId= {}",functionDescription,refund.getOrderId());
 
         String appId = getAppId(refund.getiAppId());
         Map<String,String> map = new HashMap<>();
@@ -291,7 +291,7 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         try {
             resp = alipayClient.execute(request);
         }catch (Exception e){
-            log.error("{} {}",_func,e.getMessage(),e);
+            log.error("{} {}",functionDescription,e.getMessage(),e);
             throw e;
         }
 
