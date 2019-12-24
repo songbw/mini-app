@@ -26,5 +26,4 @@ public class AllConfigurationBean {
     private String jsAPIAppId;
     private String jsAPIAppSecret;
 
-    private String aliPayAppId;
 }

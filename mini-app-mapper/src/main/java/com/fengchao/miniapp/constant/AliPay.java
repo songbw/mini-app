@@ -34,6 +34,16 @@ public class AliPay {
     public static final String RECEIPT_AMOUNT_KEY = "receipt_amount";//商家在交易中实际收到的款项，单位为元
     public static final String PAY_AMOUNT_KEY = "buyer_pay_amount";//用户在交易中支付的金额
     public static final String END_TIME_KEY = "gmt_payment";//该笔交易的买家付款时间。格式为yyyy-MM-dd HH:mm:ss
+    /**
+     *商品的标题/交易标题/订单标题/订单关键字等。
+     */
+    public static final String SUBJECT_KEY = "subject";
+
+    /**
+     *销售产品码，商家和支付宝签约的产品码。该产品请填写固定值：QUICK_WAP_WAY
+     */
+    public static final String PROCUCT_CODE_KEY = "product_code";
+    public static final String PROCUCT_CODE_DEFAULT_VALUE = "QUICK_WAP_WAY";
 
     public static final String TRADE_STATUS_OK = "TRADE_SUCCESS";//交易支付成功
     public static final String TRADE_STATUS_CLOSE = "TRADE_CLOSED";//未付款交易超时关闭，或支付完成后全额退款

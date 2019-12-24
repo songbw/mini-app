@@ -117,6 +117,8 @@ public class MyErrorCode {
     public static final String ALIPAY_SDK_REFUND_FAILED = "@440004@支付宝SDK退款失败 ";
     public static final String ALIPAY_SDK_REFUND_QUERY_FAILED = "@440005@支付宝SDK查询退款失败 ";
     public static final String ALIPAY_PAYMENT_NULL = "@440006@支付宝付款记录不存在 ";
+    public static final String ALIPAY_PAYMENT_POST_PARAM_BLANK = "@440007@支付宝付款缺失参数 ";
+    public static final String ALIPAY_CONFIG_BLANK = "@440008@支付宝配置缺失（iAppId错误） ";
 
     public static String weChatErrMsg(String code,String msg){
         return "@10"+code+"@"+msg;

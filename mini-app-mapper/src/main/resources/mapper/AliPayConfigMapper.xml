@@ -1,15 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.fengchao.miniapp.mapper.AppIdConfigMapper">
-  <resultMap id="BaseResultMap" type="com.fengchao.miniapp.model.AppIdConfig">
+<mapper namespace="com.fengchao.miniapp.mapper.AliPayConfigMapper">
+  <resultMap id="BaseResultMap" type="com.fengchao.miniapp.model.AliPayConfig">
     <id column="id" jdbcType="INTEGER" property="id" />
     <result column="i_app_id" jdbcType="VARCHAR" property="iAppId" />
-    <result column="mini_app_id" jdbcType="VARCHAR" property="miniAppId" />
-    <result column="mini_secret" jdbcType="VARCHAR" property="miniSecret" />
+    <result column="pay_app_id" jdbcType="VARCHAR" property="payAppId" />
     <result column="pay_notify" jdbcType="VARCHAR" property="payNotify" />
     <result column="refund_notify" jdbcType="VARCHAR" property="refundNotify" />
-    <result column="js_app_id" jdbcType="VARCHAR" property="jsAppId" />
-    <result column="js_secret" jdbcType="VARCHAR" property="jsSecret" />
     <result column="api_url" jdbcType="VARCHAR" property="apiUrl" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
@@ -74,17 +71,17 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, i_app_id, mini_app_id, mini_secret, pay_notify, refund_notify, js_app_id, js_secret, 
-    api_url, create_time, update_time, comments
+    id, i_app_id, pay_app_id, pay_notify, refund_notify, api_url, create_time, update_time, 
+    comments
   </sql>
-  <select id="selectByExample" parameterType="com.fengchao.miniapp.model.AppIdConfigExample" resultMap="BaseResultMap">
+  <select id="selectByExample" parameterType="com.fengchao.miniapp.model.AliPayConfigExample" resultMap="BaseResultMap">
     select
     <if test="distinct">
       distinct
     </if>
     'id' as QUERYID,
     <include refid="Base_Column_List" />
-    from app_id_config
+    from ali_pay_config
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
@@ -95,58 +92,47 @@
   <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
     select 
     <include refid="Base_Column_List" />
-    from app_id_config
+    from ali_pay_config
     where id = #{id,jdbcType=INTEGER}
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
-    delete from app_id_config
+    delete from ali_pay_config
     where id = #{id,jdbcType=INTEGER}
   </delete>
-  <delete id="deleteByExample" parameterType="com.fengchao.miniapp.model.AppIdConfigExample">
-    delete from app_id_config
+  <delete id="deleteByExample" parameterType="com.fengchao.miniapp.model.AliPayConfigExample">
+    delete from ali_pay_config
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="com.fengchao.miniapp.model.AppIdConfig">
+  <insert id="insert" parameterType="com.fengchao.miniapp.model.AliPayConfig">
     <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into app_id_config (i_app_id, mini_app_id, mini_secret, 
-      pay_notify, refund_notify, js_app_id, 
-      js_secret, api_url, create_time, 
+    insert into ali_pay_config (i_app_id, pay_app_id, pay_notify, 
+      refund_notify, api_url, create_time, 
       update_time, comments)
-    values (#{iAppId,jdbcType=VARCHAR}, #{miniAppId,jdbcType=VARCHAR}, #{miniSecret,jdbcType=VARCHAR}, 
-      #{payNotify,jdbcType=VARCHAR}, #{refundNotify,jdbcType=VARCHAR}, #{jsAppId,jdbcType=VARCHAR}, 
-      #{jsSecret,jdbcType=VARCHAR}, #{apiUrl,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+    values (#{iAppId,jdbcType=VARCHAR}, #{payAppId,jdbcType=VARCHAR}, #{payNotify,jdbcType=VARCHAR}, 
+      #{refundNotify,jdbcType=VARCHAR}, #{apiUrl,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
       #{updateTime,jdbcType=TIMESTAMP}, #{comments,jdbcType=VARCHAR})
   </insert>
-  <insert id="insertSelective" parameterType="com.fengchao.miniapp.model.AppIdConfig">
+  <insert id="insertSelective" parameterType="com.fengchao.miniapp.model.AliPayConfig">
     <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into app_id_config
+    insert into ali_pay_config
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="iAppId != null">
         i_app_id,
       </if>
-      <if test="miniAppId != null">
-        mini_app_id,
-      </if>
-      <if test="miniSecret != null">
-        mini_secret,
+      <if test="payAppId != null">
+        pay_app_id,
       </if>
       <if test="payNotify != null">
         pay_notify,
       </if>
       <if test="refundNotify != null">
         refund_notify,
-      </if>
-      <if test="jsAppId != null">
-        js_app_id,
-      </if>
-      <if test="jsSecret != null">
-        js_secret,
       </if>
       <if test="apiUrl != null">
         api_url,
@@ -165,23 +151,14 @@
       <if test="iAppId != null">
         #{iAppId,jdbcType=VARCHAR},
       </if>
-      <if test="miniAppId != null">
-        #{miniAppId,jdbcType=VARCHAR},
-      </if>
-      <if test="miniSecret != null">
-        #{miniSecret,jdbcType=VARCHAR},
+      <if test="payAppId != null">
+        #{payAppId,jdbcType=VARCHAR},
       </if>
       <if test="payNotify != null">
         #{payNotify,jdbcType=VARCHAR},
       </if>
       <if test="refundNotify != null">
         #{refundNotify,jdbcType=VARCHAR},
-      </if>
-      <if test="jsAppId != null">
-        #{jsAppId,jdbcType=VARCHAR},
-      </if>
-      <if test="jsSecret != null">
-        #{jsSecret,jdbcType=VARCHAR},
       </if>
       <if test="apiUrl != null">
         #{apiUrl,jdbcType=VARCHAR},
@@ -197,14 +174,14 @@
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.fengchao.miniapp.model.AppIdConfigExample" resultType="java.lang.Long">
-    select count(*) from app_id_config
+  <select id="countByExample" parameterType="com.fengchao.miniapp.model.AliPayConfigExample" resultType="java.lang.Long">
+    select count(*) from ali_pay_config
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </select>
   <update id="updateByExampleSelective" parameterType="map">
-    update app_id_config
+    update ali_pay_config
     <set>
       <if test="record.id != null">
         id = #{record.id,jdbcType=INTEGER},
@@ -212,23 +189,14 @@
       <if test="record.iAppId != null">
         i_app_id = #{record.iAppId,jdbcType=VARCHAR},
       </if>
-      <if test="record.miniAppId != null">
-        mini_app_id = #{record.miniAppId,jdbcType=VARCHAR},
-      </if>
-      <if test="record.miniSecret != null">
-        mini_secret = #{record.miniSecret,jdbcType=VARCHAR},
+      <if test="record.payAppId != null">
+        pay_app_id = #{record.payAppId,jdbcType=VARCHAR},
       </if>
       <if test="record.payNotify != null">
         pay_notify = #{record.payNotify,jdbcType=VARCHAR},
       </if>
       <if test="record.refundNotify != null">
         refund_notify = #{record.refundNotify,jdbcType=VARCHAR},
-      </if>
-      <if test="record.jsAppId != null">
-        js_app_id = #{record.jsAppId,jdbcType=VARCHAR},
-      </if>
-      <if test="record.jsSecret != null">
-        js_secret = #{record.jsSecret,jdbcType=VARCHAR},
       </if>
       <if test="record.apiUrl != null">
         api_url = #{record.apiUrl,jdbcType=VARCHAR},
@@ -248,15 +216,12 @@
     </if>
   </update>
   <update id="updateByExample" parameterType="map">
-    update app_id_config
+    update ali_pay_config
     set id = #{record.id,jdbcType=INTEGER},
       i_app_id = #{record.iAppId,jdbcType=VARCHAR},
-      mini_app_id = #{record.miniAppId,jdbcType=VARCHAR},
-      mini_secret = #{record.miniSecret,jdbcType=VARCHAR},
+      pay_app_id = #{record.payAppId,jdbcType=VARCHAR},
       pay_notify = #{record.payNotify,jdbcType=VARCHAR},
       refund_notify = #{record.refundNotify,jdbcType=VARCHAR},
-      js_app_id = #{record.jsAppId,jdbcType=VARCHAR},
-      js_secret = #{record.jsSecret,jdbcType=VARCHAR},
       api_url = #{record.apiUrl,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
@@ -265,29 +230,20 @@
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.fengchao.miniapp.model.AppIdConfig">
-    update app_id_config
+  <update id="updateByPrimaryKeySelective" parameterType="com.fengchao.miniapp.model.AliPayConfig">
+    update ali_pay_config
     <set>
       <if test="iAppId != null">
         i_app_id = #{iAppId,jdbcType=VARCHAR},
       </if>
-      <if test="miniAppId != null">
-        mini_app_id = #{miniAppId,jdbcType=VARCHAR},
-      </if>
-      <if test="miniSecret != null">
-        mini_secret = #{miniSecret,jdbcType=VARCHAR},
+      <if test="payAppId != null">
+        pay_app_id = #{payAppId,jdbcType=VARCHAR},
       </if>
       <if test="payNotify != null">
         pay_notify = #{payNotify,jdbcType=VARCHAR},
       </if>
       <if test="refundNotify != null">
         refund_notify = #{refundNotify,jdbcType=VARCHAR},
-      </if>
-      <if test="jsAppId != null">
-        js_app_id = #{jsAppId,jdbcType=VARCHAR},
-      </if>
-      <if test="jsSecret != null">
-        js_secret = #{jsSecret,jdbcType=VARCHAR},
       </if>
       <if test="apiUrl != null">
         api_url = #{apiUrl,jdbcType=VARCHAR},
@@ -304,15 +260,12 @@
     </set>
     where id = #{id,jdbcType=INTEGER}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.fengchao.miniapp.model.AppIdConfig">
-    update app_id_config
+  <update id="updateByPrimaryKey" parameterType="com.fengchao.miniapp.model.AliPayConfig">
+    update ali_pay_config
     set i_app_id = #{iAppId,jdbcType=VARCHAR},
-      mini_app_id = #{miniAppId,jdbcType=VARCHAR},
-      mini_secret = #{miniSecret,jdbcType=VARCHAR},
+      pay_app_id = #{payAppId,jdbcType=VARCHAR},
       pay_notify = #{payNotify,jdbcType=VARCHAR},
       refund_notify = #{refundNotify,jdbcType=VARCHAR},
-      js_app_id = #{jsAppId,jdbcType=VARCHAR},
-      js_secret = #{jsSecret,jdbcType=VARCHAR},
       api_url = #{apiUrl,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},

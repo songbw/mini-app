@@ -8,12 +8,13 @@ import com.alipay.api.internal.util.AlipaySignature;
 import com.alipay.api.request.AlipayOpenAuthTokenAppRequest;
 import com.alipay.api.request.AlipayTradeFastpayRefundQueryRequest;
 import com.alipay.api.request.AlipayTradeRefundRequest;
+import com.alipay.api.request.AlipayTradeWapPayRequest;
 import com.alipay.api.response.AlipayOpenAuthTokenAppResponse;
 import com.alipay.api.response.AlipayTradeFastpayRefundQueryResponse;
 import com.alipay.api.response.AlipayTradeRefundResponse;
 import com.fengchao.miniapp.bean.*;
-import com.fengchao.miniapp.config.MiniAppConfiguration;
 import com.fengchao.miniapp.constant.*;
+import com.fengchao.miniapp.model.AliPayConfig;
 import com.fengchao.miniapp.model.Payment;
 import com.fengchao.miniapp.model.Refund;
 import com.fengchao.miniapp.service.IAliPaySDKClient;
@@ -32,14 +33,14 @@ import javax.servlet.http.HttpServletRequest;
 @Service
 public class AliPaySDKClient implements IAliPaySDKClient {
 
-    private MiniAppConfiguration configuration;
+    private AliPayConfigServiceImpl aliPayConfigService;
     private PaymentServiceImpl paymentService;
 
     @Autowired
     public AliPaySDKClient(PaymentServiceImpl paymentService,
-                           MiniAppConfiguration configuration){
+                           AliPayConfigServiceImpl aliPayConfigService){
 
-        this.configuration = configuration;
+        this.aliPayConfigService = aliPayConfigService;
         this.paymentService = paymentService;
     }
 
@@ -61,9 +62,42 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         AliPaySignParamBean bean = new AliPaySignParamBean();
         bean.setSign(sign);
         bean.setSignType(AliPay.SIGN_TYPE_VALUE);
-        bean.setAppId(getAppId(iAppId));
+        bean.setAppId(getAppIdConfig(iAppId).getiAppId());
 
         return bean;
+    }
+
+    @Override
+    public String
+    postWapPay(AliWapPayPostBean data, String iAppId){
+        String functionDescription = "外部商户创建订单并支付: ";
+        log.info("{} {}",functionDescription,JSON.toJSONString(data));
+
+        AliPayConfig config = getAppIdConfig(iAppId);
+        AlipayClient alipayClient =
+                new DefaultAlipayClient(AliPay.GATEWAY_URL,
+                        config.getPayAppId(),AliPay.FC_PRIVATE_KEY_VALUE,
+                        "json", AliPay.CHARSET,
+                        AliPay.PUBLIC_KEY_VALUE,
+                        AliPay.SIGN_TYPE_VALUE);
+
+        AlipayTradeWapPayRequest alipayRequest = new AlipayTradeWapPayRequest();
+        alipayRequest.setNotifyUrl(config.getPayNotify());
+        Map<String,Object> map = new HashMap<>();
+        map.put(AliPay.OUT_TRADE_NO_KEY,data.getTradeNo());
+        map.put(AliPay.TOTAL_AMOUNT_KEY,data.getTotalAmount());
+        map.put(AliPay.SUBJECT_KEY,data.getSubject());
+        map.put(AliPay.PROCUCT_CODE_KEY,AliPay.PROCUCT_CODE_DEFAULT_VALUE);
+        alipayRequest.setBizContent(JSON.toJSONString(map));
+
+        try {
+            String form = alipayClient.pageExecute(alipayRequest).getBody();
+            log.info(form);
+            return form;
+        }catch (Exception e){
+            log.error(e.getMessage(),e);
+            throw new RuntimeException(MyErrorCode.ALIPAY_SDK_FAILED+e.getMessage());
+        }
     }
 
     @Override
@@ -91,14 +125,14 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         String functionDescription = "支付宝获取token: ";
         log.info("{} 入参 {}",functionDescription,code);
 
-        String appId = getAppId(iAppId);
+        AliPayConfig config = getAppIdConfig(iAppId);
         Map<String,String> map = new HashMap<>();
         map.put(AliPay.GRANT_TYPE_KEY,AliPay.GRANT_TYPE_AUTH_CODE);
         map.put(AliPay.CODE_KEY,code);
 
         AlipayClient alipayClient =
                 new DefaultAlipayClient(AliPay.GATEWAY_URL,
-                        appId,AliPay.FC_PRIVATE_KEY_VALUE,
+                        config.getPayAppId(),AliPay.FC_PRIVATE_KEY_VALUE,
                 "json", AliPay.CHARSET,
                         AliPay.PUBLIC_KEY_VALUE,
                         AliPay.SIGN_TYPE_VALUE);
@@ -130,10 +164,16 @@ public class AliPaySDKClient implements IAliPaySDKClient {
     }
 
     @Override
-    public String getAppId(String iAppId){
-        AllConfigurationBean bean = configuration.getConfig(iAppId);
-        return (null == bean || null == bean.getAliPayAppId())?
-                AliPay.FC_APPID_DEFAULT:bean.getAliPayAppId();
+    public AliPayConfig getAppIdConfig(String iAppId){
+
+        AliPayConfig config = aliPayConfigService.getByIAppId(iAppId);
+        if (null != config && null != config.getPayAppId()){
+            return config;
+        }else{
+            log.error("不存在iAppId={} 的支付宝配置项",iAppId);
+            throw new RuntimeException(MyErrorCode.ALIPAY_CONFIG_BLANK);
+        }
+
     }
 
     @Override
@@ -142,8 +182,8 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         String functionDescription = "支付宝退款: ";
         log.info("{} 入参 {}",functionDescription,tradeNo);
 
-        String appId = getAppId(iAppId);
-        String refundNo = RandomString.buildRefundNo(appId);
+        AliPayConfig config = getAppIdConfig(iAppId);
+        String refundNo = RandomString.buildRefundNo(config.getPayAppId());
         Map<String,Object> map = new HashMap<>();
         map.put(AliPay.OUT_TRADE_NO_KEY,tradeNo);
         map.put(AliPay.REFUND_AMOUNT_KEY,amount);
@@ -151,7 +191,7 @@ public class AliPaySDKClient implements IAliPaySDKClient {
 
         AlipayClient alipayClient =
                 new DefaultAlipayClient(AliPay.GATEWAY_URL,
-                        appId,AliPay.FC_PRIVATE_KEY_VALUE,
+                        config.getPayAppId(),AliPay.FC_PRIVATE_KEY_VALUE,
                         "json", AliPay.CHARSET,
                         AliPay.PUBLIC_KEY_VALUE,
                         AliPay.SIGN_TYPE_VALUE);
@@ -214,7 +254,7 @@ public class AliPaySDKClient implements IAliPaySDKClient {
 
         if (null == pages || null == pages.getRows() || 0 == pages.getRows().size()){
             log.error("{} {}",functionDescription,MyErrorCode.PAYMENT_NO_FOUND);
-            record = new Payment();
+            return null;
         }else{
             record = pages.getRows().get(0);
             if (PaymentStatusType.OK.getCode().equals(record.getStatus())
@@ -259,9 +299,9 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         }
 
         try{
-            paymentService.insert(record);
+            paymentService.update(record);
         }catch (Exception e){
-            log.error("插入支付记录失败 {}",e.getMessage());
+            log.error("更新支付记录失败 {}",e.getMessage());
         }
 
         return record;
@@ -272,14 +312,14 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         String functionDescription = "支付宝退款查询 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
         log.info("{} orderId= {}",functionDescription,refund.getOrderId());
 
-        String appId = getAppId(refund.getiAppId());
+        AliPayConfig config = getAppIdConfig(refund.getiAppId());
         Map<String,String> map = new HashMap<>();
         map.put(AliPay.OUT_TRADE_NO_KEY,refund.getOrderId());
         map.put(AliPay.OUT_REQUEST_NO_KEY,refund.getRefundNo());
 
         AlipayClient alipayClient =
                 new DefaultAlipayClient(AliPay.GATEWAY_URL,
-                        appId,AliPay.FC_PRIVATE_KEY_VALUE,
+                        config.getPayAppId(),AliPay.FC_PRIVATE_KEY_VALUE,
                         "json", AliPay.CHARSET,
                         AliPay.PUBLIC_KEY_VALUE,
                         AliPay.SIGN_TYPE_VALUE);
