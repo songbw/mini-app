@@ -15,7 +15,7 @@ import javax.validation.constraints.NotNull;
 public class AliPayRefundPostBean {
 
     @NotBlank(message = MyErrorCode.REFUND_NO_BLANK)
-    @ApiModelProperty(value = "工单系统退款号", example = "11111")
+    @ApiModelProperty(value = "工单系统/聚合支付退款号", example = "11111")
     private String refundNo;
 
     @NotBlank(message = MyErrorCode.WECHAT_API_TRAN_NO_BLANK)

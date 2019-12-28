@@ -17,8 +17,8 @@ public class AliPayRefundRespBean {
     @ApiModelProperty(value="商户订单号", example="112")
     private String tradeNo;
 
-    @ApiModelProperty(value="商户退款号", example="11111")
-    private String refundNo;
+    @ApiModelProperty(value="向支付宝申请退款单号(由本模块生成appId + timeStamp + random)", example="11111")
+    private String remoteRefundNo;
 
     @ApiModelProperty(value="支付宝交易号", example="11111")
     private String aliPayTradeNo;
@@ -31,5 +31,11 @@ public class AliPayRefundRespBean {
 
     @ApiModelProperty(value="支付宝用户登录ID", example="11111")
     private String aliPayLoginId;
+
+    @ApiModelProperty(value="买家在支付宝的用户id", example="11111")
+    private String buyerId;
+
+    @ApiModelProperty(value="comments", example="退款申请成功")
+    private String comments;
 
 }

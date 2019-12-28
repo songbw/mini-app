@@ -505,7 +505,7 @@ public class WeChatMiniAppController {
 
     @ApiOperation(value = "申请退款", notes="申请退款")
     @PostMapping("/refund/{apiType}")
-    public ResultObject<WechatRefundRespBean>
+    public ResultObject<RefundRespToAggPayBean>
     postRefund(
                @ApiParam(value="apiType",required=true)  @PathVariable("apiType")  String apiType,
                @RequestBody  @Valid WechatRefundPostBean data)
@@ -518,7 +518,7 @@ public class WeChatMiniAppController {
 
         String functionDescription = apiType+"申请退款 ";
         log.info("=== {} 入参 {}",functionDescription,JSON.toJSONString(data));
-        ResultObject<WechatRefundRespBean> result = new ResultObject<>(200,"success",null);
+        ResultObject<RefundRespToAggPayBean> result = new ResultObject<>(200,"success",null);
 
         String orderId = data.getOrderId();
         String openId = data.getOpenId();
@@ -557,9 +557,9 @@ public class WeChatMiniAppController {
                 log.error("{} 退款记录插入失败 {}", functionDescription, e.getMessage());
             }
         }
-        WechatRefundRespBean bean = new WechatRefundRespBean();
+        RefundRespToAggPayBean bean = new RefundRespToAggPayBean();
         bean.setRefundNo(refund.getRefundNo());
-        bean.setWechatRefundNo(refund.getRemoteRefundNo());
+        bean.setRemoteRefundNo(refund.getRemoteRefundNo());
         bean.setRefundFee(refund.getRespRefundFee());
         bean.setCode(refund.getStatus());
         bean.setMsg(refund.getComments());

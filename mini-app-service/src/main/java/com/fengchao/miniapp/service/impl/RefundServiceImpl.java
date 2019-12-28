@@ -102,6 +102,38 @@ public class RefundServiceImpl implements IRefundService {
     }
 
     @Override
+    public Refund
+    getByRemoteRefundNo(String remoteRefundNo){
+        String functionDescription = Thread.currentThread().getStackTrace()[1].getMethodName();
+        if (null == remoteRefundNo || remoteRefundNo.isEmpty()){
+            log.error("{} remoteRefundNo",MyErrorCode.COMMON_PARAM_NULL);
+            return null;
+        }
+        log.info("{} {} {}", functionDescription , MyErrorCode.COMMON_PARAM_SHOW, remoteRefundNo);
+
+        RefundExample example = new RefundExample();
+        RefundExample.Criteria criteria = example.createCriteria();
+        criteria.andRemoteRefundNoEqualTo(remoteRefundNo);
+
+        List<Refund> result;
+
+        try {
+            result = mapper.selectByExample(example);
+        }catch (Exception e){
+            String msg = MyErrorCode.MYSQL_OPERATE_EXCEPTION +e.getMessage();
+            log.error("{} {}",functionDescription , msg,e);
+            return null;
+        }
+
+        log.info("{} {} {}",functionDescription ,MyErrorCode.MYSQL_SELECT_SUCCESS,JSON.toJSONString(result));
+        if (0 < result.size()) {
+            return result.get(0);
+        }else {
+            return null;
+        }
+    }
+
+    @Override
     public void
     update(Refund record) throws Exception{
         String functionDescription = "更新退款记录 ";//Thread.currentThread().getStackTrace()[1].getMethodName();

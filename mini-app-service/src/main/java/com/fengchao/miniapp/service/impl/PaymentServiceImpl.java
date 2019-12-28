@@ -165,7 +165,7 @@ public class PaymentServiceImpl implements IPaymentService {
                                         String orderId,
                                         Date createTimeBegin,
                                         Date createTimeEnd)
-            throws Exception{
+            {
 
         String functionDescription = Thread.currentThread().getStackTrace()[1].getMethodName();
         PaymentExample example = new PaymentExample();
@@ -192,9 +192,9 @@ public class PaymentServiceImpl implements IPaymentService {
             pages = PageHelper.startPage(pageIndex, pageSize, true);
             list = mapper.selectByExample(example);
         }catch (Exception e){
-            String msg=MyErrorCode.MYSQL_OPERATE_EXCEPTION+e.getMessage();
-            log.error(functionDescription+msg);
-            throw new Exception(msg);
+            String msg=MyErrorCode.MYSQL_OPERATE_EXCEPTION+ "payment";
+            log.error("{} {}",functionDescription,e.getMessage(),e);
+            throw new RuntimeException(msg);
         }
 
         return new PageInfo<>((int)pages.getTotal(), pages.getPageSize(),pageIndex,list);

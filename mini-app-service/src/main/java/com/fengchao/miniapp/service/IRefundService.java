@@ -27,4 +27,6 @@ public interface IRefundService {
                                 String orderId,
                                 Date createTimeBegin,
                                 Date createTimeEnd) throws Exception;
+
+    Refund getByRemoteRefundNo(String remoteRefundNo) throws Exception;
 }

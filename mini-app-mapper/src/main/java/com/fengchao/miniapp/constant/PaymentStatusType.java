@@ -1,10 +1,11 @@
 package com.fengchao.miniapp.constant;
 
 public enum PaymentStatusType {
+    /*预下单完成*/
     PREPAY(0, "预下单完成"),
     OK(1, "支付成功"),
     FAILED(2, "支付失败"),
-    USERPAYING(2, "用户支付中"),
+    USERPAYING(3, "用户支付中"),
     CLOSED(4, "交易关闭");
 
     private Integer code;

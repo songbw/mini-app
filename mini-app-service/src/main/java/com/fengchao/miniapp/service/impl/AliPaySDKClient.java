@@ -5,12 +5,10 @@ import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.internal.util.AlipaySignature;
-import com.alipay.api.request.AlipayOpenAuthTokenAppRequest;
-import com.alipay.api.request.AlipayTradeFastpayRefundQueryRequest;
-import com.alipay.api.request.AlipayTradeRefundRequest;
-import com.alipay.api.request.AlipayTradeWapPayRequest;
+import com.alipay.api.request.*;
 import com.alipay.api.response.AlipayOpenAuthTokenAppResponse;
 import com.alipay.api.response.AlipayTradeFastpayRefundQueryResponse;
+import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.alipay.api.response.AlipayTradeRefundResponse;
 import com.fengchao.miniapp.bean.*;
 import com.fengchao.miniapp.constant.*;
@@ -35,13 +33,16 @@ public class AliPaySDKClient implements IAliPaySDKClient {
 
     private AliPayConfigServiceImpl aliPayConfigService;
     private PaymentServiceImpl paymentService;
+    private RefundServiceImpl refundService;
 
     @Autowired
     public AliPaySDKClient(PaymentServiceImpl paymentService,
+                           RefundServiceImpl refundService,
                            AliPayConfigServiceImpl aliPayConfigService){
 
         this.aliPayConfigService = aliPayConfigService;
         this.paymentService = paymentService;
+        this.refundService = refundService;
     }
 
     @Override
@@ -83,9 +84,12 @@ public class AliPaySDKClient implements IAliPaySDKClient {
 
         AlipayTradeWapPayRequest alipayRequest = new AlipayTradeWapPayRequest();
         alipayRequest.setNotifyUrl(config.getPayNotify());
+        if (null != data.getReturnUrl()) {
+            alipayRequest.setReturnUrl(data.getReturnUrl());
+        }
         Map<String,Object> map = new HashMap<>();
         map.put(AliPay.OUT_TRADE_NO_KEY,data.getTradeNo());
-        map.put(AliPay.TOTAL_AMOUNT_KEY,data.getTotalAmount());
+        map.put(AliPay.TOTAL_AMOUNT_KEY, Float.valueOf(FeeUtils.Fen2Yuan(data.getTotalAmount().toString())));
         map.put(AliPay.SUBJECT_KEY,data.getSubject());
         map.put(AliPay.PROCUCT_CODE_KEY,AliPay.PROCUCT_CODE_DEFAULT_VALUE);
         alipayRequest.setBizContent(JSON.toJSONString(map));
@@ -104,18 +108,20 @@ public class AliPaySDKClient implements IAliPaySDKClient {
     public boolean
     verifySign(Map<String,String> map){
         String functionDescription = "支付宝SDK验签: ";
-        log.info("{} 入参 {}",functionDescription, JSON.toJSON(map));
-
+        if (log.isDebugEnabled()) {
+            log.debug("{} 入参 {}", functionDescription, JSON.toJSON(map));
+        }
         boolean result;
 
         try {
-            result = AlipaySignature.rsaCertCheckV2(map, AliPay.PUBLIC_KEY_VALUE, AliPay.CHARSET, AliPay.SIGN_TYPE_VALUE);
+            //result = AlipaySignature.rsaCheckV2(map, AliPay.PUBLIC_KEY_VALUE, AliPay.CHARSET, AliPay.SIGN_TYPE_VALUE);
+            result = AlipaySignature.rsaCheckV1(map, AliPay.PUBLIC_KEY_VALUE, AliPay.CHARSET,AliPay.SIGN_TYPE_VALUE);
         }catch (Exception e){
             log.error("{} {}",functionDescription,e.getMessage(),e);
             return false;
         }
 
-        log.info("{} 结果为 ",functionDescription,result);
+        log.info("{} 结果为 {}",functionDescription,result);
         return result;
     }
 
@@ -178,16 +184,17 @@ public class AliPaySDKClient implements IAliPaySDKClient {
 
     @Override
     public AliPayRefundRespBean
-    refund(String tradeNo,Float amount,String iAppId) throws Exception{
-        String functionDescription = "支付宝退款: ";
-        log.info("{} 入参 {}",functionDescription,tradeNo);
+    refund(String orderId,Float amount,String iAppId) {
+        // 退款不设置回调地址，测试中设置回调地址后，收到的仍是付款回调（预付款下单时设置的回调地址而不是退款时设置的回调地址）
+        String functionDescription = "支付宝退款SDK接口: ";
+        log.info("{} 入参 orderId = {}",functionDescription,orderId);
 
         AliPayConfig config = getAppIdConfig(iAppId);
-        String refundNo = RandomString.buildRefundNo(config.getPayAppId());
+        String remoteRefundNo = RandomString.buildRefundNo(config.getPayAppId());
         Map<String,Object> map = new HashMap<>();
-        map.put(AliPay.OUT_TRADE_NO_KEY,tradeNo);
+        map.put(AliPay.OUT_TRADE_NO_KEY,orderId);
         map.put(AliPay.REFUND_AMOUNT_KEY,amount);
-        map.put(AliPay.OUT_REQUEST_NO_KEY, refundNo);
+        map.put(AliPay.OUT_REQUEST_NO_KEY, remoteRefundNo);
 
         AlipayClient alipayClient =
                 new DefaultAlipayClient(AliPay.GATEWAY_URL,
@@ -199,44 +206,55 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         AlipayTradeRefundRequest request = new AlipayTradeRefundRequest();
         request.setBizContent(JSON.toJSONString(map));
         AlipayTradeRefundResponse resp;
+        AliPayRefundRespBean bean = new AliPayRefundRespBean();
+        bean.setRemoteRefundNo(remoteRefundNo);
+        bean.setTradeNo(orderId);
+        bean.setAliPayTradeNo(null);
 
         try{
             resp = alipayClient.execute(request);
         }catch (AlipayApiException e){
             log.error("{} {}",functionDescription,e.getMessage(),e);
-            throw new Exception(MyErrorCode.ALIPAY_SDK_FAILED+e.getErrMsg());
+            bean.setComments("退款申请SDK失败");
+            return bean;
+        }catch (Exception ex){
+            log.error("{} {}",functionDescription,ex.getMessage(),ex);
+            bean.setComments("退款申请SDK失败");
+            return bean;
         }
 
         if (null == resp){
-            log.error("{} 失败",functionDescription);
-            throw new Exception(MyErrorCode.ALIPAY_SDK_RESPONSE_NULL);
+            log.error("{} 无返回信息",functionDescription);
+            bean.setComments("退款申请SDK无返回信息");
+            return bean;
         }
         if (!resp.isSuccess()){
-            log.error("{} 失败 {}",functionDescription,resp.getMsg());
-            throw new Exception(MyErrorCode.ALIPAY_SDK_REFUND_FAILED+resp.getMsg());
+            log.error("{} 失败 {} {}",functionDescription,resp.getMsg(),resp.getSubMsg());
+            bean.setComments("退款申请SDK失败: "+resp.getMsg()+resp.getSubMsg());
+            return bean;
         }
 
         log.info("{} SDK 返回 {}",functionDescription,JSON.toJSONString(resp));
 
-        AliPayRefundRespBean bean = new AliPayRefundRespBean();
-        bean.setRefundNo(refundNo);
-        bean.setTradeNo(resp.getOutTradeNo());
         bean.setAliPayTradeNo(resp.getTradeNo());
         bean.setRefundFee(resp.getRefundFee());
         bean.setRefundDate(resp.getGmtRefundPay());
         bean.setAliPayLoginId(resp.getBuyerLogonId());
+        bean.setBuyerId(resp.getBuyerUserId());
 
-        log.info("{} 完成 ",functionDescription);
+        log.info("{} 完成 {}",functionDescription, JSON.toJSONString(bean));
         return bean;
     }
 
     @Override
-    public Payment handlePaymentNotify(HttpServletRequest request){
+    public Payment handlePaymentNotify(Map<String,String> params){
         String functionDescription = "handlePaymentNotify: ";
-        Map<String,String> params = request2Map(request);
         if (!verifySign(params)){
             return null;
         }
+
+        AliPayNotifyBean bean = JSON.parseObject(JSON.toJSONString(params),AliPayNotifyBean.class);
+        log.info("解析成Bean {}",JSON.toJSONString(bean));
 
         String tradeNo = params.get(AliPay.OUT_TRADE_NO_KEY);
         String aliPayTradeNo = params.get(AliPay.TRADE_NO_KEY);
@@ -257,11 +275,27 @@ public class AliPaySDKClient implements IAliPaySDKClient {
             return null;
         }else{
             record = pages.getRows().get(0);
-            if (PaymentStatusType.OK.getCode().equals(record.getStatus())
-                    || PaymentStatusType.FAILED.getCode().equals(record.getStatus())) {
-
+            boolean isHandled =
+                    null != record.getTransactionId() && !record.getTransactionId().isEmpty() &&
+                    (PaymentStatusType.OK.getCode().equals(record.getStatus())|| PaymentStatusType.FAILED.getCode().equals(record.getStatus()));
+            if (isHandled) {
                 log.info("{} 支付结果已经记录,不再重复处理", functionDescription);
-                return null;
+                // 如果是退款回调,处理退款回调
+                String remoteRefundNo = params.get(AliPay.OUT_BIZ_NO_KEY);
+                if (null != remoteRefundNo){
+                    log.info("退款回调, remoteRefundNo={}",remoteRefundNo);
+                    Refund refund = refundService.getByRemoteRefundNo(remoteRefundNo);
+                    if (null != refund){
+                        refund.setComments(refund.getComments()+" 收到支付宝退款回调");
+                        try {
+                            refundService.update(refund);
+                        }catch (Exception e){
+                            log.error("{} 更新退款记录失败",functionDescription);
+                        }
+                    }
+                }
+                record.setIp(MyErrorCode.NOTIFY_HANDLED_IP_DONE);//不需要重复处理
+                return record;
             }
         }
 
@@ -270,14 +304,24 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         record.setUpdateTime(record.getCreateTime());
         record.setOrderId(tradeNo);
         record.setTransactionId(aliPayTradeNo);
+        record.setResult(tradeStatue);
 
         if (null != tradeStatue){
             if( AliPay.TRADE_STATUS_OK.equals(tradeStatue)){
                 record.setStatus(PaymentStatusType.OK.getCode());
+                record.setComments("收到支付回调,交易支付成功");
+            }else if (AliPay.TRADE_STATUS_CLOSE.equals(tradeStatue)){
+                record.setStatus(PaymentStatusType.FAILED.getCode());
+                record.setComments("收到支付回调,未付款交易超时关闭，或支付完成后全额退款");
             }else if (AliPay.TRADE_STATUS_WAIT_PAY.equals(tradeStatue)){
                 record.setStatus(PaymentStatusType.PREPAY.getCode());
-            }else{
+                record.setComments("收到支付回调,等待买家付款");
+            }else if (AliPay.TRADE_STATUS_FINISHED.equals(tradeStatue)){
                 record.setStatus(PaymentStatusType.FAILED.getCode());
+                record.setComments("收到支付回调,交易结束,不可退款");
+            } else {
+                record.setStatus(PaymentStatusType.FAILED.getCode());
+                record.setComments("收到支付回调,交易状态异常 "+tradeStatue);
             }
         }
 
@@ -294,8 +338,20 @@ public class AliPaySDKClient implements IAliPaySDKClient {
             record.setTimeEnd(endTime);
         }
         String loginId = params.get(AliPay.BUYER_LOGON_ID_KEY);
-        if (null != loginId){
+        String buyerId = params.get(AliPay.BUYER_ID_KEY);
+        if (null != buyerId) {
+            record.setOpenId(buyerId);
+        } else if (null != loginId){
             record.setOpenId(loginId);
+        }
+
+        String notifyId = params.get(AliPay.NOTIFY_ID_KEY);
+        if (null != notifyId){
+            record.setPrepayId(notifyId);
+        }
+        String fundList = params.get(AliPay.FUND_BILL_LIST_KEY);
+        if (null != fundList){
+            record.setBankType(JSON.toJSONString(fundList));
         }
 
         try{
@@ -307,19 +363,20 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         return record;
     }
 
-    public AliPayRefundQueryResultBean
-    queryRefund(Refund refund) throws Exception{
-        String functionDescription = "支付宝退款查询 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
-        log.info("{} orderId= {}",functionDescription,refund.getOrderId());
+    @Override
+    public Refund
+    queryRefund(Refund refund) {
+        String functionDescription = "支付宝SDK退款查询 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
+        log.info("{} 入参: {}", functionDescription, JSON.toJSONString(refund));
 
         AliPayConfig config = getAppIdConfig(refund.getiAppId());
-        Map<String,String> map = new HashMap<>();
-        map.put(AliPay.OUT_TRADE_NO_KEY,refund.getOrderId());
-        map.put(AliPay.OUT_REQUEST_NO_KEY,refund.getRefundNo());
+        Map<String, String> map = new HashMap<>();
+        map.put(AliPay.OUT_TRADE_NO_KEY, refund.getOrderId());
+        map.put(AliPay.OUT_REQUEST_NO_KEY, refund.getRemoteRefundNo());
 
         AlipayClient alipayClient =
                 new DefaultAlipayClient(AliPay.GATEWAY_URL,
-                        config.getPayAppId(),AliPay.FC_PRIVATE_KEY_VALUE,
+                        config.getPayAppId(), AliPay.FC_PRIVATE_KEY_VALUE,
                         "json", AliPay.CHARSET,
                         AliPay.PUBLIC_KEY_VALUE,
                         AliPay.SIGN_TYPE_VALUE);
@@ -330,49 +387,129 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         AlipayTradeFastpayRefundQueryResponse resp;
         try {
             resp = alipayClient.execute(request);
-        }catch (Exception e){
-            log.error("{} {}",functionDescription,e.getMessage(),e);
-            throw e;
+        } catch (Exception e) {
+            log.error("{} {}", functionDescription, e.getMessage(), e);
+            return refund;
         }
 
-        AliPayRefundQueryResultBean bean = new AliPayRefundQueryResultBean();
+        log.info("{} SDK返回 {}", functionDescription, JSON.toJSONString(resp));
         String refundFee = resp.getRefundAmount();
-        String totalFee = resp.getTotalAmount();
-        bean.setOrderId(refund.getOrderId());
-        bean.setRefundNo(refund.getRefundNo());
-        bean.setTotalFee(FeeUtils.Yuan2Fen(totalFee));
-        bean.setRefundFee(FeeUtils.Yuan2Fen(refundFee));
+        if (null != refundFee) {
+            refund.setRefundFee(Integer.valueOf(FeeUtils.Yuan2Fen(refundFee)));
+        }
 
-        return bean;
+        refund.setComments(AliPay.REFUND_OK_COMMENTS);
+        refund.setUpdateTime(new Date());
+        refund.setStatus(RefundStatusEnum.SUCCESS.getCode());
+        try {
+            refundService.update(refund);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return refund;
+        }
+        log.info("{} 更新退款记录 {}", functionDescription, JSON.toJSONString(refund));
+        return refund;
     }
 
+    @Override
+    public Payment
+    queryPayment(Payment record){
 
-    private Map<String,String>
-    request2Map(HttpServletRequest request){
+        String functionDescription = "支付宝订单查询 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
+        log.info("{} 入参 {}",functionDescription, JSON.toJSONString(record));
 
-        Map<String, String> retMap = new HashMap<>();
+        AliPayConfig config = getAppIdConfig(record.getiAppId());
+        Map<String,String> map = new HashMap<>();
+        map.put(AliPay.OUT_TRADE_NO_KEY,record.getOrderId());
 
-        Set<Map.Entry<String, String[]>> entrySet = request.getParameterMap().entrySet();
+        AlipayClient alipayClient =
+                new DefaultAlipayClient(AliPay.GATEWAY_URL,
+                        config.getPayAppId(),AliPay.FC_PRIVATE_KEY_VALUE,
+                        "json", AliPay.CHARSET,
+                        AliPay.PUBLIC_KEY_VALUE,
+                        AliPay.SIGN_TYPE_VALUE);
 
-        for (Map.Entry<String, String[]> entry : entrySet) {
-            String name = entry.getKey();
-            String[] values = entry.getValue();
-            int valLen = values.length;
+        AlipayTradeQueryRequest request = new AlipayTradeQueryRequest();
+        request.setBizContent(JSON.toJSONString(map));
 
-            if (valLen == 1) {
-                retMap.put(name, values[0]);
-            } else if (valLen > 1) {
-                StringBuilder sb = new StringBuilder();
-                for (String val : values) {
-                    sb.append(",").append(val);
-                }
-                retMap.put(name, sb.toString().substring(1));
+        AlipayTradeQueryResponse resp;
+        try {
+            resp = alipayClient.execute(request);
+        }catch (Exception e){
+            log.error("{} {}",functionDescription,e.getMessage(),e);
+            throw new RuntimeException(MyErrorCode.ALIPAY_SDK_FAILED+" 订单查询异常");
+        }
+
+        log.info("{} SDK 返回 {}",functionDescription,JSON.toJSONString(resp));
+
+        String tradeStatue = resp.getTradeStatus();
+        Integer newStatus ;
+        String newComments = "";
+        if (null != tradeStatue){
+            if( AliPay.TRADE_STATUS_OK.equals(tradeStatue)){
+                newStatus = PaymentStatusType.OK.getCode();
+                newComments = "收到支付回调,交易支付成功";
+            }else if (AliPay.TRADE_STATUS_CLOSE.equals(tradeStatue)){
+                newStatus = PaymentStatusType.CLOSED.getCode();
+                newComments = "收到支付回调,未付款交易超时关闭，或支付完成后全额退款";
+            }else if (AliPay.TRADE_STATUS_WAIT_PAY.equals(tradeStatue)){
+                newStatus = PaymentStatusType.PREPAY.getCode();
+                newComments = "收到支付回调,等待买家付款";
+            }else if (AliPay.TRADE_STATUS_FINISHED.equals(tradeStatue)){
+                newStatus = PaymentStatusType.FAILED.getCode();
+                newComments = "收到支付回调,交易结束,不可退款";
             } else {
-                retMap.put(name, "");
+                newStatus = PaymentStatusType.FAILED.getCode();
+                newComments = "收到支付回调,交易状态异常 "+tradeStatue;
+            }
+
+            if (!newStatus.equals(record.getStatus())){
+                record.setResult(resp.getTradeStatus());
+                if (null != resp.getBuyerUserId()) {
+                    record.setOpenId(resp.getBuyerUserId());
+                }
+                if (null != resp.getFundBillList()){
+                    record.setBankType(JSON.toJSONString(resp.getFundBillList()));
+                }
+                record.setStatus(newStatus);
+                record.setComments(newComments);
+                record.setUpdateTime(new Date());
+
+                try {
+                    paymentService.update(record);
+                }catch (Exception e){
+                    log.error(e.getMessage(),e);
+                    return record;
+                }
+                log.info("更新下单记录 {}",JSON.toJSONString(record));
             }
         }
 
-        return retMap;
+        return record;
+    }
+
+    @Override
+    public Map<String,String>
+    request2Map(HttpServletRequest request){
+
+        Map<String,String> params = new HashMap<>();
+        Map requestParams = request.getParameterMap();
+        for (Iterator iter = requestParams.keySet().iterator(); iter.hasNext();) {
+            String name = (String) iter.next();
+            String[] values = (String[]) requestParams.get(name);
+            String valueStr = "";
+            for (int i = 0; i < values.length; i++) {
+                valueStr = (i == values.length - 1) ? valueStr + values[i]
+                        : valueStr + values[i] + ",";
+            }
+            //乱码解决，这段代码在出现乱码时使用。
+            //valueStr = new String(valueStr.getBytes("ISO-8859-1"), "utf-8");
+            params.put(name, valueStr);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("将request中的参数转换成Map {}", JSON.toJSONString(params));
+        }
+        return params;
 
     }
 }

@@ -2,6 +2,8 @@ package com.fengchao.miniapp.constant;
 
 public class MyErrorCode {
 
+    public static final String NOTIFY_HANDLED_IP_DONE = "done";
+
     public static final String MOBILE_PATTEN = "^((13[0-9])|(145,147)|(15[0-9])|(18[0-9]))\\d{8}$";
 
     public static final String COMMON_PARAM_SHOW = " 入参: ";

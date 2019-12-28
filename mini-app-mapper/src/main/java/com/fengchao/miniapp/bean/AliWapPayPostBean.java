@@ -22,8 +22,11 @@ public class AliWapPayPostBean {
     @ApiModelProperty(value = "商户网站唯一订单号", example = "1120190001")
     private String tradeNo;
 
-    @ApiModelProperty(value = "订单总金额，单位为元，精确到小数点后两位，取值范围[0.01,100000000]", example = "9.00")
-    private Float totalAmount;
+    @ApiModelProperty(value = "订单总金额，单位为分，精确到小数点后两位，取值范围[1,1000000]", example = "9")
+    private Integer totalAmount;
+
+    @ApiModelProperty(value = "返回页面地址 HTTP/HTTPS开头字符串", example = "https://")
+    private String returnUrl;
 
     public void verifyValue(){
         String beanDescription = "支付宝创建订单并支付参数";
