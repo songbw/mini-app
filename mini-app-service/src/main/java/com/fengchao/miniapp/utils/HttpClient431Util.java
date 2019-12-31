@@ -127,13 +127,13 @@ public class HttpClient431Util {
         return wxRefundLink(params, url);
     }
 
-    public static String doPostXml(String params, String url) throws Exception {
+    public static String doPostXml(String params, String url) {
 
         String _func = "doPostXml";
         CloseableHttpClient httpClient;
         CloseableHttpResponse response = null;
         if (isBlank(url)) {
-            throw new Exception(MyErrorCode.ADDRESS_BLANK);
+            throw new RuntimeException(MyErrorCode.ADDRESS_BLANK);
         }
         String result = null;
         try {
@@ -152,11 +152,11 @@ public class HttpClient431Util {
                 response = httpClient.execute(httpPost);
             }catch (Exception e){
                 log.error("{} {}",_func,e.getMessage(),e);
-                throw new Exception(MyErrorCode.HTTP_ERROR + e.getMessage());
+                throw new RuntimeException(MyErrorCode.HTTP_ERROR + e.getMessage());
             }
             if (null == response || null == response.getStatusLine()) {
                 log.error("{} {} no response", _func,url);
-                throw new Exception(MyErrorCode.HTTP_NO_RESPONSE);
+                throw new RuntimeException(MyErrorCode.HTTP_NO_RESPONSE);
             }
             int statusCode = response.getStatusLine().getStatusCode();
             if (log.isDebugEnabled()) {
@@ -178,7 +178,7 @@ public class HttpClient431Util {
         } catch (Exception e) {
             String msg = MyErrorCode.HTTP_ERROR + e.getMessage();
             log.error("{} http post 异常:{}", _func, e.getMessage(), e);
-            throw new Exception(msg);
+            throw new RuntimeException(msg);
         }
         try {
             httpClient.close();

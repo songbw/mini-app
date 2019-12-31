@@ -12,6 +12,7 @@ public class MyErrorCode {
     public static final String CONFIG_MISSING = "@410004@配置项缺失 ";
     public static final String I_APP_ID_BLANK = "@410005@iAppId缺失 ";
     public static final String I_APP_ID_INVALID = "@410006@iAppId未配置,不支持 ";
+    public static final String API_TYPE_INVALID = "@410007@不支持的API类型 ";
     public static final String COMMON_JSON_WRONG = "@420001@JSON解析错误 ";
     public static final String COMMON_MD5_FAILED = "@420002@MD5构造错误 ";
     public static final String COMMON_XML_FAILED = "@420003@XML解析错误 ";

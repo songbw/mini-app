@@ -1,6 +1,8 @@
 package com.fengchao.miniapp.constant;
 
 public enum ApiType {
+    /*支持的API类型
+    * */
     MINI("mini", "微信小程序支付"),
     APP("app", "微信APP支付"),
     JSAPI("jsapi", "微信JSAPI支付"),

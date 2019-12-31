@@ -4,10 +4,7 @@ package com.fengchao.miniapp.controller;
 import com.alibaba.fastjson.JSON;
 import com.fengchao.miniapp.bean.*;
 import com.fengchao.miniapp.client.http.IAggPayClient;
-import com.fengchao.miniapp.constant.ApiType;
-import com.fengchao.miniapp.constant.MyErrorCode;
-import com.fengchao.miniapp.constant.PaymentStatusType;
-import com.fengchao.miniapp.constant.WeChat;
+import com.fengchao.miniapp.constant.*;
 import com.fengchao.miniapp.dto.WSPayPaymentNotifyBean;
 import com.fengchao.miniapp.dto.WSPayRefundNotifyBean;
 import com.fengchao.miniapp.model.Payment;
@@ -25,6 +22,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -68,26 +66,33 @@ public class WeChatMiniAppController {
 
     }
 
+    private void checkApiType(String iAppId,String apiType){
+        if (null == iAppId || iAppId.isEmpty()){
+            log.error("iAppId缺失!");
+            throw new RuntimeException(MyErrorCode.I_APP_ID_BLANK);
+        }
+        if (!ApiType.isValidCode(apiType)){
+            log.error("不支持的API类型: {}",apiType);
+            throw new RuntimeException(MyErrorCode.API_TYPE_INVALID+apiType);
+        }
+    }
+
     @ApiOperation(value = "获取token", notes="获取token")
     @GetMapping("/token/{apiType}")
     public ResultObject<String>
     getToken(@ApiParam(value="apiType",required=true)  @PathVariable("apiType")  String apiType,
-             @RequestParam  @Valid @NotBlank(message=MyErrorCode.I_APP_ID_BLANK) String iAppId
+             @RequestParam  String iAppId
             )throws Exception{
 
         String functionDescription = Thread.currentThread().getStackTrace()[1].getMethodName();
-        if (!ApiType.isValidCode(apiType)){
-            log.error("{} 不支持的API类型 {}",functionDescription,apiType);
-            return new ResultObject<>(400,"不支持的API类型:"+apiType,null);
-        }
-        log.info("=== {}-{} enter",apiType,functionDescription);
+        checkApiType(iAppId,apiType);
+
+        log.info("=== {}-{} enter: iAppId={} apiType={}",apiType,functionDescription,iAppId,apiType);
         ResultObject<String> result = new ResultObject<>(200,"success",null);
         String appId = weChatMiniAppClient.getAppId(apiType,iAppId);
         String storedToken = redisDAO.getWeChatToken(appId);
         if (null != storedToken){
-
             result.setData(storedToken);
-
             log.info("=== {} 成功 got stored token {}",functionDescription,storedToken);
             return result;
         }
@@ -97,7 +102,7 @@ public class WeChatMiniAppController {
             bean = weChatMiniAppClient.getAccessToken(apiType,iAppId);
         }catch (Exception e){
             log.error("{} {}",functionDescription,e.getMessage());
-            throw new Exception(e);
+            throw new RuntimeException(e);
         }
 
         if (null == bean.getAccess_token()){
@@ -539,20 +544,48 @@ public class WeChatMiniAppController {
             throw new Exception(msg);
         }
 
-        Refund refund;
+        Refund refund = new Refund();
+        BeanUtils.copyProperties(data,refund);
+        refund.setApiType(apiType);
+        refund.setRefundNo(data.getRefundNo());
+        refund.setiAppId(payment.getiAppId());
+        refund.setCreateTime(new Date());
+        refund.setUpdateTime(new Date());
+        refund.setStatus(RefundStatusEnum.PENDING.getCode());
         try {
-            refund = weChatMiniAppClient.postRefund(data,apiType,payment.getiAppId());
+            refundService.insert(refund);
+        } catch (Exception e) {
+            log.error("{} 退款记录插入失败 {}", functionDescription, e.getMessage());
+            throw new RuntimeException(MyErrorCode.MYSQL_OPERATE_EXCEPTION);
+        }
+
+        try {
+            refund = weChatMiniAppClient.postRefund(refund,data,apiType,payment.getiAppId());
         }catch (Exception e){
             log.error("{} {}", functionDescription,e.getMessage());
+            refund.setStatus(RefundStatusEnum.FAILED.getCode());
+            refund.setUpdateTime(new Date());
+            try{
+                refundService.update(refund);
+            }catch (Exception ex){
+                log.error(ex.getMessage(),ex);
+            }
             throw e;
         }
 
-        refund.setiAppId(payment.getiAppId());
         String refundStatus = refund.getStatus();
+        Long recordId = refund.getId();
         if (WeChat.RETURN_CODE_SUCCESS.equals(refundStatus)) {
             refund.setComments("申请退款成功,等待结果中");
             try {
-                refundService.insert(refund);
+                Refund record = refundService.getRecordById(recordId);
+                if (null != record) {
+                    if (RefundStatusEnum.SUCCESS.getCode().equals(record.getStatus()) &&
+                            RefundStatusEnum.FAILED.getCode().equals(record.getStatus())) {
+                        refund.setStatus(record.getStatus());
+                    }
+                    refundService.update(refund);
+                }
             } catch (Exception e) {
                 log.error("{} 退款记录插入失败 {}", functionDescription, e.getMessage());
             }

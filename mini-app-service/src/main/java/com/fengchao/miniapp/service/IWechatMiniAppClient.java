@@ -18,7 +18,7 @@ public interface IWechatMiniAppClient {
     Map<String,Object> verifySign(String xmlStr) throws Exception;
 
     Refund
-    postRefund(WechatRefundPostBean data,String apiType, String iAppId) throws Exception;
+    postRefund(Refund refund,WechatRefundPostBean data,String apiType, String iAppId) throws Exception;
 
     void
     queryRefund(WechatRefundListBean refund,String apiType, String iAppId) throws Exception;

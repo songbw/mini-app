@@ -1,7 +1,7 @@
 package com.fengchao.miniapp.service.impl;
 
 import com.alibaba.fastjson.JSON;
-import com.alipay.api.AlipayApiException;
+// import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.internal.util.AlipaySignature;
@@ -43,6 +43,56 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         this.aliPayConfigService = aliPayConfigService;
         this.paymentService = paymentService;
         this.refundService = refundService;
+    }
+
+    private Payment tryFindPaymentRecord(String tradeNo){
+
+        PageInfo<Payment> pages = null ;
+        int timeOut = 3;
+        for(int i = 0; i < timeOut; i++) {
+
+            try {
+                pages = paymentService.queryList(1, 1, "id", "DESC",
+                        null, tradeNo, null, null);
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            }
+
+            if (null != pages && null != pages.getRows() && 0 < pages.getRows().size()) {
+                return pages.getRows().get(0);
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+
+        }
+        return null;
+    }
+
+    private Refund tryFindRefundRecord(String remoteRefundNo){
+
+        Refund refund = null ;
+        int timeOut = 3;
+        for(int i = 0; i < timeOut; i++) {
+            try {
+                refund = refundService.getByRemoteRefundNo(remoteRefundNo);
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            }
+
+            if (null != refund) {
+                return refund;
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+
+        }
+        return null;
     }
 
     @Override
@@ -191,7 +241,7 @@ public class AliPaySDKClient implements IAliPaySDKClient {
 
         AliPayConfig config = getAppIdConfig(iAppId);
         String remoteRefundNo = RandomString.buildRefundNo(config.getPayAppId());
-        Map<String,Object> map = new HashMap<>();
+        Map<String,Object> map = new HashMap<>(3);
         map.put(AliPay.OUT_TRADE_NO_KEY,orderId);
         map.put(AliPay.REFUND_AMOUNT_KEY,amount);
         map.put(AliPay.OUT_REQUEST_NO_KEY, remoteRefundNo);
@@ -213,10 +263,6 @@ public class AliPaySDKClient implements IAliPaySDKClient {
 
         try{
             resp = alipayClient.execute(request);
-        }catch (AlipayApiException e){
-            log.error("{} {}",functionDescription,e.getMessage(),e);
-            bean.setComments("退款申请SDK失败");
-            return bean;
         }catch (Exception ex){
             log.error("{} {}",functionDescription,ex.getMessage(),ex);
             bean.setComments("退款申请SDK失败");
@@ -261,20 +307,12 @@ public class AliPaySDKClient implements IAliPaySDKClient {
 
         String tradeStatue = params.get(AliPay.TRADE_STATUS_KEY);
 
-        PageInfo<Payment> pages = null ;
-        Payment record ;
-        try{
-            pages = paymentService.queryList(1,1,"id","DESC",
-                    null,tradeNo,null,null);
-        }catch (Exception e){
-            log.error("{} {}",functionDescription,e.getMessage());
-        }
+        Payment record = tryFindPaymentRecord(tradeNo);
 
-        if (null == pages || null == pages.getRows() || 0 == pages.getRows().size()){
+        if (null == record){
             log.error("{} {}",functionDescription,MyErrorCode.PAYMENT_NO_FOUND);
             return null;
         }else{
-            record = pages.getRows().get(0);
             boolean isHandled =
                     null != record.getTransactionId() && !record.getTransactionId().isEmpty() &&
                     (PaymentStatusType.OK.getCode().equals(record.getStatus())|| PaymentStatusType.FAILED.getCode().equals(record.getStatus()));
@@ -284,7 +322,7 @@ public class AliPaySDKClient implements IAliPaySDKClient {
                 String remoteRefundNo = params.get(AliPay.OUT_BIZ_NO_KEY);
                 if (null != remoteRefundNo){
                     log.info("退款回调, remoteRefundNo={}",remoteRefundNo);
-                    Refund refund = refundService.getByRemoteRefundNo(remoteRefundNo);
+                    Refund refund = tryFindRefundRecord(remoteRefundNo);
                     if (null != refund){
                         refund.setComments(refund.getComments()+" 收到支付宝退款回调");
                         try {
@@ -394,20 +432,29 @@ public class AliPaySDKClient implements IAliPaySDKClient {
 
         log.info("{} SDK返回 {}", functionDescription, JSON.toJSONString(resp));
         String refundFee = resp.getRefundAmount();
-        if (null != refundFee) {
-            refund.setRefundFee(Integer.valueOf(FeeUtils.Yuan2Fen(refundFee)));
-        }
-
-        refund.setComments(AliPay.REFUND_OK_COMMENTS);
-        refund.setUpdateTime(new Date());
-        refund.setStatus(RefundStatusEnum.SUCCESS.getCode());
+        Long recordId = refund.getId();
         try {
-            refundService.update(refund);
+            refund = refundService.getRecordById(recordId);
+            if (null != refund && RefundStatusEnum.PENDING.getCode().equals(refund.getStatus())) {
+                if (null != refundFee) {
+                    refund.setRefundFee(Integer.valueOf(FeeUtils.Yuan2Fen(refundFee)));
+                }
+                if (resp.isSuccess()) {
+                    refund.setComments(AliPay.REFUND_OK_COMMENTS);
+                    refund.setStatus(RefundStatusEnum.SUCCESS.getCode());
+                }else{
+                    refund.setComments(resp.getSubCode()+resp.getSubMsg());
+                    refund.setStatus(RefundStatusEnum.FAILED.getCode());
+                }
+                refund.setUpdateTime(new Date());
+                refundService.update(refund);
+            }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return refund;
         }
         log.info("{} 更新退款记录 {}", functionDescription, JSON.toJSONString(refund));
+
         return refund;
     }
 
@@ -415,7 +462,8 @@ public class AliPaySDKClient implements IAliPaySDKClient {
     public Payment
     queryPayment(Payment record){
 
-        String functionDescription = "支付宝订单查询 ";//Thread.currentThread().getStackTrace()[1].getMethodName();
+        // Thread.currentThread().getStackTrace()[1].getMethodName();
+        String functionDescription = "支付宝订单查询 ";
         log.info("{} 入参 {}",functionDescription, JSON.toJSONString(record));
 
         AliPayConfig config = getAppIdConfig(record.getiAppId());
@@ -444,7 +492,7 @@ public class AliPaySDKClient implements IAliPaySDKClient {
 
         String tradeStatue = resp.getTradeStatus();
         Integer newStatus ;
-        String newComments = "";
+        String newComments;
         if (null != tradeStatue){
             if( AliPay.TRADE_STATUS_OK.equals(tradeStatue)){
                 newStatus = PaymentStatusType.OK.getCode();
@@ -475,8 +523,14 @@ public class AliPaySDKClient implements IAliPaySDKClient {
                 record.setComments(newComments);
                 record.setUpdateTime(new Date());
 
+                Long recordId = record.getId();
                 try {
-                    paymentService.update(record);
+                    Payment payment = paymentService.getRecordById(recordId);
+                    if (null != payment &&
+                            (PaymentStatusType.PREPAY.getCode().equals(payment.getStatus()) ||
+                                    PaymentStatusType.PREPAY.getCode().equals(payment.getStatus()))){
+                        paymentService.update(record);
+                    }
                 }catch (Exception e){
                     log.error(e.getMessage(),e);
                     return record;
