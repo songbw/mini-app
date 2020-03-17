@@ -2,9 +2,17 @@ package com.fengchao.miniapp.constant;
 
 public class WeChat {
 
+    /*微信商户号相关三项(万科使用)
     public static final String MINI_APP_PAYMENT_API_KEY = "DC12C1282924ED35D5B4A1F98E0544E9";
     public static final String MINI_APP_PAYMENT_MCH_ID = "1553849241";
+    public static final String MINI_APP_CERT_FILE = "cert/old_apiclient_cert.p12";
+    */
+    //微信商户号相关三项(风巢使用)
+    public static final String MINI_APP_PAYMENT_API_KEY = "DC12C1282924ED35D5B4A1F98E0544E9";
+    public static final String MINI_APP_PAYMENT_MCH_ID = "1578670701";
     public static final String MINI_APP_CERT_FILE = "cert/apiclient_cert.p12";
+
+
 
     public static final String MINI_APP_PAYMENT_UNIFIED_ORDER_URL = "https://api.mch.weixin.qq.com/pay/unifiedorder";
     //public static final String MINI_APP_PAYMENT_NOTIFY = "https://xcx-dev.weesharing.com/wechat/payment/notify";
