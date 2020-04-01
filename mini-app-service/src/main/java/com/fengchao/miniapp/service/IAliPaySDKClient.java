@@ -19,7 +19,7 @@ public interface IAliPaySDKClient {
     signParam(Map<String,String> map,String iAppId);
 
     boolean
-    verifySign(Map<String,String> map);
+    verifySign(Map<String,String> map,String iAppId);
 
     WeChatTokenResultBean
     getToken(String code,String iAppId) throws Exception;
