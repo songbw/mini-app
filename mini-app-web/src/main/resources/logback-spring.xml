@@ -4,7 +4,7 @@
     <property name="server_name" value="miniApp"/>
     <property name="maxFileSize" value="100MB"/>
     <property name="maxHistory" value="180"/>
-    <springProfile name="dev,test,prod,wuxi">
+    <springProfile name="dev,test,prod,wuxi,tiyan">
         <property name="log_dir" value="/data/logs/miniApp"/>
     </springProfile>
     <springProfile name="local,localTest">
@@ -75,7 +75,7 @@
         </root>
     </springProfile>
 
-    <springProfile name="test,dev,local,localTest,wuxi">
+    <springProfile name="test,dev,local,localTest,wuxi,tiyan">
         <root level="INFO" additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="INFO"/>
