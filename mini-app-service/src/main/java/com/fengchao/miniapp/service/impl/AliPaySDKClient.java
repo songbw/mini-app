@@ -337,8 +337,7 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         }
 
         record.setApiType(ApiType.ALIPAY_PHONE_WEB.getCode());
-        record.setCreateTime(new Date());
-        record.setUpdateTime(record.getCreateTime());
+        record.setUpdateTime(new Date());
         record.setOrderId(tradeNo);
         record.setTransactionId(aliPayTradeNo);
         record.setResult(tradeStatue);
