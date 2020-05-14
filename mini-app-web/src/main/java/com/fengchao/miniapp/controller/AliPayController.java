@@ -264,6 +264,8 @@ public class AliPayController {
         bean.setTradeNo(payment.getTransactionId());
         if (null != payment.getTimeEnd() && !payment.getTimeEnd().isEmpty()) {
             bean.setTradeDate(payment.getTimeEnd());
+        }else{
+            bean.setTradeDate(DateUtil.Date2String(new Date()));
         }
         if(null != payment.getTotalFee() && 0 != payment.getTotalFee()) {
             bean.setPayFee(payment.getTotalFee().toString());

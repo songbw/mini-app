@@ -369,9 +369,18 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         if (null != payFee){
             record.setRespTotalFee(Integer.valueOf(FeeUtils.Yuan2Fen(payFee)));
         }
-        String endTime = params.get(AliPay.END_TIME_KEY);
-        if (null != endTime){
+        String endTime = params.get(AliPay.CLOSE_TIME_KEY);
+        if (null != endTime && !endTime.isEmpty()){
             record.setTimeEnd(endTime);
+        }else{
+            endTime = params.get(AliPay.END_TIME_KEY);
+            if (null != endTime && !endTime.isEmpty()) {
+                record.setTimeEnd(endTime);
+            }else{
+                ///回调中没有发现支付完成时间，以通知时间为准,聚合支付需要这个时间
+                String notifyTime = DateUtil.Date2String(new Date());
+                record.setTimeEnd(notifyTime);
+            }
         }
         String loginId = params.get(AliPay.BUYER_LOGON_ID_KEY);
         String buyerId = params.get(AliPay.BUYER_ID_KEY);

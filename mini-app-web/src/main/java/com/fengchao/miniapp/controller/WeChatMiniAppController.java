@@ -14,10 +14,7 @@ import com.fengchao.miniapp.service.impl.PaymentServiceImpl;
 import com.fengchao.miniapp.service.impl.RefundServiceImpl;
 import com.fengchao.miniapp.service.impl.UserInfoServiceImpl;
 import com.fengchao.miniapp.service.impl.WeChatMiniAppClientImpl;
-import com.fengchao.miniapp.utils.PageInfo;
-import com.fengchao.miniapp.utils.RedisDAO;
-import com.fengchao.miniapp.utils.ResultObject;
-import com.fengchao.miniapp.utils.XmlUtil;
+import com.fengchao.miniapp.utils.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -269,9 +266,9 @@ public class WeChatMiniAppController {
         Object resultObj = postMap.get(WeChat.RESULT_CODE_KEY);
         Object openIdObj = postMap.get(WeChat.OPEN_ID_KEY);
 
-        if (null == tranIdObj || null == timeEndObj || null == cashFeeObj
+        if (null == tranIdObj ||  null == cashFeeObj
             || null == totalFeeObj || null == resultObj || null == openIdObj
-            ||tranIdObj.toString().isEmpty() || timeEndObj.toString().isEmpty()
+            ||tranIdObj.toString().isEmpty()
             ||cashFeeObj.toString().isEmpty() || totalFeeObj.toString().isEmpty()
             || resultObj.toString().isEmpty()
             || openIdObj.toString().isEmpty()){
@@ -314,7 +311,12 @@ public class WeChatMiniAppController {
         payment.setRespTotalFee(respTotalFee);
         payment.setCashFee(Integer.valueOf(cashFeeObj.toString()));
         payment.setTransactionId(tranIdObj.toString());
-        payment.setTimeEnd(timeEndObj.toString());
+        //////回调中没有发现支付完成时间，以通知时间为准,聚合支付需要这个时间
+        if(null == timeEndObj) {
+            payment.setTimeEnd(DateUtil.Date2String(new Date()));
+        }else {
+            payment.setTimeEnd(timeEndObj.toString());
+        }
         payment.setUpdateTime(new Date());
         if (WeChat.RETURN_CODE_SUCCESS.equals(resultObj.toString())){
             payment.setStatus(PaymentStatusType.OK.getCode());
@@ -344,9 +346,7 @@ public class WeChatMiniAppController {
         bean.setOrderNo(payment.getOrderId());
         bean.setPayType(weChatMiniAppClient.getPayType(payment.getApiType()));
         bean.setTradeNo(tranIdObj.toString());
-        if (null != timeEndObj) {
-            bean.setTradeDate(timeEndObj.toString());
-        }
+        bean.setTradeDate(payment.getTimeEnd());
         String totalFee = totalFeeObj.toString();
         /*
         int feeSize = totalFee.length();

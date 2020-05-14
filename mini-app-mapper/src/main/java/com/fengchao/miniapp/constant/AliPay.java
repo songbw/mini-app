@@ -42,7 +42,10 @@ public class AliPay {
     public static final String TOTAL_AMOUNT_KEY = "total_amount";//订单金额
     public static final String RECEIPT_AMOUNT_KEY = "receipt_amount";//商家在交易中实际收到的款项，单位为元
     public static final String PAY_AMOUNT_KEY = "buyer_pay_amount";//用户在交易中支付的金额
-    public static final String END_TIME_KEY = "gmt_payment";//该笔交易的买家付款时间。格式为yyyy-MM-dd HH:mm:ss
+    ///2020-05-09之后回调改为 gmt_close ,该笔交易的买家付款时间。格式为yyyy-MM-dd HH:mm:ss
+    public static final String END_TIME_KEY = "gmt_payment";
+    public static final String CLOSE_TIME_KEY = "gmt_close";
+
     public static final String NOTIFY_ID_KEY = "notify_id";// 通知校验ID
     public static final String FUND_BILL_LIST_KEY = "fund_bill_list";// 支付成功的各个渠道金额信息
     public static final String OUT_BIZ_NO_KEY = "out_biz_no";// 退款单号，有商家申请退款时生成out_request_no
