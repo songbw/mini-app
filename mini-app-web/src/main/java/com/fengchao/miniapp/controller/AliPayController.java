@@ -258,6 +258,12 @@ public class AliPayController {
         }
         log.info("=== {} 更新记录成功 {}", functionDescription,JSON.toJSONString(payment));
 
+        if(!PaymentStatusType.OK.getCode().equals(payment.getStatus())){
+            ///不是成功支付的回调不通知聚合支付
+            log.info("{} 不是成功支付的回调 不通知聚合支付",functionDescription);
+            return resultOk;
+        }
+
         WSPayPaymentNotifyBean bean = new WSPayPaymentNotifyBean();
         bean.setOrderNo(payment.getOrderId());
         bean.setPayType(AliPay.AGGPAY_BANK_TYPE_FOR_ALIPAY);
