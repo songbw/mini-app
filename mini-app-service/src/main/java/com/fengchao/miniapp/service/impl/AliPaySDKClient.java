@@ -102,9 +102,10 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         log.info("{} 入参 {}",functionDescription, JSON.toJSON(map));
         String content = AlipaySignature.getSignCheckContentV2(map);
         log.info("{} 拼接待签名字符串 {}",functionDescription,content);
+        AliPayConfig config = getAppIdConfig(iAppId);
         String sign;
         try{
-            sign = AlipaySignature.rsa256Sign(content, AliPay.getAppPrivateKey(iAppId),AliPay.CHARSET);
+            sign = AlipaySignature.rsa256Sign(content, config.getPrivateKey(),AliPay.CHARSET);
         }catch (Exception e){
             log.error("{} {}",functionDescription,e.getMessage(),e);
             return null;
@@ -127,9 +128,9 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         AliPayConfig config = getAppIdConfig(iAppId);
         AlipayClient alipayClient =
                 new DefaultAlipayClient(AliPay.GATEWAY_URL,
-                        config.getPayAppId(),AliPay.getAppPrivateKey(iAppId),
+                        config.getPayAppId(),config.getPrivateKey(),
                         "json", AliPay.CHARSET,
-                        AliPay.getAliPayPublicKey(iAppId),
+                        config.getPublicKey(),
                         AliPay.SIGN_TYPE_VALUE);
 
         AlipayTradeWapPayRequest alipayRequest = new AlipayTradeWapPayRequest();
@@ -162,10 +163,10 @@ public class AliPaySDKClient implements IAliPaySDKClient {
             log.debug("{} 入参 {}", functionDescription, JSON.toJSON(map));
         }
         boolean result;
-
+        AliPayConfig config = getAppIdConfig(iAppId);
         try {
             //result = AlipaySignature.rsaCheckV2(map, AliPay.PUBLIC_KEY_VALUE, AliPay.CHARSET, AliPay.SIGN_TYPE_VALUE);
-            result = AlipaySignature.rsaCheckV1(map, AliPay.getAliPayPublicKey(iAppId), AliPay.CHARSET,AliPay.SIGN_TYPE_VALUE);
+            result = AlipaySignature.rsaCheckV1(map, config.getPublicKey(), AliPay.CHARSET,AliPay.SIGN_TYPE_VALUE);
         }catch (Exception e){
             log.error("{} {}",functionDescription,e.getMessage(),e);
             return false;
@@ -188,9 +189,9 @@ public class AliPaySDKClient implements IAliPaySDKClient {
 
         AlipayClient alipayClient =
                 new DefaultAlipayClient(AliPay.GATEWAY_URL,
-                        config.getPayAppId(),AliPay.getAppPrivateKey(iAppId),
+                        config.getPayAppId(),config.getPrivateKey(),
                 "json", AliPay.CHARSET,
-                        AliPay.getAliPayPublicKey(iAppId),
+                        config.getPublicKey(),
                         AliPay.SIGN_TYPE_VALUE);
         AlipayOpenAuthTokenAppRequest request = new AlipayOpenAuthTokenAppRequest();
         request.setBizContent(JSON.toJSONString(map));
@@ -248,9 +249,9 @@ public class AliPaySDKClient implements IAliPaySDKClient {
 
         AlipayClient alipayClient =
                 new DefaultAlipayClient(AliPay.GATEWAY_URL,
-                        config.getPayAppId(),AliPay.getAppPrivateKey(iAppId),
+                        config.getPayAppId(),config.getPrivateKey(),
                         "json", AliPay.CHARSET,
-                        AliPay.getAliPayPublicKey(iAppId),
+                        config.getPublicKey(),
                         AliPay.SIGN_TYPE_VALUE);
 
         AlipayTradeRefundRequest request = new AlipayTradeRefundRequest();
@@ -422,9 +423,9 @@ public class AliPaySDKClient implements IAliPaySDKClient {
 
         AlipayClient alipayClient =
                 new DefaultAlipayClient(AliPay.GATEWAY_URL,
-                        config.getPayAppId(), AliPay.getAppPrivateKey(iAppId),
+                        config.getPayAppId(), config.getPrivateKey(),
                         "json", AliPay.CHARSET,
-                        AliPay.getAliPayPublicKey(iAppId),
+                        config.getPublicKey(),
                         AliPay.SIGN_TYPE_VALUE);
 
         AlipayTradeFastpayRefundQueryRequest request = new AlipayTradeFastpayRefundQueryRequest();
@@ -481,9 +482,9 @@ public class AliPaySDKClient implements IAliPaySDKClient {
 
         AlipayClient alipayClient =
                 new DefaultAlipayClient(AliPay.GATEWAY_URL,
-                        config.getPayAppId(),AliPay.getAppPrivateKey(iAppId),
+                        config.getPayAppId(),config.getPrivateKey(),
                         "json", AliPay.CHARSET,
-                        AliPay.getAliPayPublicKey(iAppId),
+                        config.getPublicKey(),
                         AliPay.SIGN_TYPE_VALUE);
 
         AlipayTradeQueryRequest request = new AlipayTradeQueryRequest();

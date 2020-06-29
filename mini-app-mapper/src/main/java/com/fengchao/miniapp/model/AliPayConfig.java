@@ -21,6 +21,10 @@ public class AliPayConfig {
 
     private String comments;
 
+    private String privateKey;
+
+    private String publicKey;
+
     public Integer getId() {
         return id;
     }
@@ -91,5 +95,21 @@ public class AliPayConfig {
 
     public void setComments(String comments) {
         this.comments = comments == null ? null : comments.trim();
+    }
+
+    public String getPrivateKey() {
+        return privateKey;
+    }
+
+    public void setPrivateKey(String privateKey) {
+        this.privateKey = privateKey == null ? null : privateKey.trim();
+    }
+
+    public String getPublicKey() {
+        return publicKey;
+    }
+
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey == null ? null : publicKey.trim();
     }
 }

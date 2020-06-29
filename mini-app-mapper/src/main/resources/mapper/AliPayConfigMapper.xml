@@ -11,6 +11,8 @@
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
     <result column="comments" jdbcType="VARCHAR" property="comments" />
+    <result column="private_key" jdbcType="VARCHAR" property="privateKey" />
+    <result column="public_key" jdbcType="VARCHAR" property="publicKey" />
   </resultMap>
   <sql id="Example_Where_Clause">
     <where>
@@ -72,7 +74,7 @@
   </sql>
   <sql id="Base_Column_List">
     id, i_app_id, pay_app_id, pay_notify, refund_notify, api_url, create_time, update_time, 
-    comments
+    comments, private_key, public_key
   </sql>
   <select id="selectByExample" parameterType="com.fengchao.miniapp.model.AliPayConfigExample" resultMap="BaseResultMap">
     select
@@ -111,10 +113,12 @@
     </selectKey>
     insert into ali_pay_config (i_app_id, pay_app_id, pay_notify, 
       refund_notify, api_url, create_time, 
-      update_time, comments)
+      update_time, comments, private_key, 
+      public_key)
     values (#{iAppId,jdbcType=VARCHAR}, #{payAppId,jdbcType=VARCHAR}, #{payNotify,jdbcType=VARCHAR}, 
       #{refundNotify,jdbcType=VARCHAR}, #{apiUrl,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{comments,jdbcType=VARCHAR})
+      #{updateTime,jdbcType=TIMESTAMP}, #{comments,jdbcType=VARCHAR}, #{privateKey,jdbcType=VARCHAR}, 
+      #{publicKey,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.fengchao.miniapp.model.AliPayConfig">
     <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
@@ -146,6 +150,12 @@
       <if test="comments != null">
         comments,
       </if>
+      <if test="privateKey != null">
+        private_key,
+      </if>
+      <if test="publicKey != null">
+        public_key,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="iAppId != null">
@@ -171,6 +181,12 @@
       </if>
       <if test="comments != null">
         #{comments,jdbcType=VARCHAR},
+      </if>
+      <if test="privateKey != null">
+        #{privateKey,jdbcType=VARCHAR},
+      </if>
+      <if test="publicKey != null">
+        #{publicKey,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -210,6 +226,12 @@
       <if test="record.comments != null">
         comments = #{record.comments,jdbcType=VARCHAR},
       </if>
+      <if test="record.privateKey != null">
+        private_key = #{record.privateKey,jdbcType=VARCHAR},
+      </if>
+      <if test="record.publicKey != null">
+        public_key = #{record.publicKey,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -225,7 +247,9 @@
       api_url = #{record.apiUrl,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      comments = #{record.comments,jdbcType=VARCHAR}
+      comments = #{record.comments,jdbcType=VARCHAR},
+      private_key = #{record.privateKey,jdbcType=VARCHAR},
+      public_key = #{record.publicKey,jdbcType=VARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -257,6 +281,12 @@
       <if test="comments != null">
         comments = #{comments,jdbcType=VARCHAR},
       </if>
+      <if test="privateKey != null">
+        private_key = #{privateKey,jdbcType=VARCHAR},
+      </if>
+      <if test="publicKey != null">
+        public_key = #{publicKey,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=INTEGER}
   </update>
@@ -269,7 +299,9 @@
       api_url = #{apiUrl,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
-      comments = #{comments,jdbcType=VARCHAR}
+      comments = #{comments,jdbcType=VARCHAR},
+      private_key = #{privateKey,jdbcType=VARCHAR},
+      public_key = #{publicKey,jdbcType=VARCHAR}
     where id = #{id,jdbcType=INTEGER}
   </update>
 </mapper>

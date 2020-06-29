@@ -73,7 +73,10 @@ public class AliPay {
         }
         if ("11".equals(appId)){
             return APIID_11_APP_PRIVATE_KEY_VALUE;
-        }else{
+        }else if ("15".equals(appId)){
+            return APIID_11_APP_PRIVATE_KEY_VALUE;
+        }
+        else{
             return FC_APP_PRIVATE_KEY_VALUE;
         }
     }
@@ -83,6 +86,8 @@ public class AliPay {
             return null;
         }
         if ("11".equals(appId)){
+            return APIID_11_ALIPAY_PUBLIC_KEY_VALUE;
+        }else if ("15".equals(appId)){
             return APIID_11_ALIPAY_PUBLIC_KEY_VALUE;
         }else{
             return ALIPAY_PUBLIC_KEY_VALUE;
