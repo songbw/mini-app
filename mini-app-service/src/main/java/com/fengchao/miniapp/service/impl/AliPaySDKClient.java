@@ -6,10 +6,7 @@ import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.alipay.api.request.*;
-import com.alipay.api.response.AlipayOpenAuthTokenAppResponse;
-import com.alipay.api.response.AlipayTradeFastpayRefundQueryResponse;
-import com.alipay.api.response.AlipayTradeQueryResponse;
-import com.alipay.api.response.AlipayTradeRefundResponse;
+import com.alipay.api.response.*;
 import com.fengchao.miniapp.bean.*;
 import com.fengchao.miniapp.constant.*;
 import com.fengchao.miniapp.model.AliPayConfig;
@@ -18,6 +15,7 @@ import com.fengchao.miniapp.model.Refund;
 import com.fengchao.miniapp.service.IAliPaySDKClient;
 
 
+import java.net.URLEncoder;
 import java.util.*;
 
 import com.fengchao.miniapp.utils.*;
@@ -97,12 +95,12 @@ public class AliPaySDKClient implements IAliPaySDKClient {
 
     @Override
     public AliPaySignParamBean
-    signParam(Map<String,String> map, String iAppId){
+    signParam(Map<String,String> map, AliPayConfig config){
         String functionDescription = "支付宝SDK签名: ";
         log.info("{} 入参 {}",functionDescription, JSON.toJSON(map));
         String content = AlipaySignature.getSignCheckContentV2(map);
         log.info("{} 拼接待签名字符串 {}",functionDescription,content);
-        AliPayConfig config = getAppIdConfig(iAppId);
+
         String sign;
         try{
             sign = AlipaySignature.rsa256Sign(content, config.getPrivateKey(),AliPay.CHARSET);
@@ -114,7 +112,8 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         AliPaySignParamBean bean = new AliPaySignParamBean();
         bean.setSign(sign);
         bean.setSignType(AliPay.SIGN_TYPE_VALUE);
-        bean.setAppId(getAppIdConfig(iAppId).getiAppId());
+        bean.setAppId(config.getiAppId());
+        bean.setSignedRequestString(content);
 
         return bean;
     }
@@ -142,7 +141,7 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         map.put(AliPay.OUT_TRADE_NO_KEY,data.getTradeNo());
         map.put(AliPay.TOTAL_AMOUNT_KEY, Float.valueOf(FeeUtils.Fen2Yuan(data.getTotalAmount().toString())));
         map.put(AliPay.SUBJECT_KEY,data.getSubject());
-        map.put(AliPay.PROCUCT_CODE_KEY,AliPay.PROCUCT_CODE_DEFAULT_VALUE);
+        map.put(AliPay.PRODUCT_CODE_KEY,AliPay.PRODUCT_CODE_DEFAULT_VALUE);
         alipayRequest.setBizContent(JSON.toJSONString(map));
 
         try {
@@ -575,5 +574,62 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         }
         return params;
 
+    }
+
+    @Override
+    public String
+    buildJSSDKPayString(String iAppId,String outTradeNo,String totalAmount,String subject){
+        String function = "构建支付宝JSSDK支付请求";
+        log.info("{} iAppId={}, outTradeNo={}, totalAmount={}, subject={}",
+                function,iAppId,outTradeNo,totalAmount,subject);
+
+        AliPayConfig config = getAppIdConfig(iAppId);
+
+        Map<String,Object> bizContentMap = new TreeMap<>();
+        bizContentMap.put(AliPay.OUT_TRADE_NO_KEY,outTradeNo.trim());
+        bizContentMap.put(AliPay.TOTAL_AMOUNT_KEY, FeeUtils.Fen2Yuan(totalAmount).trim());
+        bizContentMap.put(AliPay.SUBJECT_KEY,subject.trim());
+        bizContentMap.put(AliPay.PRODUCT_CODE_KEY,AliPay.PRODUCT_CODE_APP_PAY);
+        ///该笔订单允许的最晚付款时间 120分钟
+        bizContentMap.put(AliPay.TIMEOUT_EXPRESS_KEY,"120m");
+
+        Map<String,String> map = new HashMap<>();
+        map.put(AliPay.APP_ID_KEY,config.getPayAppId());
+        map.put(AliPay.METHOD_KEY,AliPay.METHOD_PAY);
+        map.put(AliPay.CHARSET_KEY, AliPay.CHARSET_UTF8);
+        map.put(AliPay.SIGN_TYPE_KEY,AliPay.SIGN_TYPE_VALUE);
+        map.put(AliPay.TIMESTAMP_KEY,DateUtil.Date2String(new Date()));
+        map.put(AliPay.VERSION_KEY,"1.0");
+        map.put(AliPay.NOTIFY_URL_KEY,config.getPayNotify());
+        map.put(AliPay.BIZ_CONTENT_KEY,JSON.toJSONString(bizContentMap));
+
+
+        AliPaySignParamBean signParamBean = signParam(map,config);
+        map.put(AliPay.SIGN_KEY,signParamBean.getSign());
+        return urlEncodeValues(map);
+
+    }
+
+    private String urlEncodeValues(Map<String, String> params){
+        String functionDescription = "app支付参数url编码: ";
+        log.info("{} 入参 {}",functionDescription, JSON.toJSON(params));
+
+        StringBuilder content = new StringBuilder();
+        List<String> keys = new ArrayList<String>(params.keySet());
+        Collections.sort(keys);
+
+        try {
+            for (int i = 0; i < keys.size(); i++) {
+                String key = keys.get(i);
+                String value = URLEncoder.encode(params.get(key), AliPay.CHARSET_UTF8);
+                content.append(i == 0 ? "" : "&").append(key).append("=").append(value);
+            }
+
+            log.info("{} 拼接转码字符串 {}", functionDescription, content);
+            return content.toString();
+        }catch (Exception e){
+            log.error(e.getMessage(),e);
+            throw new RuntimeException(MyErrorCode.ALIPAY_SDK_FAILED+e.getMessage());
+        }
     }
 }

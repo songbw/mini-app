@@ -142,6 +142,45 @@ public class AliPayController {
         return new ResultObject<>(200,"success",form);
     }
 
+
+    @ApiOperation(value = "创建支付宝JSSDK支付请求", notes="外部商户App通过调用 alipay.trade.app.pay 接口唤起快捷 SDK 创建订单并支付")
+    @PostMapping("/jssdk/pay")
+    public ResultObject<String>
+    buildJsSdkPay(HttpServletResponse httpResponse,
+               HttpServletRequest request,
+               @RequestBody  AliWapPayPostBean data) {
+
+        String ip = request.getRemoteAddr();
+
+        Payment payment = new Payment();
+        payment.setIp(ip);
+        payment.setiAppId(data.getIAppId());
+        payment.setApiType(ApiType.ALIPAY_JSSDK.getCode());
+        payment.setOrderId(data.getTradeNo());
+        payment.setTotalFee(data.getTotalAmount());
+        payment.setStatus(PaymentStatusType.PREPAY.getCode());
+        payment.setCreateTime(new Date());
+        payment.setUpdateTime(new Date());
+        payment.setComments("完成创建支付宝JSSDK支付请求 ");
+
+        String functionDescription = "创建支付宝JSSDK支付请求";
+        log.info("=== {} 入参 {}", functionDescription, JSON.toJSONString(data));
+        data.verifyValue();//fix it
+
+        String payString = aliPaySDKClient.buildJSSDKPayString(data.getIAppId(),data.getTradeNo(),String.valueOf(data.getTotalAmount()),data.getSubject());
+        if (null == payString){
+            throw new RuntimeException(MyErrorCode.ALIPAY_SDK_FAILED+"创建jsSdk支付参数 返回空");
+        }
+
+        try{
+            paymentService.insert(payment);
+        }catch (Exception e){
+            log.error("数据库插入jsSdk预下单记录失败");
+        }
+
+        return new ResultObject<>(200,"success",payString);
+    }
+
     @ApiOperation(value = "支付宝申请退款", notes="支付宝申请退款")
     @PostMapping("/refund")
     public ResultObject<RefundRespToAggPayBean>
@@ -230,6 +269,9 @@ public class AliPayController {
         return result;
 
     }
+
+
+
 
     @ApiOperation(value = "支付宝付款回调", notes="支付宝付款回调")
     @PostMapping("/payment/notify")

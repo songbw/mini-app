@@ -6,7 +6,9 @@ public enum ApiType {
     MINI("mini", "微信小程序支付"),
     APP("app", "微信APP支付"),
     JSAPI("jsapi", "微信JSAPI支付"),
-    ALIPAY_PHONE_WEB("AliPayPhoneWeb", "支付宝手机支付");
+    ALIPAY_PHONE_WEB("AliPayPhoneWeb", "支付宝手机支付"),
+    ALIPAY_JSSDK("AliPayJsSdk", "支付宝jsSdk支付"),
+    ;
 
     private String code;
     private String msg;
