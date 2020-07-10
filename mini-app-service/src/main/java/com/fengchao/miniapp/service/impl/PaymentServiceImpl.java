@@ -53,7 +53,7 @@ public class PaymentServiceImpl implements IPaymentService {
             throw new Exception(msg);
         }
 
-        log.info(functionDescription + MyErrorCode.MYSQL_INSERT_SUCCESS +record.getId().toString());
+        log.info("{} {} {}",functionDescription, MyErrorCode.MYSQL_INSERT_SUCCESS, JSON.toJSONString(record));
         return record.getId();
     }
 

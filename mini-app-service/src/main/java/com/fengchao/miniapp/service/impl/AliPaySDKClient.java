@@ -336,7 +336,6 @@ public class AliPaySDKClient implements IAliPaySDKClient {
             }
         }
 
-        record.setApiType(ApiType.ALIPAY_PHONE_WEB.getCode());
         record.setUpdateTime(new Date());
         record.setOrderId(tradeNo);
         record.setTransactionId(aliPayTradeNo);
@@ -578,7 +577,7 @@ public class AliPaySDKClient implements IAliPaySDKClient {
 
     @Override
     public String
-    buildJSSDKPayString(String iAppId,String outTradeNo,String totalAmount,String subject){
+    buildJSSDKPayString(String iAppId,String outTradeNo,String totalAmount,String subject,String returnUrl){
         String function = "构建支付宝JSSDK支付请求";
         log.info("{} iAppId={}, outTradeNo={}, totalAmount={}, subject={}",
                 function,iAppId,outTradeNo,totalAmount,subject);
@@ -601,6 +600,9 @@ public class AliPaySDKClient implements IAliPaySDKClient {
         map.put(AliPay.TIMESTAMP_KEY,DateUtil.Date2String(new Date()));
         map.put(AliPay.VERSION_KEY,"1.0");
         map.put(AliPay.NOTIFY_URL_KEY,config.getPayNotify());
+        if (null != returnUrl) {
+            map.put(AliPay.RETURN_URL_KEY, returnUrl);
+        }
         map.put(AliPay.BIZ_CONTENT_KEY,JSON.toJSONString(bizContentMap));
 
 

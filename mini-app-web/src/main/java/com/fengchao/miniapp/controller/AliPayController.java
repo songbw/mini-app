@@ -167,7 +167,7 @@ public class AliPayController {
         log.info("=== {} 入参 {}", functionDescription, JSON.toJSONString(data));
         data.verifyValue();//fix it
 
-        String payString = aliPaySDKClient.buildJSSDKPayString(data.getIAppId(),data.getTradeNo(),String.valueOf(data.getTotalAmount()),data.getSubject());
+        String payString = aliPaySDKClient.buildJSSDKPayString(data.getIAppId(),data.getTradeNo(),String.valueOf(data.getTotalAmount()),data.getSubject(),data.getReturnUrl());
         if (null == payString){
             throw new RuntimeException(MyErrorCode.ALIPAY_SDK_FAILED+"创建jsSdk支付参数 返回空");
         }
@@ -308,7 +308,11 @@ public class AliPayController {
 
         WSPayPaymentNotifyBean bean = new WSPayPaymentNotifyBean();
         bean.setOrderNo(payment.getOrderId());
-        bean.setPayType(AliPay.AGGPAY_BANK_TYPE_FOR_ALIPAY);
+        if (ApiType.ALIPAY_JSSDK.getCode().equals(payment.getApiType())) {
+            bean.setPayType(AliPay.AGGPAY_TYPE_FOR_ALIPAY_JSSDK_PAY);
+        }else{
+            bean.setPayType(AliPay.AGGPAY_TYPE_FOR_ALIPAY);
+        }
         bean.setTradeNo(payment.getTransactionId());
         if (null != payment.getTimeEnd() && !payment.getTimeEnd().isEmpty()) {
             bean.setTradeDate(payment.getTimeEnd());

@@ -4,7 +4,8 @@ import java.nio.charset.StandardCharsets;
 
 public class AliPay {
 
-    public static final String AGGPAY_BANK_TYPE_FOR_ALIPAY = "fcalipay";
+    public static final String AGGPAY_TYPE_FOR_ALIPAY = "fcalipay";
+    public static final String AGGPAY_TYPE_FOR_ALIPAY_JSSDK_PAY = "fcalijssdk";
     public static final String REFUND_OK_COMMENTS = "支付宝申请退款成功";
 
     /**无锡市民卡惠民优选 */
@@ -33,6 +34,7 @@ public class AliPay {
 
     /** 支付宝服务器主动通知商户服务器里指定的页面 http/https 路径。建议商户使用 https , 例如 https://api.xx.com/receive_notify.htm */
     public static final String NOTIFY_URL_KEY = "notify_url";
+    public static final String RETURN_URL_KEY = "return_url";
 
     public static final String CHARSET= StandardCharsets.UTF_8.displayName();
 
