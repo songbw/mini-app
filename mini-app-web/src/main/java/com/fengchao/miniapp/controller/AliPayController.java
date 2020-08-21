@@ -3,6 +3,7 @@ package com.fengchao.miniapp.controller;
 import com.alibaba.fastjson.JSON;
 import com.fengchao.miniapp.bean.*;
 import com.fengchao.miniapp.client.http.IAggPayClient;
+import com.fengchao.miniapp.config.RenterConfig;
 import com.fengchao.miniapp.constant.*;
 import com.fengchao.miniapp.dto.WSPayPaymentNotifyBean;
 import com.fengchao.miniapp.model.Payment;
@@ -39,12 +40,14 @@ public class AliPayController {
     private RefundServiceImpl refundService;
     private PaymentServiceImpl paymentService;
     private IAggPayClient aggPayClient;
+    private RenterConfig renterConfig;
 
     @Autowired
     public AliPayController(PaymentServiceImpl paymentService,
                             IAggPayClient aggPayClient,
                             RefundServiceImpl refundService,
                             AliPaySDKClient aliPaySDKClient,
+                            RenterConfig renterConfig,
                             RedisDAO redisDAO){
 
         this.aliPaySDKClient = aliPaySDKClient;
@@ -52,7 +55,7 @@ public class AliPayController {
         this.refundService = refundService;
         this.paymentService = paymentService;
         this.aggPayClient = aggPayClient;
-
+        this.renterConfig = renterConfig;
     }
 /*
     @ApiOperation(value = "获取支付宝token", notes="获取支付宝token")
@@ -397,5 +400,20 @@ public class AliPayController {
         log.info("=== {} 成功",functionDescription);
         return new ResultObject<>(200,"success",pages);
 
+    }
+
+    @ApiOperation(value = "租户支付宝配置更新通知")
+    @GetMapping("/update/notify")
+    public String
+    updateConfigNotify(@RequestHeader String renterId,
+                       @RequestParam String alipayId) {
+
+        String functionDescription = "租户支付宝配置更新回调 ";
+        log.info("{} renterId={} alipayId={} ", functionDescription,renterId,alipayId);
+
+        String resultOk = "success";
+        renterConfig.freshAliConfig(renterId,alipayId);
+
+        return resultOk;
     }
 }

@@ -4,6 +4,7 @@ package com.fengchao.miniapp.controller;
 import com.alibaba.fastjson.JSON;
 import com.fengchao.miniapp.bean.*;
 import com.fengchao.miniapp.client.http.IAggPayClient;
+import com.fengchao.miniapp.config.RenterConfig;
 import com.fengchao.miniapp.constant.*;
 import com.fengchao.miniapp.dto.WSPayPaymentNotifyBean;
 import com.fengchao.miniapp.dto.WSPayRefundNotifyBean;
@@ -45,6 +46,7 @@ public class WeChatMiniAppController {
     private PaymentServiceImpl paymentService;
     private RefundServiceImpl refundService;
     private IAggPayClient aggPayClient;
+    private RenterConfig renterConfig;
 
     @Autowired
     public WeChatMiniAppController(IAggPayClient aggPayClient,
@@ -52,6 +54,7 @@ public class WeChatMiniAppController {
                                    PaymentServiceImpl paymentService,
                                    UserInfoServiceImpl userInfoServic,
                                    RedisDAO redisDAO,
+                                   RenterConfig renterConfig,
                                    WeChatMiniAppClientImpl weChatMiniAppClient){
 
         this.weChatMiniAppClient = weChatMiniAppClient;
@@ -60,6 +63,7 @@ public class WeChatMiniAppController {
         this.paymentService = paymentService;
         this.refundService = refundService;
         this.aggPayClient = aggPayClient;
+        this.renterConfig = renterConfig;
 
     }
 
@@ -347,7 +351,7 @@ public class WeChatMiniAppController {
             log.info("{} 不是成功支付的回调 不通知聚合支付",functionDescription);
             return okXml;
         }
-        
+
         WSPayPaymentNotifyBean bean = new WSPayPaymentNotifyBean();
         bean.setOrderNo(payment.getOrderId());
         bean.setPayType(weChatMiniAppClient.getPayType(payment.getApiType()));
@@ -876,5 +880,20 @@ public class WeChatMiniAppController {
         log.info("=== {} 成功",functionDescription);
         return new ResultObject<>(200,"success",refund);
 
+    }
+
+    @ApiOperation(value = "租户微信支付配置更新通知")
+    @GetMapping("/update/notify")
+    public String
+    updateConfigNotify(@RequestHeader String renterId,
+                       @RequestParam String wechatId) {
+
+        String functionDescription = "租户微信支付配置更新回调 ";
+        log.info("{} renterId={} wechatId={} ", functionDescription,renterId,wechatId);
+
+        String resultOk = "success";
+        renterConfig.freshWxConfig(renterId,wechatId);
+
+        return resultOk;
     }
 }
