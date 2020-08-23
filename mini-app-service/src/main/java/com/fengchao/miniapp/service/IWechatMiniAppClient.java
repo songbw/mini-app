@@ -40,4 +40,7 @@ public interface IWechatMiniAppClient {
 
     boolean
     isValidIAppId(String iAppId);
+
+    void
+    updateWeChatConfigByVendor(String renterId, String wechatId);
 }

@@ -7,6 +7,7 @@ import com.fengchao.miniapp.dto.VendorAppConfig;
 import com.fengchao.miniapp.dto.VendorResponse;
 import com.fengchao.miniapp.dto.VendorWechatConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -47,7 +48,12 @@ public class RenterConfig {
 
     public VendorAlipayConfig
     getAliPayConfig(String renterId, String appId){
-        VendorAppConfig appConfig = getAppConfig(renterId,appId);
+        VendorAppConfig appConfig;
+        if(StringUtils.isBlank(renterId)) {
+           appConfig = getAppConfig(appId);
+        } else {
+           appConfig=getAppConfig(renterId, appId);
+        }
         if(null == appConfig){
             return null;
         }
@@ -61,7 +67,12 @@ public class RenterConfig {
 
     public VendorWechatConfig
     getWxConfig(String renterId, String appId){
-        VendorAppConfig appConfig = getAppConfig(renterId,appId);
+        VendorAppConfig appConfig;
+        if(StringUtils.isBlank(renterId)) {
+            appConfig = getAppConfig(appId);
+        } else {
+            appConfig=getAppConfig(renterId, appId);
+        }
         if(null == appConfig){
             return null;
         }
@@ -143,6 +154,16 @@ public class RenterConfig {
     getAppConfig(String renterId, String appId){
         for(VendorAppConfig v: appConfigs){
             if(v.getAppId().equals(appId) && v.getRenterId().equals(renterId)){
+                return v;
+            }
+        }
+        return null;
+    }
+
+    private VendorAppConfig
+    getAppConfig(String appId){
+        for(VendorAppConfig v: appConfigs){
+            if(v.getAppId().equals(appId)){
                 return v;
             }
         }

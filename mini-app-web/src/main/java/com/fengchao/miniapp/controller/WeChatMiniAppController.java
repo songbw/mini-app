@@ -46,7 +46,6 @@ public class WeChatMiniAppController {
     private PaymentServiceImpl paymentService;
     private RefundServiceImpl refundService;
     private IAggPayClient aggPayClient;
-    private RenterConfig renterConfig;
 
     @Autowired
     public WeChatMiniAppController(IAggPayClient aggPayClient,
@@ -54,7 +53,6 @@ public class WeChatMiniAppController {
                                    PaymentServiceImpl paymentService,
                                    UserInfoServiceImpl userInfoServic,
                                    RedisDAO redisDAO,
-                                   RenterConfig renterConfig,
                                    WeChatMiniAppClientImpl weChatMiniAppClient){
 
         this.weChatMiniAppClient = weChatMiniAppClient;
@@ -63,7 +61,6 @@ public class WeChatMiniAppController {
         this.paymentService = paymentService;
         this.refundService = refundService;
         this.aggPayClient = aggPayClient;
-        this.renterConfig = renterConfig;
 
     }
 
@@ -663,7 +660,7 @@ public class WeChatMiniAppController {
 
         String reqInfo;
         try {
-            reqInfo = weChatMiniAppClient.DecodePkcs7(reqInfoObj.toString());
+            reqInfo = weChatMiniAppClient.decodePKCS7(reqInfoObj.toString());
         }catch (Exception e){
             log.error("{} {}",functionDescription,e.getMessage());
             return failXml;
@@ -892,7 +889,7 @@ public class WeChatMiniAppController {
         log.info("{} renterId={} wechatId={} ", functionDescription,renterId,wechatId);
 
         String resultOk = "success";
-        renterConfig.freshWxConfig(renterId,wechatId);
+        weChatMiniAppClient.updateWeChatConfigByVendor(renterId,wechatId);
 
         return resultOk;
     }
